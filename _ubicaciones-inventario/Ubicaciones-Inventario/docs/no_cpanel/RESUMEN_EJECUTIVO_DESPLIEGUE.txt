@@ -1,0 +1,74 @@
+═══════════════════════════════════════════════════════════════
+  RESUMEN EJECUTIVO: Despliegue WMS en CPanel desde Cero
+═══════════════════════════════════════════════════════════════
+
+🎯 OBJETIVO:
+  Desplegar WMS correctamente con proyecto fuera de public_html
+  y todo funcionando sin errores.
+
+═══════════════════════════════════════════════════════════════
+
+📍 RUTA CORRECTA DEL PROYECTO:
+  /home2/adesa/wms.adesa.com.do/
+
+  ❌ NO en: /home2/adesa/public_html/wms.adesa.com.do/
+  ✅ SÍ en: /home2/adesa/wms.adesa.com.do/
+
+═══════════════════════════════════════════════════════════════
+
+📋 PASOS RÁPIDOS (Orden Exacto):
+
+1️⃣  LIMPIAR
+    → Destruir Python App existente (si hay)
+    → Limpiar carpetas antiguas
+
+2️⃣  CREAR PYTHON APP
+    → CPanel → Setup Python App → Create
+    → Application Root: wms.adesa.com.do (SIN public_html)
+    → Startup File: passenger_wsgi.py
+    → Entry Point: application
+
+3️⃣  SUBIR ARCHIVOS
+    → A /home2/adesa/wms.adesa.com.do/
+    → Incluye: app_wms.py, passenger_wsgi.py, config.py,
+       requirements.txt, init_db.py, install_deps.py,
+       test_deps.py, y todas las carpetas (api/, routes/, etc.)
+
+4️⃣  INSTALAR DEPENDENCIAS
+    → Python App → Execute python script
+    → Ejecutar: install_deps.py
+    → Verificar: test_deps.py
+
+5️⃣  VARIABLES DE ENTORNO
+    → Python App → Environment variables
+    → Agregar: FLASK_ENV, SECRET_KEY, ADM_EMAIL, etc.
+
+6️⃣  INICIALIZAR BD
+    → Python App → Execute python script
+    → Ejecutar: init_db.py
+
+7️⃣  REINICIAR Y PROBAR
+    → Python App → GUARDAR / RESTART
+    → Abrir: https://wms.adesa.com.do/
+
+═══════════════════════════════════════════════════════════════
+
+✅ CHECKLIST RÁPIDO:
+
+[ ] Python App creada (Application Root: wms.adesa.com.do)
+[ ] Archivos subidos a /home2/adesa/wms.adesa.com.do/
+[ ] install_deps.py ejecutado (dependencias instaladas)
+[ ] test_deps.py muestra todo instalado
+[ ] Variables de entorno configuradas
+[ ] init_db.py ejecutado sin errores
+[ ] App reiniciada
+[ ] https://wms.adesa.com.do/ carga correctamente
+
+═══════════════════════════════════════════════════════════════
+
+📖 Para guía detallada completa, ver:
+   docs/GUIA_DESPLIEGUE_DESDE_CERO.md
+
+═══════════════════════════════════════════════════════════════
+
+

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abastecimiento - WMS</title>
+    <link rel="stylesheet" href="/static/css/wms.css">
+    <link rel="stylesheet" href="/static/css/abastecimiento.css">
+</head>
+<body>
+    <header class="wms-header">
+        <div class="wms-header-inner">
+            <div class="wms-header-title">
+                <span class="module-icon">📊</span>
+                <h1>Abastecimiento</h1>
+            </div>
+            <div class="wms-header-actions">
+                <span class="wms-header-user" id="user-info">Cargando...</span>
+                <a href="/" class="wms-btn wms-btn-secondary wms-btn-sm" title="Inicio">🏠 <span class="wms-header-btn-label">Inicio</span></a>
+                <button type="button" class="wms-btn wms-btn-secondary wms-btn-sm" onclick="cerrarSesion()" title="Cerrar sesión"><span class="wms-icon-logout" aria-hidden="true"></span> <span class="wms-header-btn-label">Salir</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="wms-page abastecimiento-page">
+        <div id="message-error" class="wms-toast wms-toast-error" style="display:none;"></div>
+        <div id="message-success" class="wms-toast wms-toast-success" style="display:none;"></div>
+
+        <div id="abastecimiento-config-alert" class="wms-wms-warning" style="display:none; margin-bottom: var(--space-4);"></div>
+        <div id="abastecimiento-sync-alert" class="wms-wms-warning" style="display:none; margin-bottom: var(--space-4);" role="status" aria-live="polite"></div>
+
+        <div class="abastecimiento-meta wms-card" style="margin-bottom: var(--space-4);">
+            <div class="wms-card-body">
+                <p class="abastecimiento-meta-line"><strong>Ubicación objetivo:</strong> <span id="meta-location-name">—</span></p>
+                <p class="abastecimiento-meta-line"><small>Última sync ubicación: <span id="meta-last-sync">—</span> <span class="abast-tz-hint">(hora local)</span> · Estado: <span id="meta-sync-status">—</span></small></p>
+            </div>
+        </div>
+
+        <div class="abastecimiento-kpis" id="abastecimiento-kpis">
+            <div class="abastecimiento-kpi"><span class="abastecimiento-kpi-value" id="kpi-activos">—</span><span class="abastecimiento-kpi-label">Productos activos</span></div>
+            <div class="abastecimiento-kpi"><span class="abastecimiento-kpi-value" id="kpi-bajo">—</span><span class="abastecimiento-kpi-label">Bajo mínimo</span></div>
+            <div class="abastecimiento-kpi"><span class="abastecimiento-kpi-value" id="kpi-sin">—</span><span class="abastecimiento-kpi-label">Sin política</span></div>
+            <div class="abastecimiento-kpi"><span class="abastecimiento-kpi-value" id="kpi-cero">—</span><span class="abastecimiento-kpi-label">Stock ≤ 0</span></div>
+            <div class="abastecimiento-kpi"><span class="abastecimiento-kpi-value" id="kpi-sugerido">—</span><span class="abastecimiento-kpi-label">Suma sugerida envío</span></div>
+            <div class="abastecimiento-kpi"><span class="abastecimiento-kpi-value" id="kpi-rango">—</span><span class="abastecimiento-kpi-label">% en rango</span></div>
+        </div>
+
+        <div class="wms-card">
+            <div class="wms-card-body">
+                <div class="abastecimiento-toolbar">
+                    <div class="abastecimiento-filtros">
+                        <input type="search" id="filtro-q" class="wms-input" placeholder="Buscar SKU o nombre… (Enter)" autocomplete="off" title="Pulse Enter para buscar">
+                        <select id="filtro-per-page" class="wms-input" title="Filas por página">
+                            <option value="10">10 por página</option>
+                            <option value="50" selected>50 por página</option>
+                            <option value="100">100 por página</option>
+                        </select>
+                        <select id="filtro-estado" class="wms-input" title="Estado">
+                            <option value="todos">Todos los estados</option>
+                            <option value="sin_config">Sin configuración</option>
+                            <option value="bajo_minimo">Bajo mínimo</option>
+                            <option value="en_rango">En rango</option>
+                            <option value="sobre_maximo">Sobre máximo</option>
+                        </select>
+                        <select id="filtro-stock" class="wms-input" title="Stock en ubicación">
+                            <option value="todos">Todo el stock</option>
+                            <option value="solo_cero">Solo stock ≤ 0</option>
+                            <option value="solo_positivo">Solo stock &gt; 0</option>
+                        </select>
+                        <select id="filtro-universo" class="wms-input" title="Universo">
+                            <option value="incluidos" selected>Solo incluidos</option>
+                            <option value="no_incluidos">Solo no incluidos</option>
+                            <option value="todos">Todos</option>
+                        </select>
+                    </div>
+                    <div class="abastecimiento-acciones">
+                        <button type="button" class="wms-btn wms-btn-secondary wms-btn-sm" id="btn-buscar">Filtrar</button>
+                        <button type="button" class="wms-btn wms-btn-secondary wms-btn-sm" id="btn-export-bajo">Excel bajo mínimo</button>
+                        <button type="button" class="wms-btn wms-btn-secondary wms-btn-sm" id="btn-export-completo">Excel completo</button>
+                        <label class="wms-btn wms-btn-secondary wms-btn-sm" style="cursor:pointer;">
+                            Importar
+                            <input type="file" id="input-import" accept=".xlsx,.csv" style="display:none;">
+                        </label>
+                    </div>
+                </div>
+
+                <div id="import-preview" class="abastecimiento-import-preview" style="display:none;"></div>
+
+                <div class="wms-table-wrap" style="margin-top: var(--space-4);">
+                    <table class="wms-table wms-table--compact" id="tabla-productos">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>Nombre</th>
+                                <th>Stock actual</th>
+                                <th>Mín</th>
+                                <th>Máx</th>
+                                <th>Estado</th>
+                                <th>Prioridad</th>
+                                <th>Sugerido</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-productos-body"></tbody>
+                    </table>
+                </div>
+                <div class="abastecimiento-paginacion" id="paginacion"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-politica" class="abastecimiento-modal" style="display:none;" role="dialog" aria-modal="true">
+        <div class="abastecimiento-modal-backdrop" onclick="cerrarModalPolitica()"></div>
+        <div class="abastecimiento-modal-dialog wms-card">
+            <div class="wms-card-body">
+                <h2 id="modal-politica-titulo" style="margin-top:0;">Política de abastecimiento</h2>
+                <p class="abastecimiento-meta-line"><strong id="modal-politica-sku"></strong></p>
+                <input type="hidden" id="modal-producto-id">
+                <div class="wms-form-group">
+                    <label class="wms-label" for="modal-min">Mínimo</label>
+                    <input type="number" id="modal-min" class="wms-input" step="0.01" min="0">
+                </div>
+                <div class="wms-form-group">
+                    <label class="wms-label" for="modal-max">Máximo</label>
+                    <input type="number" id="modal-max" class="wms-input" step="0.01" min="0">
+                </div>
+                <div class="wms-form-group">
+                    <label class="wms-label"><input type="checkbox" id="modal-activo" checked> Política activa</label>
+                </div>
+                <div class="wms-form-group">
+                    <label class="wms-label"><input type="checkbox" id="modal-es-base"> Incluir en base de abastecimiento</label>
+                </div>
+                <div class="wms-form-group">
+                    <label class="wms-label" for="modal-obs">Observación (opcional)</label>
+                    <input type="text" id="modal-obs" class="wms-input" maxlength="500">
+                </div>
+                <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;margin-top:var(--space-4);">
+                    <button type="button" class="wms-btn wms-btn-primary" onclick="guardarPolitica()">Guardar</button>
+                    <button type="button" class="wms-btn wms-btn-secondary" onclick="cerrarModalPolitica()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/security_utils.js"></script>
+    <script src="/static/js/wms-common.js"></script>
+    <script src="/static/js/abastecimiento.js"></script>
+</body>
+</html>

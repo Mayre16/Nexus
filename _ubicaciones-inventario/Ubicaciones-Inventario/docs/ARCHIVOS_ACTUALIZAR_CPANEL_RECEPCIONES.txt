@@ -1,0 +1,119 @@
+===========================================================
+ARCHIVOS A ACTUALIZAR EN CPANEL - MÓDULO RECEPCIONES
+===========================================================
+
+FECHA: 2026-01-19
+MÓDULO: Recepción (Entradas de Inventario)
+
+===========================================================
+📁 ARCHIVOS NUEVOS (CREAR)
+===========================================================
+
+1. routes/recepciones.py
+   → Nuevo blueprint para manejar recepciones
+   → Endpoints: /api/recepciones/buscar y /api/recepciones/registrar
+
+2. templates/recepciones.html
+   → Interfaz frontend para el módulo de Recepción
+   → Permite buscar recepciones y asignar ubicaciones físicas
+
+===========================================================
+📝 ARCHIVOS MODIFICADOS (ACTUALIZAR)
+===========================================================
+
+3. api/adm_cloud.py
+   → AGREGADOS métodos para Receptions:
+      - listar_recepciones()
+      - obtener_recepcion_por_guid()
+      - buscar_recepcion_por_docid()
+
+4. utils/helpers.py
+   → AGREGADA función obtener_productos_recepcion()
+   → Extrae Items de una recepción (incluye PendingCompletedQuantity)
+
+5. routes/__init__.py
+   → AGREGADO recepciones_bp a las importaciones y exports
+
+6. app_wms.py
+   → AGREGADO import de recepciones_bp
+   → AGREGADO registro del blueprint recepciones_bp
+   → AGREGADA ruta @app.route('/recepciones') para la página
+
+===========================================================
+✅ ORDEN SUGERIDO DE ACTUALIZACIÓN
+===========================================================
+
+1. PRIMERO: Archivos nuevos
+   ✓ routes/recepciones.py
+   ✓ templates/recepciones.html
+
+2. SEGUNDO: Archivos de utilidades/API
+   ✓ api/adm_cloud.py
+   ✓ utils/helpers.py
+
+3. TERCERO: Archivos de integración
+   ✓ routes/__init__.py
+   ✓ app_wms.py
+
+===========================================================
+🧪 VERIFICACIÓN POST-ACTUALIZACIÓN
+===========================================================
+
+Después de subir todos los archivos:
+
+1. Acceder a: https://wms.adesa.com.do/recepciones
+2. Buscar una recepción por DocID (ej: 00000350)
+3. Verificar que se muestren los productos recibidos
+4. Asignar ubicaciones físicas a los productos
+5. Registrar la recepción
+
+===========================================================
+📋 ENDPOINTS NUEVOS DISPONIBLES
+===========================================================
+
+POST /api/recepciones/buscar
+→ Busca una recepción por DocID en ADM Cloud
+
+POST /api/recepciones/registrar
+→ Registra recepción asignando ubicaciones físicas
+→ Crea movimientos tipo RECEIPT
+→ Incrementa StockUbicacion
+
+GET /recepciones
+→ Página HTML del módulo de Recepción
+
+===========================================================
+🔗 INTEGRACIÓN CON ADM CLOUD
+===========================================================
+
+Endpoints ADM Cloud utilizados:
+- GET /api/Receptions (listar recepciones)
+- GET /api/Receptions/{ID} (detalle de recepción)
+
+Campos importantes:
+- DocID: Número de recepción
+- Items[]: Productos recibidos
+  - ItemID, ItemSKU, Name, Quantity, PendingCompletedQuantity
+
+===========================================================
+✅ LISTA FINAL RESUMIDA
+===========================================================
+
+ARCHIVOS NUEVOS (2):
+1. routes/recepciones.py
+2. templates/recepciones.html
+
+ARCHIVOS MODIFICADOS (4):
+3. api/adm_cloud.py
+4. utils/helpers.py
+5. routes/__init__.py
+6. app_wms.py
+
+TOTAL: 6 archivos
+
+===========================================================
+
+
+
+
+

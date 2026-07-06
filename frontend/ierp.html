@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA Nexus · Contabilidad y ventas</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { adesa: { red: "#be1622", red2: "#ef1d2b", gold: "#fcb900", ink: "#111111" } },
+            fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+    <header class="bg-adesa-ink text-white">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center gap-4 justify-between">
+        <div class="flex items-center gap-3">
+          <a href="/dashboard.html" class="text-sm text-gray-400 hover:text-white">← Panel</a>
+          <span class="text-lg font-bold">Nexus Contabilidad</span>
+          <span class="text-xs bg-white/10 px-2 py-0.5 rounded-full">Ventas · CxC · DGII</span>
+        </div>
+        <div class="flex gap-3 text-xs items-center">
+          <span id="estadoBadge" class="px-2 py-1 rounded bg-white/10 text-gray-300">…</span>
+          <a href="/leads.html" class="text-gray-400 hover:text-white">Leads</a>
+          <a href="/almacen.html" class="text-adesa-gold hover:underline">Almacén →</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-6">
+      <div class="flex flex-wrap gap-2 mb-4">
+        <button type="button" data-tab="resumen" class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg bg-adesa-red text-white">Resumen</button>
+        <button type="button" data-tab="cotizaciones" class="tab-btn px-4 py-2 text-sm rounded-lg bg-white ring-1 ring-gray-200 hover:bg-gray-50">Cotizaciones</button>
+        <button type="button" data-tab="facturas" class="tab-btn px-4 py-2 text-sm rounded-lg bg-white ring-1 ring-gray-200 hover:bg-gray-50">Facturas</button>
+        <button type="button" data-tab="clientes" class="tab-btn px-4 py-2 text-sm rounded-lg bg-white ring-1 ring-gray-200 hover:bg-gray-50">Clientes</button>
+        <button type="button" data-tab="productos" class="tab-btn px-4 py-2 text-sm rounded-lg bg-white ring-1 ring-gray-200 hover:bg-gray-50">Productos</button>
+      </div>
+
+      <!-- RESUMEN -->
+      <section id="sec-resumen" class="tab-sec">
+        <div id="gridResumen" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+        <p id="resumenError" class="hidden mt-4 text-sm text-red-600 bg-red-50 rounded-xl p-4"></p>
+      </section>
+
+      <!-- LISTA + DETALLE (cotizaciones, facturas, clientes, productos) -->
+      <section id="sec-lista" class="tab-sec hidden">
+        <div class="flex flex-wrap gap-3 mb-4">
+          <input id="buscar" type="search" placeholder="Buscar…" class="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white flex-1 min-w-[200px]" />
+          <button id="btnBuscar" type="button" class="px-4 py-2 rounded-lg bg-gray-800 text-white text-sm font-bold">Buscar</button>
+        </div>
+        <div class="grid lg:grid-cols-5 gap-4">
+          <div class="lg:col-span-2 bg-white rounded-2xl ring-1 ring-gray-100 overflow-hidden">
+            <div class="px-4 py-3 border-b font-bold text-sm flex justify-between">
+              <span id="listaTitulo">Listado</span>
+              <span id="listaCount" class="text-gray-400 font-normal"></span>
+            </div>
+            <ul id="listaItems" class="divide-y max-h-[70vh] overflow-y-auto"></ul>
+            <p id="listaVacia" class="hidden text-center text-gray-400 text-sm py-10">Sin registros</p>
+          </div>
+          <div id="panelDetalle" class="lg:col-span-3 bg-white rounded-2xl ring-1 ring-gray-100 p-5 hidden">
+            <span id="detRef" class="text-xs font-mono text-adesa-red font-bold"></span>
+            <h2 id="detTitulo" class="text-lg font-bold mt-1"></h2>
+            <p id="detMeta" class="text-xs text-gray-500 mt-1 mb-4"></p>
+            <ul id="detLineas" class="text-sm space-y-2 mb-4"></ul>
+            <div id="detExtra" class="text-sm text-gray-600"></div>
+          </div>
+          <div id="panelVacio" class="lg:col-span-3 flex items-center justify-center text-gray-400 text-sm min-h-[300px] rounded-2xl bg-white ring-1 ring-gray-100">
+            Selecciona un registro
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      function leerCookie(n) {
+        return document.cookie.split("; ").find(c => c.startsWith(n + "="))?.split("=")[1] || "";
+      }
+
+      const TITULOS = {
+        cotizaciones: "Cotizaciones",
+        facturas: "Facturas de venta",
+        clientes: "Clientes",
+        productos: "Productos",
+      };
+
+      let tabActual = new URLSearchParams(location.search).get("tab") || "resumen";
+      let itemActual = null;
+      const highlightId = new URLSearchParams(location.search).get("highlight");
+
+      function fmtMoney(n, cur) {
+        const v = Number(n);
+        if (Number.isNaN(v)) return "—";
+        return (cur || "DOP") + " " + v.toLocaleString("es-DO", { minimumFractionDigits: 2 });
+      }
+
+      async function api(url, opts = {}) {
+        const r = await fetch(url, {
+          credentials: "include",
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": leerCookie("nexus_csrf"), ...opts.headers },
+          ...opts,
+        });
+        if (r.status === 401) { location.href = "/"; throw new Error("auth"); }
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || j.message || "Error");
+        return j;
+      }
+
+      function activarTab(tab) {
+        tabActual = tab;
+        const u = new URL(location.href);
+        u.searchParams.set("tab", tab);
+        history.replaceState(null, "", u);
+        document.querySelectorAll(".tab-btn").forEach(b => {
+          const on = b.dataset.tab === tab;
+          b.className = "tab-btn px-4 py-2 text-sm rounded-lg " +
+            (on ? "font-semibold bg-adesa-red text-white" : "bg-white ring-1 ring-gray-200 hover:bg-gray-50");
+        });
+        document.getElementById("sec-resumen").classList.toggle("hidden", tab !== "resumen");
+        document.getElementById("sec-lista").classList.toggle("hidden", tab === "resumen");
+        if (tab === "resumen") cargarResumen();
+        else cargarLista(tab);
+      }
+
+      async function cargarEstado() {
+        try {
+          const e = await api("/api/ierp-nexus/estado");
+          const el = document.getElementById("estadoBadge");
+          if (e.conectado) {
+            el.textContent = "iERP conectado";
+            el.className = "px-2 py-1 rounded bg-green-900/40 text-green-200 text-xs";
+          } else {
+            el.textContent = "iERP offline";
+            el.className = "px-2 py-1 rounded bg-red-900/40 text-red-200 text-xs";
+            el.title = e.error || "";
+          }
+        } catch {
+          document.getElementById("estadoBadge").textContent = "Sin conexión";
+        }
+      }
+
+      async function cargarResumen() {
+        const grid = document.getElementById("gridResumen");
+        const err = document.getElementById("resumenError");
+        err.classList.add("hidden");
+        grid.innerHTML = '<p class="text-sm text-gray-400 col-span-full">Cargando…</p>';
+        try {
+          const { stats } = await api("/api/ierp-nexus/resumen");
+          const cards = [
+            { label: "Ventas del mes", value: fmtMoney(stats?.salesThisMonth), icon: "📈" },
+            { label: "Compras del mes", value: fmtMoney(stats?.purchasesThisMonth), icon: "🛒" },
+            { label: "CxC pendiente", value: fmtMoney(stats?.receivables), icon: "💰" },
+            { label: "Utilidad bruta", value: fmtMoney(stats?.grossProfit), icon: "📊" },
+          ];
+          grid.innerHTML = cards.map(c => `
+            <div class="bg-white rounded-2xl ring-1 ring-gray-100 p-5">
+              <div class="text-2xl mb-2">${c.icon}</div>
+              <div class="text-2xl font-bold text-adesa-red">${c.value}</div>
+              <div class="text-xs text-gray-500 mt-1">${c.label}</div>
+            </div>`).join("");
+        } catch (e) {
+          grid.innerHTML = "";
+          err.textContent = e.message;
+          err.classList.remove("hidden");
+        }
+      }
+
+      function endpointLista(tab) {
+        return `/api/ierp-nexus/${tab}` + (document.getElementById("buscar").value
+          ? "?search=" + encodeURIComponent(document.getElementById("buscar").value) : "");
+      }
+
+      function endpointDetalle(tab, id) {
+        return `/api/ierp-nexus/${tab}/${id}`;
+      }
+
+      function tituloItem(tab, it) {
+        if (tab === "cotizaciones") return it.orderNumber || it.id?.slice(0, 8);
+        if (tab === "facturas") return it.invoiceNumber || it.number || it.id?.slice(0, 8);
+        if (tab === "clientes") return it.name || it.tradeName;
+        if (tab === "productos") return it.name || it.sku;
+        return it.id;
+      }
+
+      function subtituloItem(tab, it) {
+        if (tab === "cotizaciones") return `${it.companyName || it.company?.name || "—"} · ${fmtMoney(it.total, it.currency)}`;
+        if (tab === "facturas") return `${it.companyName || "—"} · ${fmtMoney(it.total, it.currency)} · ${it.status || ""}`;
+        if (tab === "clientes") return it.email || it.taxId || it.rnc || "—";
+        if (tab === "productos") return `${it.sku || "—"} · ${fmtMoney(it.salePrice || it.price, it.currency)}`;
+        return "";
+      }
+
+      async function cargarLista(tab) {
+        document.getElementById("listaTitulo").textContent = TITULOS[tab] || tab;
+        document.getElementById("panelDetalle").classList.add("hidden");
+        document.getElementById("panelVacio").classList.remove("hidden");
+        itemActual = null;
+        const ul = document.getElementById("listaItems");
+        const vacio = document.getElementById("listaVacia");
+        ul.innerHTML = "";
+        vacio.classList.add("hidden");
+        try {
+          const { items } = await api(endpointLista(tab));
+          document.getElementById("listaCount").textContent = items.length ? `${items.length}` : "";
+          if (!items.length) { vacio.classList.remove("hidden"); return; }
+          items.forEach(it => {
+            const li = document.createElement("li");
+            const id = it.id;
+            const hl = highlightId && id === highlightId;
+            li.className = "px-4 py-3 cursor-pointer hover:bg-gray-50" + (hl ? " bg-red-50 ring-1 ring-inset ring-adesa-red/30" : "");
+            li.innerHTML = `<div class="font-semibold text-sm">${tituloItem(tab, it)}</div>
+              <div class="text-xs text-gray-500">${subtituloItem(tab, it)}</div>`;
+            li.onclick = () => abrirDetalle(tab, id);
+            ul.appendChild(li);
+            if (hl) abrirDetalle(tab, id);
+          });
+        } catch (e) {
+          vacio.textContent = e.message;
+          vacio.classList.remove("hidden");
+        }
+      }
+
+      async function abrirDetalle(tab, id) {
+        const data = await api(endpointDetalle(tab, id));
+        itemActual = { tab, id, data };
+        document.getElementById("panelVacio").classList.add("hidden");
+        document.getElementById("panelDetalle").classList.remove("hidden");
+
+        const d = data;
+        if (tab === "cotizaciones") {
+          document.getElementById("detRef").textContent = d.orderNumber || d.id;
+          document.getElementById("detTitulo").textContent = d.companyName || d.company?.name || "Cotización";
+          document.getElementById("detMeta").textContent = `${d.status || "QUOTE"} · ${fmtMoney(d.total, d.currency)} · ${d.date ? new Date(d.date).toLocaleDateString("es-DO") : ""}`;
+          document.getElementById("detLineas").innerHTML = (d.lines || []).map(l =>
+            `<li class="flex justify-between bg-gray-50 rounded-lg px-3 py-2">
+              <span>${l.quantity}× ${l.description || l.productName || "—"}</span>
+              <span class="font-mono text-xs">${fmtMoney(l.subtotal || l.total, d.currency)}</span>
+            </li>`).join("") || '<li class="text-gray-400 text-xs">Sin líneas</li>';
+          document.getElementById("detExtra").innerHTML = d.notes ? `<p class="text-xs mt-2"><strong>Notas:</strong> ${d.notes}</p>` : "";
+        } else if (tab === "facturas") {
+          document.getElementById("detRef").textContent = d.invoiceNumber || d.number || d.id;
+          document.getElementById("detTitulo").textContent = d.companyName || "Factura";
+          document.getElementById("detMeta").textContent = `${d.status || ""} · ${fmtMoney(d.total, d.currency)}`;
+          document.getElementById("detLineas").innerHTML = (d.lines || []).map(l =>
+            `<li class="flex justify-between bg-gray-50 rounded-lg px-3 py-2">
+              <span>${l.quantity}× ${l.description || "—"}</span>
+              <span class="font-mono text-xs">${fmtMoney(l.subtotal || l.total, d.currency)}</span>
+            </li>`).join("") || "";
+          document.getElementById("detExtra").innerHTML = "";
+        } else if (tab === "clientes") {
+          document.getElementById("detRef").textContent = d.taxId || d.rnc || "";
+          document.getElementById("detTitulo").textContent = d.name || d.tradeName;
+          document.getElementById("detMeta").textContent = [d.email, d.phone].filter(Boolean).join(" · ");
+          document.getElementById("detLineas").innerHTML = "";
+          document.getElementById("detExtra").innerHTML = `<p>${d.address || d.city || ""}</p>`;
+        } else if (tab === "productos") {
+          document.getElementById("detRef").textContent = d.sku || "";
+          document.getElementById("detTitulo").textContent = d.name;
+          document.getElementById("detMeta").textContent = fmtMoney(d.salePrice || d.price, d.currency);
+          document.getElementById("detLineas").innerHTML = "";
+          document.getElementById("detExtra").innerHTML = `<p class="text-xs">${d.description || ""}</p>`;
+        }
+      }
+
+      document.querySelectorAll(".tab-btn").forEach(b => {
+        b.onclick = () => activarTab(b.dataset.tab);
+      });
+      document.getElementById("btnBuscar").onclick = () => cargarLista(tabActual);
+      document.getElementById("buscar").onkeydown = e => { if (e.key === "Enter") cargarLista(tabActual); };
+
+      api("/api/auth/me").then(() => {
+        cargarEstado();
+        if (highlightId && tabActual === "resumen") activarTab("cotizaciones");
+        else activarTab(tabActual);
+      }).catch(() => location.href = "/");
+    </script>
+  </body>
+</html>

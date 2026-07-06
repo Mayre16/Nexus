@@ -1,0 +1,15 @@
+{
+  "name": "adesa-nexus",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ADESA Nexus - Suite empresarial unificada (orquestación local)",
+  "scripts": {
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "backend": "node backend/server.js",
+    "backend:dev": "node --watch backend/server.js",
+    "dev": "docker compose up -d && node backend/server.js",
+    "stop": "docker compose down"
+  }
+}

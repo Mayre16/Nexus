@@ -1,0 +1,107 @@
+ARCHIVOS MODIFICADOS PARA MEJORAR FILTROS DEL HISTORIAL DE AJUSTES
+====================================================================
+
+Fecha: 2026-01-26
+Descripción: Corrección y mejora de filtros en el historial de ajustes
+
+PROBLEMAS CORREGIDOS:
+---------------------
+
+1. **Filtro "Tipo Ajuste" no funcionaba:**
+   - Opciones incorrectas: "Ajuste de Inventario" (no existía)
+   - Valores reales: "Físico" y "ADM"
+   - Backend no filtraba por tipo_ajuste
+
+2. **Filtro "Ubicación Física" nombre confuso:**
+   - Nombre sugería solo ubicaciones físicas
+   - También filtra ubicaciones ADM (ej: MIRADOR SUR)
+
+3. **Falta filtro por SKU:**
+   - Tabla muestra SKUs pero no se puede filtrar por ellos
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. templates/ajustes_historial.html
+   - Línea 334: Renombrado "Ubicación Física" → "Ubicación"
+   - Línea 335: Actualizado placeholder a "Ej: 2P1D01N1, MIRADOR SUR"
+   - Líneas 337-343: Agregado filtro "SKU" (nuevo)
+   - Líneas 344-349: Corregidas opciones de "Tipo Ajuste" a "Físico" y "ADM"
+   - Línea 448: Agregado parámetro `sku` en `aplicarFiltros()`
+   - Línea 550: Agregado `sku` en `limpiarFiltros()`
+
+2. routes/historiales.py
+   - Línea 418: Agregado parámetro `sku` del request
+   - Líneas 456-473: Implementado filtro por SKU usando subquery
+   - Línea 542: Renombrado variable `tipo_ajuste` → `tipo_ajuste_calculado`
+   - Líneas 545-547: Agregado filtro por `tipo_ajuste` (filtra después de calcular tipo)
+   - Línea 559: Corregido uso de `tipo_ajuste_calculado` en resultados
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. **Renombrado "Ubicación Física" → "Ubicación":**
+   - Nombre más preciso (filtra físicas y ADM)
+   - Placeholder actualizado con ejemplos de ambos tipos
+
+2. **Corregido "Tipo Ajuste":**
+   - Opciones: "Todos", "Físico", "ADM"
+   - Backend filtra correctamente por tipo calculado
+
+3. **Agregado filtro por SKU:**
+   - Nuevo input de texto "SKU"
+   - Backend filtra movimientos que contengan el SKU especificado
+   - Convierte a mayúsculas automáticamente
+
+COMPORTAMIENTO:
+---------------
+
+**ANTES:**
+- Filtro "Tipo Ajuste": No funcionaba (opciones incorrectas)
+- Filtro "Ubicación Física": Nombre confuso
+- No había filtro por SKU
+
+**DESPUÉS:**
+- Filtro "Tipo Ajuste": Funciona correctamente (Físico/ADM)
+- Filtro "Ubicación": Nombre claro, filtra físicas y ADM
+- Filtro "SKU": Permite buscar ajustes de un producto específico
+
+**Ejemplo de uso:**
+1. Usuario selecciona "Tipo Ajuste: ADM" → Solo muestra ajustes ADM
+2. Usuario escribe "SKU: VP1" → Solo muestra ajustes del producto VP1
+3. Usuario escribe "Ubicación: MIRADOR" → Muestra ajustes de MIRADOR SUR
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+----------------------------------------
+
+1. Subir los archivos modificados:
+   - templates/ajustes_historial.html
+   - routes/historiales.py
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario.
+
+4. Probar:
+   - Filtrar por "Tipo Ajuste: Físico" → Debe mostrar solo ajustes físicos
+   - Filtrar por "Tipo Ajuste: ADM" → Debe mostrar solo ajustes ADM
+   - Filtrar por "SKU: VP1" → Debe mostrar solo ajustes del producto VP1
+   - Filtrar por "Ubicación: MIRADOR" → Debe mostrar ajustes de MIRADOR SUR
+
+RESULTADO ESPERADO:
+-------------------
+
+Después de la corrección:
+- ✅ El filtro "Tipo Ajuste" funciona correctamente
+- ✅ El filtro "Ubicación" tiene nombre claro
+- ✅ Se puede filtrar por SKU específico
+- ✅ Todos los filtros funcionan en conjunto
+- ✅ Los filtros se pueden limpiar correctamente
+
+
+
+
+
+
+
+

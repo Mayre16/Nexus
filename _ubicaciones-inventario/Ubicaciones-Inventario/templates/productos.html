@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Productos - WMS</title>
+    <link rel="stylesheet" href="/static/css/wms.css">
+    <link rel="stylesheet" href="/static/css/productos.css">
+</head>
+<body>
+    <header class="wms-header">
+        <div class="wms-header-inner">
+            <div class="wms-header-title">
+                <span class="module-icon">🔍</span>
+                <h1>Consulta de Productos</h1>
+            </div>
+            <div class="wms-header-actions">
+                <span class="wms-header-user" id="user-info">Cargando...</span>
+                <a href="/" class="wms-btn wms-btn-secondary wms-btn-sm" title="Inicio">🏠 <span class="wms-header-btn-label">Inicio</span></a>
+                <button type="button" class="wms-btn wms-btn-secondary wms-btn-sm" onclick="cerrarSesion()" title="Cerrar sesión"><span class="wms-icon-logout" aria-hidden="true"></span> <span class="wms-header-btn-label">Salir</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="wms-page">
+        <!-- Mensajes -->
+        <div id="message-error" class="wms-toast wms-toast-error"></div>
+        <div id="message-success" class="wms-toast wms-toast-success"></div>
+
+        <!-- Buscar Producto -->
+        <div class="wms-card" style="margin-bottom: var(--space-5);">
+            <div class="wms-card-body">
+                <h2 style="margin: 0 0 var(--space-5) 0; font-size: var(--font-size-md); font-weight: 600;">Buscar Producto</h2>
+                <p class="productos-search-hint">Desliza horizontalmente para elegir el tipo de búsqueda</p>
+                <div class="search-buttons">
+                    <button type="button" class="btn-search-type active" data-type="sku" onclick="seleccionarTipoBusqueda('sku')">
+                        Por SKU
+                    </button>
+                    <button type="button" class="btn-search-type" data-type="nombre" onclick="seleccionarTipoBusqueda('nombre')">
+                        Por Nombre
+                    </button>
+                    <button type="button" class="btn-search-type" data-type="codigo_barras" onclick="seleccionarTipoBusqueda('codigo_barras')">
+                        Por Código de Barras
+                    </button>
+                </div>
+                <div class="wms-form-group">
+                    <label class="wms-label" for="busqueda-input">Buscar Producto</label>
+                    <div class="wms-input-with-scan">
+                        <input type="text" class="wms-input" id="busqueda-input"
+                               placeholder="Ingresa SKU, nombre o código de barras"
+                               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                               autofocus>
+                        <button type="button" class="wms-btn wms-btn-secondary wms-btn-scan" onclick="abrirEscanerBusquedaProducto()"
+                                title="Escanear con la cámara">📷</button>
+                    </div>
+                </div>
+                <button class="wms-btn wms-btn-primary wms-btn-lg" onclick="buscarProducto()" style="background: var(--color-producto);">Buscar</button>
+            </div>
+        </div>
+
+        <!-- Información del Producto -->
+        <div id="producto-container" class="wms-card" style="display: none; margin-bottom: var(--space-5);">
+            <div class="wms-card-body">
+                <div id="producto-info" class="producto-info"></div>
+
+                <div class="ubicaciones-section">
+                    <!-- Ubicaciones ADM -->
+                    <div class="ubicaciones-fisicas">
+                        <h4>📍 Ubicaciones ADM Cloud</h4>
+                        <div id="ubicaciones-adm-list"></div>
+                    </div>
+
+                    <!-- Stock Total ADM -->
+                    <div class="stock-total" style="background: linear-gradient(135deg, var(--color-info) 0%, var(--color-info-text) 100%); margin-bottom: var(--space-5);">
+                        <h4>Stock Total ADM Cloud</h4>
+                        <div class="valor" id="stock-total-adm-valor">0.00</div>
+                    </div>
+
+                    <!-- Ubicaciones Físicas WMS -->
+                    <div class="ubicaciones-fisicas">
+                        <h4>📦 Ubicaciones Físicas WMS</h4>
+                        <div id="ubicaciones-fisicas-list"></div>
+                    </div>
+
+                    <!-- Stock Total WMS -->
+                    <div class="stock-total">
+                        <h4>Stock Total WMS</h4>
+                        <div class="valor" id="stock-total-valor">0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="empty-state" class="wms-card">
+            <div class="wms-empty">
+                <div class="wms-empty-icon">🔍</div>
+                <div class="wms-empty-title">Busca un producto para ver su información y ubicaciones</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/security_utils.js"></script>
+    <script src="/static/js/wms-common.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" crossorigin="anonymous"></script>
+    <script src="/static/js/wms-barcode.js"></script>
+    <script src="/static/js/productos.js"></script>
+</body>
+</html>

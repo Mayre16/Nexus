@@ -1,0 +1,189 @@
+═══════════════════════════════════════════════════════════════
+  PASO A PASO: INSTALAR python-dateutil EN CPANEL
+═══════════════════════════════════════════════════════════════
+
+Como "Run Pip Install" está inactivo, usaremos "Execute python script"
+
+═══════════════════════════════════════════════════════════════
+
+📋 PASO A PASO
+═══════════════════════════════════════════════════════════════
+
+PASO 1: Preparar el script de instalación
+──────────────────────────────────────────
+
+Copia este código exactamente (lo vamos a usar en CPanel):
+
+───────────────────────────────────────────────────────────────
+import subprocess
+import sys
+
+print("="*60)
+print("Instalando python-dateutil...")
+print("="*60)
+
+try:
+    # Instalar python-dateutil
+    resultado = subprocess.run(
+        [sys.executable, "-m", "pip", "install", "python-dateutil>=2.8.0"],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+    
+    print("✓ Instalación exitosa!")
+    print("\nSalida de pip:")
+    print(resultado.stdout)
+    
+    # Verificar que se instaló correctamente
+    try:
+        from dateutil import parser
+        print("\n✓ Verificación: dateutil importado correctamente")
+    except ImportError as e:
+        print(f"\n❌ Error al verificar: {e}")
+        
+except subprocess.CalledProcessError as e:
+    print(f"\n❌ Error durante la instalación:")
+    print(f"Exit code: {e.returncode}")
+    print(f"Salida: {e.stdout}")
+    print(f"Errores: {e.stderr}")
+except Exception as e:
+    print(f"\n❌ Error inesperado: {e}")
+    import traceback
+    traceback.print_exc()
+
+print("\n" + "="*60)
+───────────────────────────────────────────────────────────────
+
+═══════════════════════════════════════════════════════════════
+
+PASO 2: En CPanel - Setup Python App
+──────────────────────────────────────
+
+1. Accede a: Setup Python App
+2. Busca: wms.adesa.com.do
+3. Haz clic en el nombre o en la aplicación
+
+═══════════════════════════════════════════════════════════════
+
+PASO 3: Usar "Execute python script"
+──────────────────────────────────────
+
+1. En la sección "Execute python script", verás:
+   - Campo de texto: "Enter the path to the script"
+   - Botón azul: "Run Script"
+
+2. NO vamos a usar un archivo, sino código directo:
+   - Haz clic en el campo de texto
+   - Pega el código del PASO 1 completo
+   - Haz clic en "Run Script"
+
+⚠️ NOTA: Si CPanel no permite pegar código directamente,
+   tendrás que crear un archivo temporal:
+
+═══════════════════════════════════════════════════════════════
+
+ALTERNATIVA: Si necesitas crear un archivo
+───────────────────────────────────────────
+
+PASO A: Crear archivo en CPanel File Manager
+──────────────────────────────────────────────
+
+1. Ve a: File Manager
+2. Navega a: /home2/adesa/wms.adesa.com.do/
+3. Crea un nuevo archivo llamado: install_dateutil.py
+4. Abre el archivo para editar
+5. Pega el código del PASO 1
+6. Guarda el archivo
+
+PASO B: Ejecutar el archivo
+────────────────────────────
+
+1. Vuelve a: Setup Python App > wms.adesa.com.do
+2. En "Execute python script":
+   - Campo: /home2/adesa/wms.adesa.com.do/install_dateutil.py
+   - O si está en la misma carpeta: install_dateutil.py
+3. Haz clic en: "Run Script"
+
+═══════════════════════════════════════════════════════════════
+
+PASO 4: Verificar la instalación
+─────────────────────────────────
+
+Después de ejecutar, deberías ver algo como:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+============================================================
+Instalando python-dateutil...
+============================================================
+✓ Instalación exitosa!
+
+Salida de pip:
+Collecting python-dateutil>=2.8.0
+  Downloading python-dateutil-2.9.0...
+  ...
+Successfully installed python-dateutil-2.9.0
+
+✓ Verificación: dateutil importado correctamente
+
+============================================================
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+═══════════════════════════════════════════════════════════════
+
+PASO 5: Reiniciar la aplicación
+────────────────────────────────
+
+1. En Setup Python App
+2. Busca: wms.adesa.com.do
+3. Haz clic en: RESTART (o STOP y luego START)
+4. Espera 30-60 segundos
+
+═══════════════════════════════════════════════════════════════
+
+PASO 6: Probar la búsqueda de factura
+──────────────────────────────────────
+
+1. Accede a: https://wms.adesa.com.do/despacho
+2. Busca factura: 2967
+3. Tipo: Contado (CashInvoice)
+4. Debería funcionar correctamente ahora
+
+═══════════════════════════════════════════════════════════════
+
+💡 NOTA IMPORTANTE
+═══════════════════════════════════════════════════════════════
+
+Si "Execute python script" tampoco funciona o da error, puedes:
+
+1. Crear el archivo install_dateutil.py localmente
+2. Subirlo por File Manager a: /home2/adesa/wms.adesa.com.do/
+3. Luego ejecutarlo desde "Execute python script"
+
+═══════════════════════════════════════════════════════════════
+
+🔧 SI SIGUE SIN FUNCIONAR
+═══════════════════════════════════════════════════════════════
+
+El código de routes/facturas.py funciona SIN python-dateutil,
+usa datetime nativo de Python. Entonces:
+
+1. Sube routes/facturas.py (ya funciona sin dateutil)
+2. Reinicia la aplicación
+3. Prueba la búsqueda
+
+python-dateutil es opcional y mejora el parseo de fechas,
+pero no es estrictamente necesario.
+
+═══════════════════════════════════════════════════════════════
+
+
+
+
+
+
+
+
+
+
+

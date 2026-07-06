@@ -1,0 +1,7 @@
+{
+  "autenticacion": {
+    "status_code": 401,
+    "success": false,
+    "message": ""
+  }
+}

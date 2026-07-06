@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA Nexus · Desk</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { adesa: { red: "#be1622", red2: "#ef1d2b", gold: "#fcb900", ink: "#111111" } },
+            fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+    <header class="bg-adesa-ink text-white">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center gap-4 justify-between">
+        <div class="flex items-center gap-3">
+          <a href="/dashboard.html" class="text-sm text-gray-400 hover:text-white">← Panel</a>
+          <span class="text-lg font-bold">Nexus Desk</span>
+        </div>
+        <div id="buzonesInfo" class="text-xs text-gray-400 hidden md:block"></div>
+        <button id="btnPollImap" type="button" class="hidden text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20">
+          Sincronizar correo
+        </button>
+        <button id="btnInvitarPortal" type="button" class="text-xs px-3 py-1.5 rounded-lg bg-adesa-red/90 hover:bg-adesa-red text-white font-semibold">
+          Invitar al portal
+        </button>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-6">
+      <div class="flex flex-wrap gap-3 mb-4 items-end">
+        <div class="flex rounded-lg overflow-hidden ring-1 ring-gray-200 bg-white">
+          <button data-div="todos" class="filtro-div px-4 py-2 text-sm font-semibold bg-adesa-red text-white">Todos</button>
+          <button data-div="energia" class="filtro-div px-4 py-2 text-sm hover:bg-gray-50">⚡ Energía</button>
+          <button data-div="deportes" class="filtro-div px-4 py-2 text-sm hover:bg-gray-50">🚴 Deportes</button>
+        </div>
+        <select id="filtroEstado" class="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white">
+          <option value="">Todos los estados</option>
+          <option value="abierto">Abierto</option>
+          <option value="en_proceso">En proceso</option>
+          <option value="en_espera">En espera</option>
+          <option value="resuelto">Resuelto</option>
+          <option value="cerrado">Cerrado</option>
+        </select>
+        <input id="filtroBuscar" type="search" placeholder="Buscar #, asunto, correo…"
+          class="rounded-lg border border-gray-200 px-3 py-2 text-sm flex-1 min-w-[180px]" />
+        <button id="btnNuevo" type="button" class="px-4 py-2 rounded-lg bg-adesa-red text-white text-sm font-bold hover:bg-adesa-red2">
+          + Nuevo ticket
+        </button>
+      </div>
+
+      <div id="conteos" class="flex flex-wrap gap-2 mb-4 text-xs"></div>
+
+      <div class="grid lg:grid-cols-5 gap-4">
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden">
+          <div class="px-4 py-3 border-b border-gray-100 font-bold text-sm">Bandeja</div>
+          <ul id="listaTickets" class="divide-y divide-gray-50 max-h-[70vh] overflow-y-auto"></ul>
+          <p id="emptyLista" class="hidden text-center text-gray-400 text-sm py-10">Sin tickets</p>
+        </div>
+
+        <div id="panelDetalle" class="lg:col-span-3 bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-5 hidden">
+          <div class="flex flex-wrap justify-between gap-2 mb-4">
+            <div>
+              <span id="detReferencia" class="text-xs font-mono text-adesa-red font-bold"></span>
+              <h2 id="detAsunto" class="text-lg font-bold mt-1"></h2>
+              <p id="detMeta" class="text-xs text-gray-500 mt-1"></p>
+            </div>
+            <div class="flex flex-wrap gap-2 items-start">
+              <select id="detAsignado" class="rounded-lg border border-gray-200 px-2 py-1.5 text-xs min-w-[140px]" title="Técnico asignado">
+                <option value="">Sin asignar</option>
+              </select>
+              <select id="detEstado" class="rounded-lg border border-gray-200 px-2 py-1.5 text-xs"></select>
+              <select id="detPrioridad" class="rounded-lg border border-gray-200 px-2 py-1.5 text-xs"></select>
+              <button id="btnGuardarEstado" type="button" class="px-3 py-1.5 rounded-lg bg-gray-800 text-white text-xs">Guardar</button>
+            </div>
+          </div>
+
+          <div id="detDescripcion" class="text-sm text-gray-700 bg-gray-50 rounded-xl p-4 mb-4 whitespace-pre-wrap"></div>
+
+          <h3 class="font-bold text-sm mb-2">Seguimiento</h3>
+          <ul id="listaSeguimientos" class="space-y-3 max-h-48 overflow-y-auto mb-4 text-sm"></ul>
+
+          <form id="formNota" class="space-y-2 mb-4">
+            <textarea id="notaContenido" rows="3" placeholder="Nota interna o respuesta…"
+              class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm"></textarea>
+            <div class="flex gap-2">
+              <select id="notaTipo" class="rounded-lg border border-gray-200 px-2 py-1.5 text-xs">
+                <option value="nota_interna">Nota interna</option>
+                <option value="respuesta_cliente">Respuesta cliente</option>
+              </select>
+              <button type="submit" class="px-4 py-2 rounded-lg bg-adesa-red text-white text-sm font-semibold">Añadir</button>
+            </div>
+          </form>
+
+          <details class="border-t border-gray-100 pt-4">
+            <summary class="cursor-pointer text-sm font-bold text-gray-600">Cerrar ticket</summary>
+            <form id="formCerrar" class="mt-3 space-y-2">
+              <textarea id="cerrarInforme" rows="3" placeholder="Informe de resolución…"
+                class="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm"></textarea>
+              <label class="text-xs text-gray-500 block">
+                Tiempo invertido (min)
+                <input id="cerrarMinutos" type="number" min="0" value="0"
+                  class="mt-1 w-32 rounded-lg border border-gray-200 px-2 py-1.5 text-sm" />
+              </label>
+              <button type="submit" class="px-4 py-2 rounded-lg bg-gray-800 text-white text-sm">Cerrar ticket</button>
+            </form>
+          </details>
+        </div>
+
+        <div id="panelVacio" class="lg:col-span-3 flex items-center justify-center text-gray-400 text-sm min-h-[300px]">
+          Selecciona un ticket de la bandeja
+        </div>
+      </div>
+    </main>
+
+    <dialog id="dlgNuevo" class="rounded-2xl p-0 backdrop:bg-black/40 w-full max-w-lg open:animate-none">
+      <form id="formNuevo" class="p-6">
+        <h3 class="font-bold text-lg mb-4">Nuevo ticket</h3>
+        <label class="block mb-3">
+          <span class="text-xs text-gray-500">División</span>
+          <select id="nuevoDivision" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm">
+            <option value="energia">ADESA Energía</option>
+            <option value="deportes">ADESA Deportes</option>
+          </select>
+        </label>
+        <label class="block mb-3">
+          <span class="text-xs text-gray-500">Asunto</span>
+          <input id="nuevoAsunto" required maxlength="255"
+            class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+        </label>
+        <label class="block mb-3">
+          <span class="text-xs text-gray-500">Descripción</span>
+          <textarea id="nuevoDesc" rows="4" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm"></textarea>
+        </label>
+        <label class="block mb-4">
+          <span class="text-xs text-gray-500">Prioridad</span>
+          <select id="nuevoPrioridad" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm">
+            <option value="baja">Baja</option>
+            <option value="media" selected>Media</option>
+            <option value="alta">Alta</option>
+            <option value="critica">Crítica</option>
+          </select>
+        </label>
+        <div class="flex justify-end gap-2">
+          <button type="button" id="btnCancelNuevo" class="px-4 py-2 text-sm text-gray-600">Cancelar</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-adesa-red text-white text-sm font-bold">Crear</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="dlgInvitar" class="rounded-2xl p-0 w-full max-w-md shadow-xl backdrop:bg-black/40">
+      <form id="formInvitar" class="p-6">
+        <h3 class="font-bold text-lg mb-1">Invitar cliente al portal</h3>
+        <p class="text-xs text-gray-500 mb-4">Se enviará un correo estilo Zoho con enlace de activación.</p>
+        <label class="block mb-3">
+          <span class="text-xs text-gray-500">Correo del cliente</span>
+          <input id="invEmail" type="email" required class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+        </label>
+        <label class="block mb-3">
+          <span class="text-xs text-gray-500">Nombre completo</span>
+          <input id="invNombre" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+        </label>
+        <label class="block mb-3">
+          <span class="text-xs text-gray-500">Empresa cliente</span>
+          <select id="invCliente" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm">
+            <option value="">— Sin vincular —</option>
+          </select>
+        </label>
+        <div class="flex justify-end gap-2">
+          <button type="button" id="btnCancelInvitar" class="px-4 py-2 text-sm text-gray-600">Cancelar</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-adesa-red text-white text-sm font-bold">Enviar invitación</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script>
+      function leerCookie(n) {
+        return document.cookie.split("; ").find((c) => c.startsWith(n + "="))?.split("=")[1] || "";
+      }
+
+      let divisionFiltro = "todos";
+      let ticketActual = null;
+      let usuarioSesion = null;
+      let agentesDesk = [];
+
+      const ESTADO_LABEL = {
+        abierto: "Abierto", en_proceso: "En proceso", en_espera: "En espera",
+        resuelto: "Resuelto", cerrado: "Cerrado",
+      };
+      const PRIORIDAD_LABEL = { baja: "Baja", media: "Media", alta: "Alta", critica: "Crítica" };
+
+      function badgeEstado(e) {
+        const c = {
+          abierto: "bg-red-100 text-red-800", en_proceso: "bg-blue-100 text-blue-800",
+          en_espera: "bg-amber-100 text-amber-900", resuelto: "bg-green-100 text-green-800",
+          cerrado: "bg-gray-200 text-gray-700",
+        };
+        return `<span class="text-[10px] px-1.5 py-0.5 rounded ${c[e] || c.abierto}">${ESTADO_LABEL[e] || e}</span>`;
+      }
+
+      function badgeDiv(d) {
+        return d === "deportes"
+          ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-800">Deportes</span>'
+          : '<span class="text-[10px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-900">Energía</span>';
+      }
+
+      async function api(url, opts = {}) {
+        const r = await fetch(url, {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": decodeURIComponent(leerCookie("nexus_csrf")),
+            ...opts.headers,
+          },
+          ...opts,
+        });
+        if (r.status === 401) {
+          window.location.href = "/";
+          return null;
+        }
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || "Error " + r.status);
+        return data;
+      }
+
+      function paramsLista() {
+        const p = new URLSearchParams();
+        if (divisionFiltro !== "todos") p.set("division", divisionFiltro);
+        const est = document.getElementById("filtroEstado").value;
+        if (est) p.set("estado", est);
+        const q = document.getElementById("filtroBuscar").value.trim();
+        if (q) p.set("buscar", q);
+        return p.toString();
+      }
+
+      async function cargarLista() {
+        const data = await api("/api/tickets?" + paramsLista());
+        if (!data) return;
+
+        const conteos = document.getElementById("conteos");
+        conteos.innerHTML = Object.entries(data.conteos || {})
+          .map(([k, v]) => `<span class="px-2 py-1 rounded-full bg-white ring-1 ring-gray-200">${ESTADO_LABEL[k] || k}: ${v}</span>`)
+          .join("");
+
+        if (data.buzones) {
+          const txt = data.buzones
+            .map((b) => `${b.label}: ${b.correo || "—"} ${b.imap_configurado ? "✓" : "(IMAP pendiente)"}`)
+            .join(" · ");
+          document.getElementById("buzonesInfo").textContent = txt;
+          document.getElementById("buzonesInfo").classList.remove("hidden");
+        }
+
+        const ul = document.getElementById("listaTickets");
+        const empty = document.getElementById("emptyLista");
+        if (!data.tickets?.length) {
+          ul.innerHTML = "";
+          empty.classList.remove("hidden");
+          return;
+        }
+        empty.classList.add("hidden");
+        ul.innerHTML = data.tickets
+          .map(
+            (t) =>
+              `<li><button type="button" data-uuid="${t.uuid}" class="ticket-row w-full text-left px-4 py-3 hover:bg-red-50/50 ${
+                ticketActual?.uuid === t.uuid ? "bg-red-50 ring-1 ring-inset ring-adesa-red/20" : ""
+              }">
+                <div class="flex justify-between gap-2 items-start">
+                  <span class="font-mono text-xs text-adesa-red font-bold">${t.referencia || "#" + t.numero}</span>
+                  ${badgeEstado(t.estado)}
+                </div>
+                <div class="font-medium text-sm mt-1 truncate">${t.asunto}</div>
+                <div class="flex gap-2 mt-1">${badgeDiv(t.division)}<span class="text-[10px] text-gray-400">${t.asignado_nombre || "Sin asignar"}</span></div>
+              </button></li>`
+          )
+          .join("");
+
+        ul.querySelectorAll(".ticket-row").forEach((btn) => {
+          btn.addEventListener("click", () => cargarDetalle(btn.dataset.uuid));
+        });
+      }
+
+      async function cargarDetalle(uuid) {
+        const data = await api("/api/tickets/" + uuid);
+        if (!data) return;
+        ticketActual = data.ticket;
+        document.getElementById("panelVacio").classList.add("hidden");
+        document.getElementById("panelDetalle").classList.remove("hidden");
+
+        const t = data.ticket;
+        document.getElementById("detReferencia").textContent = t.referencia;
+        document.getElementById("detAsunto").textContent = t.asunto;
+        document.getElementById("detMeta").textContent = [
+          badgeDiv(t.division).replace(/<[^>]+>/g, ""),
+          t.email_remitente || t.cliente_nombre || "",
+          t.canal,
+          t.creado_en?.slice(0, 16).replace("T", " "),
+        ].filter(Boolean).join(" · ");
+        document.getElementById("detDescripcion").textContent = t.descripcion || "(Sin descripción)";
+
+        const selE = document.getElementById("detEstado");
+        selE.innerHTML = Object.keys(ESTADO_LABEL)
+          .map((k) => `<option value="${k}" ${k === t.estado ? "selected" : ""}>${ESTADO_LABEL[k]}</option>`)
+          .join("");
+        const selP = document.getElementById("detPrioridad");
+        selP.innerHTML = Object.keys(PRIORIDAD_LABEL)
+          .map((k) => `<option value="${k}" ${k === t.prioridad ? "selected" : ""}>${PRIORIDAD_LABEL[k]}</option>`)
+          .join("");
+        const selA = document.getElementById("detAsignado");
+        selA.innerHTML =
+          '<option value="">Sin asignar</option>' +
+          agentesDesk
+            .map(
+              (a) =>
+                `<option value="${a.uuid}" ${a.uuid === t.asignado_uuid ? "selected" : ""}>${a.nombre_completo}</option>`
+            )
+            .join("");
+
+        document.getElementById("listaSeguimientos").innerHTML = (data.seguimientos || [])
+          .map(
+            (s) =>
+              `<li class="border-l-2 border-gray-200 pl-3">
+                <div class="text-[10px] text-gray-400">${s.autor_nombre || s.tipo} · ${String(s.creado_en).slice(0, 16).replace("T", " ")}</div>
+                <div class="whitespace-pre-wrap">${s.contenido}</div>
+              </li>`
+          )
+          .join("") || "<li class='text-gray-400'>Sin seguimientos</li>";
+
+        await cargarLista();
+      }
+
+      document.querySelectorAll(".filtro-div").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          divisionFiltro = btn.dataset.div;
+          document.querySelectorAll(".filtro-div").forEach((b) => {
+            b.className =
+              "filtro-div px-4 py-2 text-sm " +
+              (b === btn ? "font-semibold bg-adesa-red text-white" : "hover:bg-gray-50");
+          });
+          cargarLista();
+        });
+      });
+
+      document.getElementById("filtroEstado").addEventListener("change", cargarLista);
+      document.getElementById("filtroBuscar").addEventListener(
+        "input",
+        (() => {
+          let t;
+          return () => {
+            clearTimeout(t);
+            t = setTimeout(cargarLista, 300);
+          };
+        })()
+      );
+
+      document.getElementById("btnNuevo").addEventListener("click", () => {
+        document.getElementById("dlgNuevo").showModal();
+        if (divisionFiltro === "energia" || divisionFiltro === "deportes") {
+          document.getElementById("nuevoDivision").value = divisionFiltro;
+        }
+      });
+      document.getElementById("btnCancelNuevo").addEventListener("click", () => document.getElementById("dlgNuevo").close());
+
+      document.getElementById("formNuevo").addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        try {
+          const data = await api("/api/tickets", {
+            method: "POST",
+            body: JSON.stringify({
+              division: document.getElementById("nuevoDivision").value,
+              asunto: document.getElementById("nuevoAsunto").value.trim(),
+              descripcion: document.getElementById("nuevoDesc").value.trim(),
+              prioridad: document.getElementById("nuevoPrioridad").value,
+            }),
+          });
+          document.getElementById("dlgNuevo").close();
+          ev.target.reset();
+          await cargarLista();
+          if (data?.ticket) await cargarDetalle(data.ticket.uuid);
+        } catch (e) {
+          alert(e.message);
+        }
+      });
+
+      document.getElementById("btnGuardarEstado").addEventListener("click", async () => {
+        if (!ticketActual) return;
+        try {
+          await api("/api/tickets/" + ticketActual.uuid, {
+            method: "PATCH",
+            body: JSON.stringify({
+              estado: document.getElementById("detEstado").value,
+              prioridad: document.getElementById("detPrioridad").value,
+              asignado_uuid: document.getElementById("detAsignado").value || null,
+            }),
+          });
+          await cargarDetalle(ticketActual.uuid);
+        } catch (e) {
+          alert(e.message);
+        }
+      });
+
+      document.getElementById("formNota").addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        if (!ticketActual) return;
+        const contenido = document.getElementById("notaContenido").value.trim();
+        if (!contenido) return;
+        try {
+          await api("/api/tickets/" + ticketActual.uuid + "/seguimientos", {
+            method: "POST",
+            body: JSON.stringify({
+              contenido,
+              tipo: document.getElementById("notaTipo").value,
+            }),
+          });
+          document.getElementById("notaContenido").value = "";
+          await cargarDetalle(ticketActual.uuid);
+        } catch (e) {
+          alert(e.message);
+        }
+      });
+
+      document.getElementById("formCerrar").addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        if (!ticketActual) return;
+        try {
+          await api("/api/tickets/" + ticketActual.uuid + "/cerrar", {
+            method: "POST",
+            body: JSON.stringify({
+              informe_resolucion: document.getElementById("cerrarInforme").value.trim(),
+              tiempo_invertido_min: document.getElementById("cerrarMinutos").value,
+            }),
+          });
+          await cargarDetalle(ticketActual.uuid);
+        } catch (e) {
+          alert(e.message);
+        }
+      });
+
+      document.getElementById("btnPollImap").addEventListener("click", async () => {
+        try {
+          const data = await api("/api/tickets/imap/poll", { method: "POST", body: "{}" });
+          alert("Correo sincronizado.\n" + JSON.stringify(data.resultados, null, 2));
+          await cargarLista();
+        } catch (e) {
+          alert(e.message);
+        }
+      });
+
+      const dlgInvitar = document.getElementById("dlgInvitar");
+      document.getElementById("btnInvitarPortal").addEventListener("click", async () => {
+        try {
+          const { clientes } = await api("/api/portal/admin/clientes");
+          const sel = document.getElementById("invCliente");
+          sel.innerHTML = '<option value="">— Sin vincular —</option>' +
+            (clientes || []).map((c) => `<option value="${c.uuid}" data-email="${c.email_contacto || ""}">${c.razon_social}</option>`).join("");
+          dlgInvitar.showModal();
+        } catch (e) {
+          alert(e.message);
+        }
+      });
+      document.getElementById("btnCancelInvitar").onclick = () => dlgInvitar.close();
+      document.getElementById("invCliente").addEventListener("change", (e) => {
+        const opt = e.target.selectedOptions[0];
+        if (opt?.dataset.email) document.getElementById("invEmail").value = opt.dataset.email;
+      });
+      document.getElementById("formInvitar").addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        const clienteUuid = document.getElementById("invCliente").value || null;
+        try {
+          const r = await api("/api/portal/invitar", {
+            method: "POST",
+            body: JSON.stringify({
+              email: document.getElementById("invEmail").value,
+              nombre_completo: document.getElementById("invNombre").value,
+              cliente_empresa_uuid: clienteUuid,
+            }),
+          });
+          dlgInvitar.close();
+          let msg = "Invitación enviada.";
+          if (r.enlace_dev) msg += "\n\nEnlace dev:\n" + r.enlace_dev;
+          if (r.mail && !r.mail.ok) msg += "\n\nCorreo: " + (r.mail.reason || r.mail.error || "no enviado — configure SMTP");
+          alert(msg);
+        } catch (e) {
+          alert(e.message);
+        }
+      });
+
+      async function init() {
+        const me = await api("/api/auth/me");
+        if (!me) return;
+        usuarioSesion = me.usuario;
+        if (usuarioSesion.rol === "admin") {
+          document.getElementById("btnPollImap").classList.remove("hidden");
+        }
+        if (usuarioSesion.division === "energia") divisionFiltro = "energia";
+        if (usuarioSesion.division === "deportes") divisionFiltro = "deportes";
+        const ag = await api("/api/tickets/agentes");
+        agentesDesk = ag?.agentes || [];
+        await cargarLista();
+      }
+
+      init();
+    </script>
+  </body>
+</html>

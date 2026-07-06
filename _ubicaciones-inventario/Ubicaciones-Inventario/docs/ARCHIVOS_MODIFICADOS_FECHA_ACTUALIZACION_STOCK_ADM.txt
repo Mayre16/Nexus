@@ -1,0 +1,78 @@
+ARCHIVOS MODIFICADOS PARA MOSTRAR FECHA DE ACTUALIZACIÓN EN STOCK ADM
+======================================================================
+
+Fecha: 2026-01-26
+Descripción: Agregar fecha de última actualización en la sección "Ubicaciones ADM Cloud" de la página "Buscar Producto"
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. routes/productos.py
+   - Líneas 136-140: Agregado campo `updated_at` al diccionario de ubicaciones ADM
+
+2. templates/productos.html
+   - Líneas 581-588: Modificado para mostrar la fecha de actualización en cada ubicación ADM
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. Backend (routes/productos.py):
+   - Agregado `updated_at` al diccionario de ubicaciones ADM
+   - Formato: ISO string o None si no existe
+
+2. Frontend (templates/productos.html):
+   - Agregada visualización de fecha de actualización debajo del nombre de cada ubicación ADM
+   - Formato: "Actualizado: DD/MM/YYYY" (formato español)
+   - Similar al formato usado en "Ubicaciones Físicas WMS"
+
+COMPORTAMIENTO:
+---------------
+
+**ANTES:**
+- Ubicaciones ADM Cloud mostraban solo: Nombre y Stock
+- Ejemplo: "En mano (ADESA): 8.00"
+
+**DESPUÉS:**
+- Ubicaciones ADM Cloud muestran: Nombre, Fecha de actualización y Stock
+- Ejemplo:
+  ```
+  En mano (ADESA)
+  Actualizado: 27/1/2026
+  8.00
+  ```
+
+**Consistencia:**
+- Ahora ambas secciones (ADM Cloud y WMS Físicas) muestran la fecha de actualización
+- Formato consistente en ambas secciones
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+----------------------------------------
+
+1. Subir los archivos modificados:
+   - routes/productos.py
+   - templates/productos.html
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario.
+
+4. Probar:
+   - Buscar un producto en "Buscar Producto"
+   - Verificar que en "Ubicaciones ADM Cloud" aparece "Actualizado: DD/MM/YYYY" debajo de cada ubicación
+   - Verificar que el formato es consistente con "Ubicaciones Físicas WMS"
+
+RESULTADO ESPERADO:
+-------------------
+
+Después de la modificación:
+- ✅ Cada ubicación ADM Cloud muestra su fecha de última actualización
+- ✅ Formato consistente con ubicaciones físicas WMS
+- ✅ Mejor información para el usuario sobre cuándo se actualizó el stock
+
+
+
+
+
+
+
+

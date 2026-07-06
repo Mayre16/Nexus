@@ -1,0 +1,36 @@
+# ============================================
+# CONFIGURACIÓN PASSENGER PARA SUBDOMINIO
+# ============================================
+# PROBLEMA: El .htaccess de WordPress en /public_html captura
+# todas las peticiones con: RewriteRule . /index.php [L]
+#
+# SOLUCIÓN: Modificar el .htaccess de WordPress para excluir
+# este subdirectorio. Ver instrucciones al final de este archivo.
+
+# Configuración de Passenger
+PassengerAppRoot /home2/adesa/wms.adesa.com.do
+PassengerBaseURI /
+PassengerAppType wsgi
+PassengerStartupFile passenger_wsgi.py
+PassengerMaxRequestTime 600
+
+# Evitar que LiteSpeed mate la sync cuando cron cierra curl tras 20s
+# Ver: docs/SOLUCION_SYNC_CRON_LITESPEED_ABORT.md
+<IfModule Litespeed>
+    RewriteEngine On
+    RewriteRule ^api/sincronizar/ubicacion - [E=noabort:1, E=noconntimeout:1]
+</IfModule>
+
+# Prevenir que plugins de WordPress bloqueen este subdominio
+<IfModule mod_headers.c>
+    Header unset X-Powered-By
+</IfModule>
+
+
+
+
+
+
+
+
+

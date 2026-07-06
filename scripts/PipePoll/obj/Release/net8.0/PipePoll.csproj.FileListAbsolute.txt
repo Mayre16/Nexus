@@ -1,0 +1,14 @@
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\bin\Release\net8.0\PipePoll.exe
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\bin\Release\net8.0\PipePoll.deps.json
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\bin\Release\net8.0\PipePoll.runtimeconfig.json
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\bin\Release\net8.0\PipePoll.dll
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\bin\Release\net8.0\PipePoll.pdb
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\obj\Release\net8.0\PipePoll.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\obj\Release\net8.0\PipePoll.AssemblyInfoInputs.cache
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\obj\Release\net8.0\PipePoll.AssemblyInfo.cs
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\obj\Release\net8.0\PipePoll.csproj.CoreCompileInputs.cache
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\obj\Release\net8.0\PipePoll.dll
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\obj\Release\net8.0\refint\PipePoll.dll
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\obj\Release\net8.0\PipePoll.pdb
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\obj\Release\net8.0\PipePoll.genruntimeconfig.cache
+c:\Users\marth\Cursor Projects\Nexus\scripts\PipePoll\obj\Release\net8.0\ref\PipePoll.dll

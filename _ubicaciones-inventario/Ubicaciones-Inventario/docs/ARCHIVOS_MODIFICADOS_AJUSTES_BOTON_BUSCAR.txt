@@ -1,0 +1,74 @@
+ARCHIVOS MODIFICADOS - CORRECCIÓN BOTÓN BUSCAR Y FUNCIONALIDAD COMPLETA
+========================================================================
+
+FECHA: 2025-01-26
+DESCRIPCIÓN: Corrección del botón "Buscar" y implementación completa de ajustes con ubicaciones ADM y físicas
+
+ARCHIVOS MODIFICADOS:
+=====================
+
+1. templates/ajustes.html
+   - CORREGIDO: Eliminado listener duplicado de DOMContentLoaded
+   - CORREGIDO: Función mostrarProducto ahora es async
+   - CORREGIDO: Variables globales definidas correctamente
+   - AGREGADO: Funcionalidad completa de ubicaciones ADM (macros) con checkboxes
+   - AGREGADO: Sección de ubicaciones físicas que aparece solo cuando ADESA está seleccionado
+   - AGREGADO: Funciones para manejar múltiples ubicaciones ADM y físicas
+   - AGREGADO: Validación que ADESA siempre requiere al menos una ubicación física
+   - AGREGADO: Mostrar stock ADM cacheado con fecha de actualización
+
+2. routes/ajustes.py
+   - AGREGADO: Endpoint /api/ajustes/ubicaciones-adm para listar ubicaciones ADM disponibles
+   - MODIFICADO: buscar_producto_ajuste() ahora usa cache local (ProductoADM)
+   - MODIFICADO: buscar_producto_ajuste() ahora incluye stock ADM cacheado con fecha
+   - MODIFICADO: registrar_ajuste() ahora soporta ajustes de ubicaciones ADM (macros) y físicas
+   - AGREGADO: Lógica para procesar ajustes de ubicaciones ADM no-ADESA (solo auditoría)
+   - AGREGADO: Lógica para procesar ajustes de ubicaciones físicas dentro de ADESA
+   - AGREGADO: Import de SyncLocationStatus y StockProductoADM
+
+INSTRUCCIONES PARA CPANEL:
+===========================
+
+1. Subir archivos modificados:
+   - templates/ajustes.html
+   - routes/ajustes.py
+
+2. Reiniciar aplicación Flask:
+   - Tocar el archivo tmp/restart.txt
+   - O usar "Restart App" en el panel de Python App
+
+3. Verificar:
+   - El botón "Buscar" funciona correctamente
+   - Al buscar un producto, se muestran las ubicaciones ADM disponibles
+   - Al seleccionar ADESA, aparece la sección de ubicaciones físicas
+   - Se puede registrar ajuste con múltiples ubicaciones ADM y físicas
+
+FUNCIONALIDADES IMPLEMENTADAS:
+==============================
+
+✅ Búsqueda usando cache local (más rápida)
+✅ Mostrar stock ADM cacheado con fecha de actualización
+✅ Lista de ubicaciones ADM (macros) seleccionables con checkboxes
+✅ Campo de cantidad para cada ubicación ADM
+✅ Sección de ubicaciones físicas que aparece solo cuando ADESA está seleccionado
+✅ Múltiples ubicaciones físicas para ADESA
+✅ Validación: ADESA siempre requiere al menos una ubicación física
+✅ Ajustes para ubicaciones ADM no-ADESA (solo auditoría)
+✅ Ajustes para ubicaciones físicas dentro de ADESA (modifica StockUbicacion)
+✅ Notas/justificación opcionales para los ajustes
+
+NOTAS IMPORTANTES:
+==================
+
+- El módulo ahora soporta ajustes complejos con múltiples ubicaciones ADM y físicas
+- Las ubicaciones ADM no-ADESA solo crean movimientos de auditoría (no modifican stock físico)
+- Las ubicaciones físicas dentro de ADESA modifican StockUbicacion directamente
+- El sistema valida que ADESA siempre tenga al menos una ubicación física asignada
+
+
+
+
+
+
+
+

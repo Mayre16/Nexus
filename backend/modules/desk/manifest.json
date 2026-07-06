@@ -1,0 +1,19 @@
+{
+  "technicalName": "desk",
+  "displayName": "Nexus Desk",
+  "summary": "Tickets, helpdesk, IMAP, base de conocimientos y propuestas IA",
+  "version": "0.1.0",
+  "category": "service",
+  "state": "installed",
+  "installable": true,
+  "autoInstall": true,
+  "depends": ["nexus_core"],
+  "routes": {
+    "ui": "/desk.html",
+    "api": "/api/tickets",
+    "dashboardPath": "/desk.html"
+  },
+  "roles": ["admin", "empleado"],
+  "icon": "🎫",
+  "sortOrder": 10
+}

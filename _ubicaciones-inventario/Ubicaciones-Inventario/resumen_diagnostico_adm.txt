@@ -1,0 +1,61 @@
+================================================================================
+RESUMEN DE DIAGNÓSTICO: ERRORES DE SINCRONIZACIÓN Y CONEXIÓN API ADM CLOUD
+Fecha: 2026-04-10
+================================================================================
+
+1. PROBLEMAS DETECTADOS EN PRODUCCIÓN (CPANEL)
+--------------------------------------------------------------------------------
+A) Errores de Base de Datos:
+   - Los logs muestran "Packet sequence number wrong" y "Result length not requested".
+   - CAUSA: El pool de conexiones de SQLAlchemy se desincroniza cuando múltiples
+     procesos (Passenger) intentan reusar conexiones en tareas largas de sync.
+
+B) Errores de API (ADM no disponible):
+   - El script de sincronización falla al inicio ("Tick error: ADM no disponible").
+   - CAUSA: El endpoint de Ubicaciones (/Locations/) está devolviendo un error 405
+     (Método no permitido) al usar el formato con barra diagonal final.
+
+2. ACCIONES REALIZADAS (INVESTIGACIÓN Y PRUEBAS)
+--------------------------------------------------------------------------------
+A) Seguridad de Credenciales:
+   - Se identificó que 'config.py' exponía contraseñas en texto claro.
+   - ACCIÓN: Se eliminaron los valores hardcoded y se habilitó 'python-dotenv'.
+     Ahora las claves se toman de las variables de entorno de cPanel.
+
+B) Pruebas Manuales en PowerShell:
+   - PRUEBA 1 (GET /api/items): EXITOSA. Confirma que las credenciales funcionan.
+   - PRUEBA 2 (GET /api/Locations/): FALLIDA (Error 405). Confirmó que la barra
+     diagonal al final causa que el servidor rechace la petición.
+   - PRUEBA 3 (GET /api/Locations?skip=0): EXITOSA (Conecta). Pero devuelve una
+     lista VACÍA. Esto indica que la conexión es buena pero no hay datos visibles.
+
+3. HALLAZGOS CLAVE
+--------------------------------------------------------------------------------
+- SINTAXIS: ADM Cloud parece haber vuelto estricto su servidor. No acepta "/" al 
+  final de los endpoints y exige parámetros de paginación (skip/take).
+- ESTABILIDAD: Las sincronizaciones largas fallan por la gestión de conexiones de 
+  la base de datos MySQL en cPanel.
+- DATOS VACÍOS: Aunque la conexión funciona, el usuario 'luis.useche' bajo el 
+  rol 'Administradores' no está recibiendo datos de ubicaciones. Esto sugiere 
+  un cambio de permisos en el panel de ADM Cloud o la necesidad de un filtro.
+
+4. SOLUCIONES PROPUESTAS
+--------------------------------------------------------------------------------
+A) Solución Base de Datos:
+   - Activar la variable de entorno 'DB_USE_NULLPOOL=true' en cPanel.
+   - Esto obliga al sistema a abrir y cerrar una conexión limpia por cada petición,
+     eliminando los errores de "Packet sequence".
+
+B) Solución API (Código):
+   - Actualizar 'api/adm_cloud.py' para remover todas las barras "/" finales.
+   - Asegurar que 'skip=0' se envíe siempre como parámetro.
+   - Mejorar el registro de errores para capturar el mensaje exacto del servidor.
+
+C) Solución Administrativa (ADM Cloud):
+   - Verificar en el panel de ADM Cloud si el rol 'Administradores' tiene permiso
+     de lectura sobre el módulo de Inventario -> Sucursales/Ubicaciones.
+   - Confirmar si se requiere el parámetro 'OnlyActive=true' o similar para ver datos.
+
+================================================================================
+ESTADO: Analizando permisos de datos vacíos antes de proceder con el código.
+================================================================================

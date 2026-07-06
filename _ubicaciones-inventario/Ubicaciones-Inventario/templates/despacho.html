@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Despacho - WMS</title>
+    <link rel="stylesheet" href="/static/css/wms.css">
+    <link rel="stylesheet" href="/static/css/despacho.css">
+</head>
+<body>
+    <header class="wms-header">
+        <div class="wms-header-inner">
+            <div class="wms-header-title">
+                <span class="module-icon">🚚</span>
+                <h1>Despacho</h1>
+            </div>
+            <div class="wms-header-actions">
+                <span class="wms-header-user" id="user-info">Cargando...</span>
+                <a href="/despachos" class="wms-btn wms-btn-secondary wms-btn-sm" title="Historial">📋 <span class="wms-header-btn-label">Historial</span></a>
+                <a href="/" class="wms-btn wms-btn-secondary wms-btn-sm" title="Inicio">🏠 <span class="wms-header-btn-label">Inicio</span></a>
+                <button type="button" class="wms-btn wms-btn-secondary wms-btn-sm" onclick="cerrarSesion()" title="Cerrar sesión"><span class="wms-icon-logout" aria-hidden="true"></span> <span class="wms-header-btn-label">Salir</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="wms-page">
+        <!-- Mensajes -->
+        <div id="message-error" class="wms-toast wms-toast-error"></div>
+        <div id="message-success" class="wms-toast wms-toast-success"></div>
+
+        <!-- Búsqueda de Factura -->
+        <div class="wms-card search-section">
+            <div class="wms-card-body">
+                <h2>Buscar Documento</h2>
+                <form id="search-factura-form" class="search-form">
+                    <div class="wms-form-group">
+                        <label class="wms-label" for="tipo-factura">Tipo de Documento</label>
+                        <select id="tipo-factura" name="tipo" class="wms-select">
+                            <option value="CASH">Factura Contado</option>
+                            <option value="CREDIT">Factura Crédito</option>
+                            <option value="DISPATCH">Despacho/Conduce</option>
+                        </select>
+                    </div>
+                    <div class="wms-form-group">
+                        <label class="wms-label" for="docid-input">Número de Documento (DocID)</label>
+                        <input type="text" id="docid-input" name="docid" class="wms-input"
+                               placeholder="Ej: 00002932" required autofocus>
+                    </div>
+                    <button type="submit" class="wms-btn wms-btn-primary wms-btn-lg" id="btn-search">
+                        Buscar
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Información de la Factura -->
+        <div id="factura-info" class="wms-card" style="display: none;">
+            <div class="wms-card-body">
+                <!-- Advertencia si ya fue registrado -->
+                <div id="advertencia-ya-registrada" style="display: none; background: var(--color-warning-bg); border: 2px solid var(--color-warning); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-5);">
+                    <div style="display: flex; align-items: center; gap: var(--space-3);">
+                        <span style="font-size: 24px;">⚠️</span>
+                        <div style="flex: 1;">
+                            <strong style="color: var(--color-warning-text); font-size: var(--font-size-md);">Este despacho ya fue registrado anteriormente</strong>
+                            <div id="info-registro-anterior" style="margin-top: var(--space-2); color: var(--color-warning-text); font-size: var(--font-size-sm);"></div>
+                            <div style="margin-top: var(--space-3);">
+                                <a href="/despachos" style="color: var(--color-info); text-decoration: underline; font-weight: 600;">Ver en el historial →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botones de Acción (Refrescar siempre visible para admin, Revertir solo si tiene movimientos) -->
+                <div id="botones-accion" style="display: none; margin-bottom: var(--space-5); gap: var(--space-3); flex-wrap: wrap;">
+                    <button id="btn-refrescar" class="wms-btn wms-btn-primary">
+                        🔄 Refrescar desde ADM
+                    </button>
+                    <button id="btn-revertir" class="wms-btn wms-btn-danger" style="display: none;">
+                        ▲ Revertir Despacho
+                    </button>
+                </div>
+                
+                <div class="factura-info">
+                    <h3 id="factura-numero"></h3>
+                    <div class="factura-details">
+                        <div>
+                            <strong>Cliente:</strong>
+                            <span id="factura-cliente"></span>
+                        </div>
+                        <div>
+                            <strong>Fecha:</strong>
+                            <span id="factura-fecha"></span>
+                        </div>
+                        <div>
+                            <strong>Total:</strong>
+                            <span id="factura-total"></span>
+                        </div>
+                        <div>
+                            <strong>Ubicación:</strong>
+                            <span id="factura-ubicacion"></span>
+                        </div>
+                        <div>
+                            <strong>Estado:</strong>
+                            <span id="factura-estado" class="estado-badge"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Productos -->
+                <div class="productos-section">
+                    <h2 id="productos-titulo">Productos a Despachar</h2>
+                    <div id="productos-grid" class="productos-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="empty-state" class="wms-card wms-empty">
+            <div class="wms-empty-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="80" height="80">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            <p class="wms-empty-title">Busca una factura para comenzar el despacho</p>
+        </div>
+    </div>
+
+    <script src="/static/js/security_utils.js"></script>
+    <script src="/static/js/fecha_utils.js"></script>
+    <script src="/static/js/wms-common.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" crossorigin="anonymous"></script>
+    <script src="/static/js/wms-barcode.js"></script>
+    <script src="/static/js/despacho.js"></script>
+</body>
+</html>

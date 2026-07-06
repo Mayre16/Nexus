@@ -1,0 +1,83 @@
+ARCHIVOS MODIFICADOS PARA CORREGIR ERROR "GUID de transferencia es requerido"
+================================================================================
+
+Fecha: 2026-01-26
+Descripción: Corrección del endpoint de detalles de transferencia para incluir campos de compatibilidad con el frontend
+
+PROBLEMA:
+---------
+Al intentar registrar una transferencia cargada desde la URL (parámetro `guid`), el sistema mostraba el error:
+"GUID de transferencia es requerido"
+
+CAUSA:
+------
+El endpoint `/api/detalles/transferencia/<guid>` devolvía `transferencia_guid` pero el frontend esperaba `guid`.
+Cuando se carga la transferencia desde la URL, se asigna `transferenciaActual = transferencia` pero el objeto no tenía el campo `guid`.
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. routes/detalles.py
+   - Líneas 432-436: Agregados campos de compatibilidad:
+     * `guid`: Alias de `transferencia_guid`
+     * `docid`: Alias de `transferencia_docid`
+     * `origen_nombre`: Alias de `location_name_origen`
+     * `destino_nombre`: Alias de `location_name_destino`
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. Campos de compatibilidad agregados:
+   - `guid`: Permite que el frontend acceda a `transferenciaActual.guid`
+   - `docid`: Permite que el frontend acceda a `transferenciaActual.docid`
+   - `origen_nombre`: Permite que el frontend acceda a `transferenciaActual.origen_nombre`
+   - `destino_nombre`: Permite que el frontend acceda a `transferenciaActual.destino_nombre`
+
+2. Mantiene compatibilidad:
+   - Los campos originales (`transferencia_guid`, `transferencia_docid`, etc.) se mantienen
+   - Los nuevos campos son aliases para compatibilidad con el frontend
+
+COMPORTAMIENTO:
+---------------
+
+**Antes:**
+- Endpoint devolvía: `transferencia_guid`, `transferencia_docid`, `location_name_origen`, `location_name_destino`
+- Frontend esperaba: `guid`, `docid`, `origen_nombre`, `destino_nombre`
+- Resultado: Error "GUID de transferencia es requerido"
+
+**Después:**
+- Endpoint devuelve: Ambos formatos (originales y aliases)
+- Frontend puede usar: `guid`, `docid`, `origen_nombre`, `destino_nombre`
+- Resultado: Transferencia se registra correctamente ✅
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+----------------------------------------
+
+1. Subir el archivo modificado:
+   - routes/detalles.py
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario.
+
+4. Probar:
+   - Cargar una transferencia desde la URL (con parámetro `guid`)
+   - Intentar registrar la transferencia
+   - Verificar que no aparezca el error "GUID de transferencia es requerido"
+
+RESULTADO ESPERADO:
+-------------------
+
+Después de la corrección:
+- ✅ El endpoint de detalles devuelve los campos necesarios
+- ✅ El frontend puede acceder a `transferenciaActual.guid`
+- ✅ La transferencia se puede registrar correctamente
+- ✅ Se mantiene compatibilidad con código existente
+
+
+
+
+
+
+
+

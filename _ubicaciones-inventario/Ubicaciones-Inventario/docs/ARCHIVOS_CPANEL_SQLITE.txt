@@ -1,0 +1,85 @@
+===========================================================
+ARCHIVOS A SUBIR A CPANEL - MIGRACIÓN (SQLite)
+===========================================================
+
+FECHA: 2026-01-22
+BASE DE DATOS: SQLite (wms.db)
+
+===========================================================
+📁 ARCHIVOS OBLIGATORIOS (10 archivos)
+===========================================================
+
+1. database/models.py
+   → Nuevos modelos: TransferenciaProcesada, MapeoUbicacionADM_WMS
+   → Campos nuevos: location_id, location_name en FacturaProcesada
+
+2. migrar_tablas_nuevas.py ⚠️ NUEVO
+   → Script de migración - EJECUTAR en cPanel
+
+3. verificar_migracion.py ⚠️ NUEVO
+   → Script de verificación - EJECUTAR en cPanel después
+
+4. routes/facturas.py
+   → Extrae location_id y location_name
+
+5. routes/despacho.py
+   → Usa ubicación correcta (no hardcodeado)
+
+6. routes/transferencias.py
+   → Endpoint /api/transferencias/registrar
+
+7. utils/helpers.py
+   → Función obtener_productos_location_transfer()
+
+8. api/adm_cloud.py
+   → Métodos LocationTransfers
+
+9. app_wms.py
+   → Ruta /transferencias
+
+10. routes/__init__.py
+    → Import transferencias_bp
+
+===========================================================
+🔧 SCRIPTS A EJECUTAR EN CPANEL
+===========================================================
+
+PASO 1: Migración
+------------------
+En cPanel → "Execute python script":
+1. Agregar: migrar_tablas_nuevas.py
+2. Click "Run Script"
+3. Verificar: "[OK] Migración completada exitosamente!"
+
+PASO 2: Verificación
+---------------------
+En cPanel → "Execute python script":
+1. Agregar: verificar_migracion.py
+2. Click "Run Script"
+3. Verificar: "[OK] Migración completada correctamente"
+
+===========================================================
+⚠️ IMPORTANTE
+===========================================================
+
+- NO ejecutes init_db.py (solo para BD nuevas)
+- Solo ejecuta migrar_tablas_nuevas.py (agrega sin borrar)
+- Base de datos: SQLite (wms.db)
+
+===========================================================
+✅ CHECKLIST
+===========================================================
+
+[ ] Subir 10 archivos
+[ ] Ejecutar migrar_tablas_nuevas.py
+[ ] Verificar salida: "[OK] Migración completada"
+[ ] Ejecutar verificar_migracion.py
+[ ] Verificar salida: "[OK] Migración completada correctamente"
+[ ] Probar búsqueda de factura
+[ ] Probar búsqueda de transferencia
+
+===========================================================
+
+
+
+

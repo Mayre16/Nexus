@@ -1,0 +1,77 @@
+===========================================================
+ARCHIVOS A SUBIR A CPANEL - SINCRONIZACIÓN POR LOTES
+===========================================================
+
+FECHA: 2026-01-22
+OBJETIVO: Sincronización por lotes de 1000 para evitar timeout
+
+===========================================================
+📁 ARCHIVOS OBLIGATORIOS (4 archivos)
+===========================================================
+
+1. database/models.py
+   → Campos nuevos: total_items, skip_actual, lote_actual
+   → Estado nuevo: 'paused'
+
+2. routes/sincronizar.py
+   → Endpoint nuevo: /api/sincronizar/ubicacion/<id>/contar
+   → Endpoint nuevo: /api/sincronizar/ubicacion/<id>/lote
+   → Commits cada 50 items (optimizado)
+
+3. templates/admin.html
+   → Funciones nuevas: contarProductos(), sincronizarLote()
+   → UI muestra progreso: "X de Y productos"
+   → Botones dinámicos según estado
+
+4. migrar_campos_lotes_sync.py ⚠️ NUEVO
+   → Script de migración - EJECUTAR en cPanel
+
+===========================================================
+🔧 SCRIPTS A EJECUTAR EN CPANEL
+===========================================================
+
+PASO 1: Migración de campos
+----------------------------
+En cPanel → "Execute python script":
+1. Agregar: migrar_campos_lotes_sync.py
+2. Click "Run Script"
+3. Verificar: "[OK] Migración completada exitosamente!"
+
+===========================================================
+📋 FLUJO DE USO
+===========================================================
+
+1. Contar Productos
+   - Click "🔢 Contar Productos"
+   - Espera: "Total encontrado: 4583 productos"
+
+2. Sincronizar Lote 1
+   - Click "▶️ Continuar Lote 1"
+   - Espera: "Lote 1 completado: 1000 productos. Total: 1000 de 4583"
+   - Pausa automática
+
+3. Sincronizar Lote 2
+   - Click "▶️ Continuar Lote 2"
+   - Espera: "Lote 2 completado: 1000 productos. Total: 2000 de 4583"
+   - Pausa automática
+
+4. Repetir hasta completar
+   - Continúa hasta que todos los productos estén sincronizados
+
+===========================================================
+✅ CHECKLIST
+===========================================================
+
+[ ] Subir 4 archivos
+[ ] Ejecutar migrar_campos_lotes_sync.py
+[ ] Verificar: "[OK] Migración completada"
+[ ] Probar contar productos
+[ ] Probar sincronizar lote 1
+[ ] Probar sincronizar lote 2
+[ ] Verificar progreso se muestra correctamente
+
+===========================================================
+
+
+
+

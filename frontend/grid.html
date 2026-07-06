@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA Nexus · Grid</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { adesa: { red: "#be1622", red2: "#ef1d2b", gold: "#fcb900", ink: "#111111" } },
+            fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+    <header class="bg-adesa-ink text-white">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center gap-4 justify-between">
+        <div class="flex items-center gap-3">
+          <a href="/dashboard.html" class="text-sm text-gray-400 hover:text-white">← Panel</a>
+          <span class="text-lg font-bold">Nexus Grid</span>
+          <span class="text-xs bg-white/10 px-2 py-0.5 rounded-full">EasyMetering</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <select id="selPlataforma" class="text-xs bg-white/10 text-white border border-white/20 rounded-lg px-2 py-1.5">
+            <option value="adesa_cloud">ADESA Cloud</option>
+          </select>
+          <span id="badgeModo" class="text-xs px-2 py-1 rounded-full bg-white/10"></span>
+          <button id="btnSync" type="button" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-adesa-gold text-adesa-ink hover:opacity-90">Sincronizar ahora</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-6">
+      <!-- KPIs -->
+      <div id="kpis" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6"></div>
+
+      <div class="flex flex-wrap gap-2 mb-4 border-b border-gray-200 pb-2">
+        <button type="button" data-tab="equipos" class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg bg-adesa-red text-white">Equipos</button>
+        <button type="button" data-tab="sin-asignar" class="tab-btn px-4 py-2 text-sm rounded-lg hover:bg-gray-100">Sin asignar</button>
+        <button type="button" data-tab="informe" class="tab-btn px-4 py-2 text-sm rounded-lg hover:bg-gray-100">Informe mes</button>
+        <button type="button" data-tab="sync" class="tab-btn px-4 py-2 text-sm rounded-lg hover:bg-gray-100">Historial sync</button>
+      </div>
+
+      <!-- TAB EQUIPOS -->
+      <section id="tab-equipos">
+        <div class="flex flex-wrap gap-3 mb-4">
+          <input id="buscar" type="search" placeholder="Buscar serial, nombre…" class="rounded-lg border px-3 py-2 text-sm bg-white min-w-[200px]" />
+          <select id="filtroEstado" class="rounded-lg border px-3 py-2 text-sm bg-white">
+            <option value="">Todos los estados</option>
+            <option value="online">En línea</option>
+            <option value="advertencia_offline">Aviso offline</option>
+            <option value="offline">Offline</option>
+            <option value="desconocido">Desconocido</option>
+          </select>
+          <select id="filtroPropiedad" class="rounded-lg border px-3 py-2 text-sm bg-white">
+            <option value="">Todas las propiedades</option>
+            <option value="sin_clasificar">Sin clasificar</option>
+            <option value="adesa_prueba">ADESA prueba</option>
+            <option value="easymetering">EasyMetering</option>
+            <option value="cliente">Cliente</option>
+          </select>
+        </div>
+
+        <div class="grid lg:grid-cols-5 gap-4">
+          <div class="lg:col-span-2 bg-white rounded-2xl ring-1 ring-gray-100 overflow-hidden">
+            <div class="px-4 py-3 border-b font-bold text-sm flex justify-between">
+              <span>Equipos AMI</span>
+              <span id="contadorLista" class="text-xs font-normal text-gray-400"></span>
+            </div>
+            <ul id="listaEquipos" class="divide-y max-h-[70vh] overflow-y-auto"></ul>
+          </div>
+          <div id="panelDetalle" class="lg:col-span-3 bg-white rounded-2xl ring-1 ring-gray-100 p-5 hidden"></div>
+          <div id="panelVacio" class="lg:col-span-3 flex items-center justify-center text-gray-400 text-sm min-h-[300px] rounded-2xl bg-white ring-1 ring-gray-100">
+            Selecciona un equipo para clasificar o asignar cliente
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB SIN ASIGNAR (solo serial en EZM — marcar prueba o EZM) -->
+      <section id="tab-sin-asignar" class="hidden">
+        <p class="text-sm text-gray-500 mb-4">Medidores que en Energify solo muestran el serial (sin cliente). Márcalos como <strong>ADESA prueba</strong> o <strong>EZM</strong>.</p>
+        <div class="bg-white rounded-2xl ring-1 ring-gray-100 overflow-hidden">
+          <ul id="listaSinAsignar" class="divide-y max-h-[70vh] overflow-y-auto"></ul>
+        </div>
+      </section>
+
+      <!-- TAB INFORME MES -->
+      <section id="tab-informe" class="hidden">
+        <div class="flex flex-wrap gap-3 mb-4 items-center">
+          <label class="text-sm text-gray-600">Mes</label>
+          <input id="informeMes" type="month" class="border rounded-lg px-3 py-2 text-sm" />
+          <button id="btnCargarInforme" type="button" class="px-3 py-2 rounded-lg bg-adesa-red text-white text-sm font-bold">Actualizar</button>
+        </div>
+        <div id="informeContenido" class="space-y-4"></div>
+      </section>
+
+      <!-- TAB SYNC -->
+      <section id="tab-sync" class="hidden">
+        <div class="bg-white rounded-2xl ring-1 ring-gray-100 overflow-hidden">
+          <div class="px-4 py-3 border-b font-bold text-sm">Sincronizaciones EasyMetering</div>
+          <div id="listaSync" class="divide-y max-h-[70vh] overflow-y-auto"></div>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="fixed bottom-4 right-4 hidden px-4 py-3 rounded-xl shadow-lg text-sm text-white bg-adesa-ink z-50"></div>
+
+    <script>
+      function leerCookie(n) { return document.cookie.split("; ").find(c => c.startsWith(n + "="))?.split("=")[1] || ""; }
+
+      let equipoActual = null, clientesCache = [], tabActiva = "equipos", plataformaActiva = "adesa_cloud";
+
+      const estadoLabel = {
+        online: "En línea",
+        offline: "Offline",
+        advertencia_offline: "Aviso offline",
+        desconocido: "Desconocido",
+      };
+      const estadoColor = {
+        online: "bg-green-100 text-green-800",
+        offline: "bg-gray-200 text-gray-700",
+        advertencia_offline: "bg-amber-100 text-amber-900",
+        desconocido: "bg-gray-100 text-gray-600",
+      };
+      const propiedadLabel = {
+        sin_clasificar: "Sin clasificar",
+        adesa_prueba: "ADESA prueba",
+        easymetering: "EasyMetering",
+        cliente: "Cliente",
+      };
+
+      function toast(msg, ok = true) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.className = "fixed bottom-4 right-4 px-4 py-3 rounded-xl shadow-lg text-sm text-white z-50 " + (ok ? "bg-green-700" : "bg-adesa-red");
+        t.classList.remove("hidden");
+        setTimeout(() => t.classList.add("hidden"), 3500);
+      }
+
+      async function api(url, opts = {}) {
+        const r = await fetch(url, {
+          credentials: "include",
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": leerCookie("nexus_csrf"), ...opts.headers },
+          ...opts,
+        });
+        if (r.status === 401) { location.href = "/"; throw new Error("auth"); }
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || "Error");
+        return j;
+      }
+
+      function renderKpis(data) {
+        const t = data.resumen?.totales || {};
+        const c = data.resumen?.consumo_mes || {};
+        const ult = data.resumen?.ultima_sync;
+        const cards = [
+          { label: "Total equipos", val: t.total || 0, sub: plataformaActiva },
+          { label: "Asignados EZM", val: t.asignados_portal || 0, sub: "con nombre", cls: "text-blue-700" },
+          { label: "Sin asignar", val: t.sin_asignar_portal || 0, sub: "solo serial", cls: "text-amber-700" },
+          { label: "En línea hoy", val: t.online || 0, sub: "🟢", cls: "text-green-700" },
+          { label: "ADESA prueba", val: t.adesa_prueba || 0, sub: "" },
+          { label: "Pool EZM", val: t.easymetering || 0, sub: "" },
+        ];
+        document.getElementById("kpis").innerHTML = cards.map(k => `
+          <div class="bg-white rounded-xl ring-1 ring-gray-100 p-4">
+            <div class="text-[10px] uppercase tracking-wide text-gray-400">${k.label}</div>
+            <div class="text-2xl font-bold mt-1 ${k.cls || ""}">${k.val} <span class="text-sm">${k.sub}</span></div>
+          </div>`).join("");
+
+        const modo = data.conexion?.modo || "demo";
+        const badge = document.getElementById("badgeModo");
+        badge.textContent = modo === "api" ? "API JWT" : (modo === "browser" ? "Navegador" : "Modo demo");
+        badge.className = "text-xs px-2 py-1 rounded-full " + (modo === "demo" ? "bg-amber-600" : "bg-green-600");
+      }
+
+      function filaEquipo(e, clickFn, conAcciones = false) {
+        const li = document.createElement("li");
+        li.className = "px-4 py-3 cursor-pointer hover:bg-gray-50" + (equipoActual?.uuid === e.uuid ? " bg-red-50" : "");
+        const icon = e.estado_conexion === "online" ? "🟢" : e.estado_conexion === "advertencia_offline" ? "⚠️" : e.estado_conexion === "offline" ? "⛔" : "○";
+        const asignado = e.asignado_portal == 1 || e.asignado_portal === true;
+        const tagAsign = asignado
+          ? '<span class="text-[10px] bg-blue-50 text-blue-700 px-1 rounded">Cliente EZM</span>'
+          : '<span class="text-[10px] bg-amber-50 text-amber-800 px-1 rounded">Sin asignar</span>';
+        const acciones = conAcciones ? `
+          <div class="flex gap-1 mt-2" onclick="event.stopPropagation()">
+            <button type="button" data-uuid="${e.uuid}" data-prop="adesa_prueba" class="btn-clasificar text-[10px] px-2 py-1 rounded bg-adesa-gold font-bold">Prueba ADESA</button>
+            <button type="button" data-uuid="${e.uuid}" data-prop="easymetering" class="btn-clasificar text-[10px] px-2 py-1 rounded bg-gray-200 font-bold">EZM</button>
+          </div>` : "";
+        li.innerHTML = `
+          <div class="flex justify-between gap-2">
+            <div class="flex-1">
+              <div class="font-semibold text-sm">${icon} ${e.nombre || e.serial || e.external_id}</div>
+              <div class="text-xs text-gray-500 font-mono mt-0.5">${e.serial || "—"} · ${propiedadLabel[e.propiedad] || e.propiedad} · ${tagAsign}</div>
+              ${acciones}
+            </div>
+            <div class="text-right text-xs shrink-0">
+              <span class="px-1.5 py-0.5 rounded ${estadoColor[e.estado_conexion] || ""}">${estadoLabel[e.estado_conexion]}</span>
+            </div>
+          </div>`;
+        li.onclick = () => clickFn(e);
+        if (conAcciones) {
+          li.querySelectorAll(".btn-clasificar").forEach(btn => {
+            btn.onclick = async (ev) => {
+              ev.stopPropagation();
+              await api("/api/grid/equipos/" + btn.dataset.uuid, {
+                method: "PATCH",
+                body: JSON.stringify({ propiedad: btn.dataset.prop }),
+              });
+              toast("Clasificado como " + propiedadLabel[btn.dataset.prop]);
+              await cargarResumen();
+              await refrescarSinAsignar();
+              await refrescarLista();
+            };
+          });
+        }
+        return li;
+      }
+
+      async function cargarEquipos(extra = {}) {
+        const p = new URLSearchParams({ plataforma: plataformaActiva });
+        const q = document.getElementById("buscar")?.value?.trim();
+        const est = document.getElementById("filtroEstado")?.value;
+        const prop = document.getElementById("filtroPropiedad")?.value;
+        if (q) p.set("buscar", q);
+        if (est) p.set("estado", est);
+        if (prop) p.set("propiedad", prop);
+        Object.entries(extra).forEach(([k, v]) => p.set(k, v));
+        const { equipos } = await api("/api/grid/equipos?" + p);
+        return equipos;
+      }
+
+      async function refrescarLista() {
+        const equipos = await cargarEquipos();
+        const ul = document.getElementById("listaEquipos");
+        ul.innerHTML = equipos.length ? "" : '<li class="p-4 text-gray-400 text-sm">Sin equipos — sincroniza EasyMetering</li>';
+        equipos.forEach(e => ul.appendChild(filaEquipo(e, abrirEquipo)));
+        document.getElementById("contadorLista").textContent = equipos.length + " equipos";
+      }
+
+      async function refrescarSinAsignar() {
+        const equipos = await cargarEquipos({ sin_asignar: "1" });
+        const ul = document.getElementById("listaSinAsignar");
+        ul.innerHTML = equipos.length ? "" : '<li class="p-4 text-gray-400 text-sm">No hay medidores sin asignar en esta plataforma</li>';
+        equipos.forEach(e => ul.appendChild(filaEquipo(e, abrirEquipo, true)));
+      }
+
+      const grupoLabel = {
+        clientes_asignados: "Clientes asignados (con nombre en EZM)",
+        sin_asignar: "Sin asignar en EZM",
+        adesa_prueba: "ADESA — medidores de prueba",
+        easymetering: "EasyMetering (pool EZM)",
+      };
+
+      async function cargarInformeMes() {
+        const mes = document.getElementById("informeMes").value || new Date().toISOString().slice(0, 7);
+        const { informe } = await api(`/api/grid/informe-mes?mes=${mes}&plataforma=${plataformaActiva}`);
+        const div = document.getElementById("informeContenido");
+        const bloques = Object.entries(informe.grupos || {}).map(([key, g]) => `
+          <div class="bg-white rounded-2xl ring-1 ring-gray-100 p-4">
+            <h3 class="font-bold text-sm mb-3">${grupoLabel[key] || key}</h3>
+            <div class="grid grid-cols-4 gap-2 text-center text-xs mb-3">
+              <div class="bg-green-50 rounded-lg p-2"><div class="font-bold text-lg text-green-700">${g.todo_mes}</div>En línea todo el mes</div>
+              <div class="bg-amber-50 rounded-lg p-2"><div class="font-bold text-lg text-amber-700">${g.parcial}</div>Parcial</div>
+              <div class="bg-gray-100 rounded-lg p-2"><div class="font-bold text-lg">${g.offline}</div>Offline / sin línea</div>
+              <div class="bg-gray-50 rounded-lg p-2"><div class="font-bold text-lg text-gray-400">${g.sin_datos}</div>Sin datos aún</div>
+            </div>
+            <p class="text-[10px] text-gray-400">Requiere sync diario. Facturación cada 6 meses; este cuadro es control mensual de uptime.</p>
+          </div>`).join("");
+        div.innerHTML = bloques || '<p class="text-gray-400 text-sm">Sin datos</p>';
+      }
+
+      async function cargarClientes() {
+        if (clientesCache.length) return clientesCache;
+        const { clientes } = await api("/api/grid/clientes");
+        clientesCache = clientes;
+        return clientes;
+      }
+
+      async function abrirEquipo(e) {
+        equipoActual = e;
+        document.getElementById("panelVacio").classList.add("hidden");
+        const panel = document.getElementById("panelDetalle");
+        panel.classList.remove("hidden");
+
+        const { consumo_mes } = await api("/api/grid/equipos/" + e.uuid);
+        const mes = consumo_mes || {};
+        const lecturas = mes.lecturas || [];
+        const totalMes = mes.total_kwh_mes || 0;
+        const clientes = await cargarClientes();
+
+        const optsCliente = ['<option value="">— Sin cliente —</option>']
+          .concat(clientes.map(c => `<option value="${c.id}" ${e.cliente_empresa_id == c.id ? "selected" : ""}>${c.razon_social}</option>`))
+          .join("");
+
+        const optsProp = Object.entries(propiedadLabel).map(([k, v]) =>
+          `<option value="${k}" ${e.propiedad === k ? "selected" : ""}>${v}</option>`
+        ).join("");
+
+        const tablaLecturas = lecturas.length
+          ? lecturas.map(l => `<tr class="border-t"><td class="py-1">${l.fecha}</td><td class="py-1 text-right font-mono">${Number(l.kwh).toFixed(2)}</td></tr>`).join("")
+          : '<tr><td colspan="2" class="py-2 text-gray-400 text-xs">Sin lecturas este mes</td></tr>';
+
+        panel.innerHTML = `
+          <div class="flex flex-wrap items-start justify-between gap-2 mb-4">
+            <div>
+              <span class="text-xs font-mono text-adesa-red font-bold">${e.external_id}</span>
+              <h2 class="text-lg font-bold mt-1">${e.nombre || e.serial}</h2>
+              <p class="text-xs text-gray-500 font-mono mt-1">Serial: ${e.serial || "—"}</p>
+            </div>
+            <span class="text-xs font-bold px-2 py-1 rounded-full ${estadoColor[e.estado_conexion]}">${estadoLabel[e.estado_conexion]}</span>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-4 mb-4">
+            <div class="bg-gray-50 rounded-xl p-3">
+              <div class="text-[10px] uppercase text-gray-400">Consumo hoy</div>
+              <div class="text-xl font-bold">${e.ultima_lectura_kwh != null ? Number(e.ultima_lectura_kwh).toFixed(2) + " kWh" : "—"}</div>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-3">
+              <div class="text-[10px] uppercase text-gray-400">Total mes</div>
+              <div class="text-xl font-bold">${Number(totalMes).toFixed(2)} kWh</div>
+            </div>
+          </div>
+
+          <div class="mb-4 max-h-32 overflow-y-auto">
+            <table class="w-full text-xs">
+              <thead><tr class="text-gray-400"><th class="text-left">Fecha</th><th class="text-right">kWh</th></tr></thead>
+              <tbody>${tablaLecturas}</tbody>
+            </table>
+          </div>
+
+          <div class="space-y-3 border-t pt-4">
+            <div>
+              <label class="text-xs font-bold text-gray-500">Propiedad del equipo</label>
+              <select id="selPropiedad" class="w-full mt-1 border rounded-lg px-3 py-2 text-sm">${optsProp}</select>
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-500">Cliente Nexus (energía)</label>
+              <select id="selCliente" class="w-full mt-1 border rounded-lg px-3 py-2 text-sm">${optsCliente}</select>
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-500">Notas</label>
+              <textarea id="txtNotas" class="w-full mt-1 border rounded-lg px-3 py-2 text-sm" rows="2">${e.notas || ""}</textarea>
+            </div>
+            <button id="btnGuardar" type="button" class="px-4 py-2 rounded-lg bg-adesa-red text-white text-sm font-bold">Guardar clasificación</button>
+          </div>`;
+
+        document.getElementById("btnGuardar").onclick = guardarEquipo;
+        if (tabActiva !== "equipos") {
+          document.querySelector('[data-tab="equipos"]')?.click();
+        }
+        refrescarLista();
+      }
+
+      async function guardarEquipo() {
+        if (!equipoActual) return;
+        const body = {
+          propiedad: document.getElementById("selPropiedad").value,
+          cliente_empresa_id: document.getElementById("selCliente").value || null,
+          notas: document.getElementById("txtNotas").value,
+        };
+        const { equipo } = await api("/api/grid/equipos/" + equipoActual.uuid, { method: "PATCH", body: JSON.stringify(body) });
+        equipoActual = equipo;
+        toast("Equipo actualizado");
+        await cargarResumen();
+        await refrescarLista();
+        await refrescarSinAsignar();
+      }
+
+      async function cargarResumen() {
+        const data = await api("/api/grid/resumen?plataforma=" + plataformaActiva);
+        renderKpis(data);
+      }
+
+      async function cargarSyncs() {
+        const { syncs } = await api("/api/grid/syncs");
+        const div = document.getElementById("listaSync");
+        div.innerHTML = syncs.length ? "" : '<div class="p-4 text-gray-400 text-sm">Aún no hay sincronizaciones</div>';
+        syncs.forEach(s => {
+          const el = document.createElement("div");
+          el.className = "px-4 py-3 text-sm flex flex-wrap justify-between gap-2";
+          el.innerHTML = `
+            <div>
+              <div class="font-semibold">${new Date(s.inicio_en).toLocaleString()}</div>
+              <div class="text-xs text-gray-500">${s.mensaje || "—"} · ${s.usuario_nombre || "sistema"}</div>
+            </div>
+            <div class="text-xs text-right">
+              <span class="font-bold uppercase">${s.estado}</span>
+              <div class="text-gray-500">${s.equipos_online} online · ${s.equipos_alerta} alerta · ${s.equipos_offline} offline</div>
+            </div>`;
+          div.appendChild(el);
+        });
+      }
+
+      document.getElementById("btnSync").onclick = async () => {
+        const btn = document.getElementById("btnSync");
+        btn.disabled = true;
+        btn.textContent = "Sincronizando…";
+        try {
+          const r = await api("/api/grid/sync", { method: "POST", body: "{}" });
+          toast(r.modo_demo ? "Sync demo completada" : "Sincronización OK");
+          await cargarResumen();
+          await refrescarLista();
+          await refrescarSinAsignar();
+          if (tabActiva === "sync") await cargarSyncs();
+        } catch (err) {
+          toast(err.message, false);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Sincronizar ahora";
+        }
+      };
+
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.onclick = () => {
+          tabActiva = btn.dataset.tab;
+          document.querySelectorAll(".tab-btn").forEach(b => {
+            b.className = "tab-btn px-4 py-2 text-sm rounded-lg " + (b.dataset.tab === tabActiva ? "bg-adesa-red text-white font-semibold" : "hover:bg-gray-100");
+          });
+          document.getElementById("tab-equipos").classList.toggle("hidden", tabActiva !== "equipos");
+          document.getElementById("tab-sin-asignar").classList.toggle("hidden", tabActiva !== "sin-asignar");
+          document.getElementById("tab-informe").classList.toggle("hidden", tabActiva !== "informe");
+          document.getElementById("tab-sync").classList.toggle("hidden", tabActiva !== "sync");
+          if (tabActiva === "sin-asignar") refrescarSinAsignar();
+          if (tabActiva === "informe") cargarInformeMes();
+          if (tabActiva === "sync") cargarSyncs();
+        };
+      });
+
+      ["buscar", "filtroEstado", "filtroPropiedad"].forEach(id => {
+        document.getElementById(id)?.addEventListener("change", refrescarLista);
+        document.getElementById(id)?.addEventListener("input", refrescarLista);
+      });
+
+      document.getElementById("btnCargarInforme").onclick = cargarInformeMes;
+      document.getElementById("informeMes").value = new Date().toISOString().slice(0, 7);
+
+      document.getElementById("selPlataforma").onchange = async (e) => {
+        plataformaActiva = e.target.value;
+        await cargarResumen();
+        await refrescarLista();
+        if (tabActiva === "sin-asignar") await refrescarSinAsignar();
+        if (tabActiva === "informe") await cargarInformeMes();
+      };
+
+      (async () => {
+        try {
+          await cargarResumen();
+          await refrescarLista();
+        } catch (err) {
+          if (err.message !== "auth") toast(err.message, false);
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "technicalName": "tracker",
+  "displayName": "Nexus Tracker",
+  "summary": "Telemetría del equipo, agente BadBoy y red UniFi",
+  "version": "0.1.0",
+  "category": "monitoring",
+  "state": "installed",
+  "installable": true,
+  "autoInstall": true,
+  "depends": ["nexus_core"],
+  "routes": {
+    "ui": "/tracker.html",
+    "api": "/api/performance",
+    "dashboardPath": "/tracker.html"
+  },
+  "roles": ["admin", "empleado"],
+  "icon": "🧭",
+  "sortOrder": 40
+}

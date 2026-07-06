@@ -1,0 +1,110 @@
+═══════════════════════════════════════════════════════════════════
+📝 ARCHIVOS MODIFICADOS Y CREADOS - SINCRONIZACIÓN POR UBICACIONES
+═══════════════════════════════════════════════════════════════════
+
+✅ ARCHIVOS MODIFICADOS (actualizar en cPanel):
+───────────────────────────────────────────────────────────────────
+
+1. database/models.py
+   ✓ Agregado modelo SyncLocationStatus para trackear estado de sincronización
+   ✓ Campos: location_id, location_name, status, last_sync_at, last_error, items_synced
+
+2. routes/auth.py
+   ✓ Agregado decorador require_admin() para validar rol administrador
+   ✓ Permite restringir acceso a rutas solo para administradores
+
+3. routes/sincronizar.py
+   ✓ Agregado import: require_admin, SyncLocationStatus
+   ✓ Nuevo endpoint: GET /api/sincronizar/ubicaciones (listar ubicaciones con estado)
+   ✓ Nuevo endpoint: POST /api/sincronizar/ubicacion/<location_id> (sincronizar una ubicación)
+   ✓ Mantiene endpoints anteriores por compatibilidad
+
+4. app_wms.py
+   ✓ Agregado import: session
+   ✓ Nueva ruta: GET /admin (panel de administración, solo admins)
+
+5. templates/index.html
+   ✓ Agregado botón "Panel de Administración" (visible solo para administradores)
+   ✓ JavaScript para mostrar/ocultar botón según rol
+
+
+✅ ARCHIVOS CREADOS (subir nuevos a cPanel):
+───────────────────────────────────────────────────────────────────
+
+1. templates/admin.html
+   ✓ Panel de administración completo para sincronización por ubicación
+   ✓ Lista de ubicaciones con estado visual
+   ✓ Botones para sincronizar/re-sincronizar ubicaciones
+   ✓ Interfaz responsive y con feedback visual
+
+
+═══════════════════════════════════════════════════════════════════
+📦 RESUMEN PARA SUBIR A CPANEL
+═══════════════════════════════════════════════════════════════════
+
+ARCHIVOS A ACTUALIZAR (ya existen, sobrescribir):
+   ├── database/models.py
+   ├── routes/auth.py
+   ├── routes/sincronizar.py
+   ├── app_wms.py
+   └── templates/index.html
+
+ARCHIVOS NUEVOS A SUBIR:
+   └── templates/admin.html
+
+TOTAL: 5 archivos modificados + 1 archivo nuevo = 6 archivos
+
+
+═══════════════════════════════════════════════════════════════════
+🔍 VERIFICACIÓN POST-DESPLIEGUE
+═══════════════════════════════════════════════════════════════════
+
+Después de subir los archivos, verificar:
+
+1. Base de datos:
+   ☐ La tabla sync_locations_status se crea automáticamente
+   ☐ Ejecutar: db.create_all() si es necesario
+
+2. Rutas:
+   ☐ /admin → Panel de administración (solo admins)
+   ☐ /api/sincronizar/ubicaciones → Lista ubicaciones (solo admins)
+   ☐ /api/sincronizar/ubicacion/<id> → Sincroniza ubicación (solo admins)
+
+3. Permisos:
+   ☐ Usuario administrador puede acceder a /admin
+   ☐ Usuarios no-administradores son redirigidos a /
+
+4. Funcionalidad:
+   ☐ Panel admin carga lista de ubicaciones
+   ☐ Botón "Sincronizar" funciona correctamente
+   ☐ Estado se actualiza visualmente (pending → running → done/error)
+   ☐ Items se guardan en BD (tabla stock_productos_adm)
+
+
+═══════════════════════════════════════════════════════════════════
+📋 CHECKLIST DE DESPLIEGUE
+═══════════════════════════════════════════════════════════════════
+
+ANTES DE SUBIR:
+☐ Revisar que todos los archivos estén modificados correctamente
+☐ Verificar que no haya errores de sintaxis
+
+DURANTE SUBIDA:
+☐ Subir 5 archivos modificados (sobrescribir existentes)
+☐ Subir 1 archivo nuevo (templates/admin.html)
+
+DESPUÉS DE SUBIR:
+☐ Verificar que la aplicación inicie correctamente
+☐ Acceder como administrador a /admin
+☐ Probar sincronización de una ubicación (ej: ADESA)
+☐ Verificar que los datos se guarden en BD
+☐ Probar consulta de productos después de sincronizar
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,36 @@
+{
+  "name": "adesa-nexus-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ADESA Nexus - Backend API blindado (ERP/CRM/Ticketing/Monitoreo multi-tenant)",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "db:init": "node scripts/init-db.js",
+    "gen:secret": "node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\"",
+    "gen:enckey": "node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
+    "audit": "npm audit --audit-level=high"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0",
+    "express-validator": "^7.1.0",
+    "helmet": "^7.1.0",
+    "hpp": "^0.2.3",
+    "http-proxy-middleware": "^3.0.7",
+    "imapflow": "^1.4.2",
+    "jsonwebtoken": "^9.0.2",
+    "mailparser": "^3.9.11",
+    "mysql2": "^3.11.0",
+    "nodemailer": "^9.0.1"
+  }
+}

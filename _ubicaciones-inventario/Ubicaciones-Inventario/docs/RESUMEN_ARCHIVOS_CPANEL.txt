@@ -1,0 +1,185 @@
+═══════════════════════════════════════════════════════════════
+  RESUMEN DE ARCHIVOS PARA CPANEL - ACTUALIZACIÓN ACTUAL
+═══════════════════════════════════════════════════════════════
+
+📦 CÓMO CREAR EL ZIP PARA CPANEL:
+═══════════════════════════════════════════════════════════════
+
+1. Ejecuta: crear_zip_cpanel.bat
+   (Esto creará automáticamente wms_cpanel.zip con todos los
+    archivos esenciales, EXCLUYENDO la carpeta "no_cpanel")
+
+2. O manualmente:
+   - Selecciona todas las carpetas y archivos listados abajo
+   - Crea un ZIP llamado "wms_cpanel.zip"
+   - NO incluyas la carpeta "no_cpanel"
+
+═══════════════════════════════════════════════════════════════
+
+📁 ESTRUCTURA DE ARCHIVOS PARA CPANEL (POR CARPETA)
+═══════════════════════════════════════════════════════════════
+
+✅ RAÍZ DEL PROYECTO (/)
+   ───────────────────────────────────────────────────────────
+   ✏️  app_wms.py (MODIFICADO - Registrado consulta_bp)
+   ✓   config.py
+   ✓   init_db.py
+   ⚠️  passenger_wsgi.py (CRÍTICO - NO BORRAR EN CPANEL)
+   ✓   requirements.txt
+
+✅ CARPETA api/
+   ───────────────────────────────────────────────────────────
+   ✓   __init__.py
+   ✓   adm_cloud.py
+
+✅ CARPETA database/
+   ───────────────────────────────────────────────────────────
+   ✓   __init__.py
+   ✓   models.py
+   (wms.db se crea automáticamente - NO subir)
+
+✅ CARPETA routes/
+   ───────────────────────────────────────────────────────────
+   ✏️  __init__.py (MODIFICADO - Agregado consulta_bp)
+   ➕  consulta.py (NUEVO - Rutas API consulta)
+   ✏️  despacho.py (MODIFICADO - Ruta estado despacho)
+   ✓   auth.py
+   ✓   dashboard.py
+   ✓   facturas.py
+   ✓   stock.py
+
+✅ CARPETA templates/
+   ───────────────────────────────────────────────────────────
+   ➕  login.html (NUEVO - Página de login)
+   ➕  despacho.html (NUEVO - Página de despacho)
+   ✓   index.html
+
+✅ CARPETA utils/
+   ───────────────────────────────────────────────────────────
+   ✓   __init__.py
+   ✓   helpers.py
+   ✓   validaciones.py
+
+✅ CARPETA static/
+   ───────────────────────────────────────────────────────────
+   ✓   css/ (carpeta - puede estar vacía)
+   ✓   js/ (carpeta - puede estar vacía)
+
+═══════════════════════════════════════════════════════════════
+
+📊 RESUMEN DE CAMBIOS EN ESTA ACTUALIZACIÓN
+═══════════════════════════════════════════════════════════════
+
+ARCHIVOS NUEVOS (3):
+   1. routes/consulta.py
+   2. templates/login.html
+   3. templates/despacho.html
+
+ARCHIVOS MODIFICADOS (3):
+   1. app_wms.py
+   2. routes/__init__.py
+   3. routes/despacho.py
+
+ARCHIVOS SIN CAMBIOS (Ya existían):
+   - Todos los demás archivos
+
+═══════════════════════════════════════════════════════════════
+
+⚠️ ARCHIVOS QUE NUNCA DEBES BORRAR EN CPANEL
+═══════════════════════════════════════════════════════════════
+
+1. passenger_wsgi.py ⚠️ CRÍTICO
+   ────────────────────────────
+   Sin este archivo, la aplicación NO funcionará.
+   Si lo borras, tendrás que recrearlo desde cero.
+
+2. .htaccess (si existe)
+   ─────────────────────
+   Puede contener configuraciones importantes.
+
+3. Archivos de log (opcional)
+   ──────────────────────────
+   - stderr.log (errores)
+   - stdout.log (salida estándar)
+
+═══════════════════════════════════════════════════════════════
+
+🔄 PROCESO DE ACTUALIZACIÓN EN CPANEL
+═══════════════════════════════════════════════════════════════
+
+PASO 1: Preparar ZIP
+   ──────────────────
+   ✓ Ejecuta: crear_zip_cpanel.bat
+   ✓ Verifica que se creó: wms_cpanel.zip
+
+PASO 2: Hacer Backup en CPanel
+   ────────────────────────────
+   ⚠️  Descarga passenger_wsgi.py (por si acaso)
+
+PASO 3: Acceder a CPanel File Manager
+   ───────────────────────────────────
+   ✓ Navega a: /home2/adesa/wms.adesa.com.do/
+
+PASO 4: Borrar Archivos Antiguos
+   ──────────────────────────────
+   ✓ Selecciona y BORRA estas carpetas:
+     - api
+     - database (pero NO borres wms.db si existe)
+     - routes
+     - static
+     - templates
+     - utils
+     - migrations (si existe)
+   ✓ Selecciona y BORRA estos archivos:
+     - app_wms.py
+     - config.py
+     - init_db.py
+     - requirements.txt
+   ⚠️  NO BORRES:
+     - passenger_wsgi.py
+     - .htaccess (si existe)
+
+PASO 5: Subir Nuevo ZIP
+   ──────────────────────
+   ✓ Sube: wms_cpanel.zip
+   ✓ Extrae en la raíz del directorio
+   ✓ Verifica que passenger_wsgi.py siga existiendo
+
+PASO 6: Reiniciar Aplicación
+   ──────────────────────────
+   ✓ Ve a: Setup Python App
+   ✓ Busca: wms.adesa.com.do
+   ✓ Clic en: RESTART
+   ✓ Espera: 30-60 segundos
+
+PASO 7: Probar
+   ───────────
+   ✓ Accede a: https://wms.adesa.com.do/
+   ✓ Prueba login: /login
+   ✓ Prueba despacho: /despacho
+
+═══════════════════════════════════════════════════════════════
+
+✅ CHECKLIST FINAL
+═══════════════════════════════════════════════════════════════
+
+Antes de subir a CPanel, verifica:
+
+[ ] ZIP creado correctamente (wms_cpanel.zip)
+[ ] passenger_wsgi.py está en el ZIP (o lo preservarás)
+[ ] requirements.txt está en el ZIP
+[ ] Todas las carpetas están incluidas (api, database, routes, etc.)
+[ ] Carpeta "no_cpanel" NO está en el ZIP
+
+═══════════════════════════════════════════════════════════════
+
+
+
+
+
+
+
+
+
+
+

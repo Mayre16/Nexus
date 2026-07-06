@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+  <head>
+
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="theme-color" content="#be1622" />
+
+    <title>ADESA Nexus · Panel</title>
+
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap"
+
+      rel="stylesheet"
+
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+
+      tailwind.config = {
+
+        theme: {
+
+          extend: {
+
+            colors: {
+
+              adesa: { red: "#be1622", red2: "#ef1d2b", gold: "#fcb900", ink: "#111111" },
+
+            },
+
+            fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] },
+
+          },
+
+        },
+
+      };
+
+    </script>
+
+  </head>
+
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+
+    <header class="bg-adesa-ink text-white">
+
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+
+        <div class="flex items-center gap-3">
+
+          <img src="/assets/adesa-isotype.png" alt="ADESA" class="h-10 w-auto" />
+
+          <div class="flex flex-col leading-none">
+
+            <span class="text-lg font-black tracking-[0.2em]">
+
+              ADESA <span class="text-adesa-red2">NEXUS</span>
+
+            </span>
+
+            <span class="text-[9px] font-semibold tracking-[0.35em] text-adesa-gold">DESDE 1999</span>
+
+          </div>
+
+        </div>
+
+        <div class="flex items-center gap-4">
+
+          <span id="userBadge" class="text-sm text-gray-300">…</span>
+
+          <button id="logoutBtn" class="rounded-lg bg-adesa-red hover:bg-adesa-red2 px-4 py-2 text-sm font-bold transition">
+
+            Salir
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+
+    <main class="max-w-7xl mx-auto px-6 py-10">
+
+      <h1 class="text-3xl font-extrabold">
+
+        Hola, <span id="userName" class="text-adesa-red">…</span>
+
+      </h1>
+
+      <p class="mt-2 text-gray-500">
+
+        Rol: <span id="userRol" class="font-semibold">…</span> · División:
+
+        <span id="userDiv" class="font-semibold">…</span>
+
+      </p>
+
+      <div class="h-1 w-16 rounded-full mt-4" style="background: linear-gradient(90deg,#fcb900,#be1622)"></div>
+
+
+
+      <div id="modulosContainer" class="mt-10 space-y-10"></div>
+
+    </main>
+
+
+
+    <script>
+
+      function leerCookie(nombre) {
+
+        return document.cookie
+
+          .split("; ")
+
+          .find((c) => c.startsWith(nombre + "="))
+
+          ?.split("=")[1];
+
+      }
+
+
+
+      function badgeModulo(m) {
+
+        if (m.external) {
+
+          return '<span class="text-[10px] font-bold uppercase tracking-wide text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">Addon</span>';
+
+        }
+
+        if (m.state === "development") {
+
+          return '<span class="text-[10px] font-bold uppercase tracking-wide text-amber-700 bg-amber-50 px-2 py-0.5 rounded">En desarrollo</span>';
+
+        }
+
+        return '<span class="text-[10px] font-bold uppercase tracking-wide text-slate-500 bg-slate-100 px-2 py-0.5 rounded">Módulo</span>';
+
+      }
+
+
+
+      function linksModulo(m) {
+
+        const links = m.routes?.links;
+
+        if (links?.length) {
+
+          return links
+
+            .map(
+
+              (l) =>
+
+                `<a href="${l.href}" class="text-xs font-semibold text-adesa-red hover:underline">${l.label} →</a>`,
+
+            )
+
+            .join('<span class="text-gray-300 mx-1">·</span>');
+
+        }
+
+        const href = m.routes?.dashboardPath || m.routes?.ui;
+
+        if (!href || m.state === "development") {
+
+          return '<span class="text-xs font-semibold text-amber-600">Próximamente</span>';
+
+        }
+
+        return `<a href="${href}" class="text-xs font-semibold text-adesa-red hover:underline">Abrir módulo →</a>`;
+
+      }
+
+
+
+      function tarjetaModulo(m) {
+
+        const opacity = m.state === "development" ? "opacity-85" : "";
+
+        return `<article class="bg-white rounded-2xl p-6 shadow-sm ring-1 ring-gray-100 hover:ring-adesa-red/30 transition ${opacity}">
+
+          <div class="flex items-start justify-between gap-2">
+
+            <div class="text-2xl">${m.icon || "📦"}</div>
+
+            ${badgeModulo(m)}
+
+          </div>
+
+          <p class="mt-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">${m.categoryLabel || m.category || ""}</p>
+
+          <h2 class="mt-1 font-bold">${m.displayName}</h2>
+
+          <p class="mt-1 text-sm text-gray-500">${m.summary || ""}</p>
+
+          <div class="mt-3 flex flex-wrap gap-2 items-center">${linksModulo(m)}</div>
+
+        </article>`;
+
+      }
+
+
+
+      function renderSeccion(titulo, modulos) {
+
+        if (!modulos?.length) return "";
+
+        return `<section>
+
+          <h2 class="text-sm font-bold uppercase tracking-widest text-gray-400">${titulo}</h2>
+
+          <div class="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+            ${modulos.map(tarjetaModulo).join("")}
+
+          </div>
+
+        </section>`;
+
+      }
+
+
+
+      async function cargarModulos() {
+        const cont = document.getElementById("modulosContainer");
+        cont.innerHTML = '<p class="text-sm text-gray-400 animate-pulse">Cargando módulos…</p>';
+        try {
+          const r = await fetch("/api/modules/catalogo", { credentials: "include" });
+          if (r.status === 401) {
+            window.location.href = "/";
+            return;
+          }
+          if (!r.ok) {
+            const errBody = await r.json().catch(() => ({}));
+            throw new Error(errBody.error || `HTTP ${r.status}`);
+          }
+          const data = await r.json();
+
+          let html = renderSeccion("Aplicaciones instaladas", data.instalados || []);
+          html += renderSeccion("En desarrollo", data.enDesarrollo || []);
+
+          if (!html.trim()) {
+            html = '<p class="text-sm text-gray-500">No hay módulos disponibles para tu rol.</p>';
+          }
+
+          cont.innerHTML = html;
+        } catch (err) {
+          const hint = err.message === "Failed to fetch"
+            ? "El servidor Nexus no responde. En PowerShell: cd backend → $env:PORT=&quot;3000&quot; → node server.js"
+            : err.message;
+          cont.innerHTML = `<div class="text-sm text-red-600 space-y-2">
+            <p>No se pudieron cargar los módulos.</p>
+            <p class="text-gray-600">${hint}</p>
+            <p class="text-xs text-gray-400">Usa siempre la misma URL para login y panel (ej. http://localhost:3000).</p>
+            <button type="button" id="btnReintentarModulos" class="text-xs font-bold text-adesa-red underline">Reintentar</button>
+          </div>`;
+          document.getElementById("btnReintentarModulos")?.addEventListener("click", cargarModulos);
+        }
+      }
+
+
+
+      async function cargarSesion() {
+
+        try {
+
+          const r = await fetch("/api/auth/me", { credentials: "include" });
+
+          if (!r.ok) throw new Error("no auth");
+
+          const { usuario } = await r.json();
+
+          document.getElementById("userName").textContent = usuario.nombre;
+
+          document.getElementById("userRol").textContent = usuario.rol;
+
+          document.getElementById("userDiv").textContent = usuario.division;
+
+          document.getElementById("userBadge").textContent = usuario.email;
+
+          await cargarModulos();
+
+        } catch (_) {
+
+          window.location.href = "/";
+
+        }
+
+      }
+
+
+
+      document.getElementById("logoutBtn").addEventListener("click", async () => {
+
+        await fetch("/api/auth/logout", {
+
+          method: "POST",
+
+          credentials: "include",
+
+          headers: { "X-CSRF-Token": leerCookie("nexus_csrf") || "" },
+
+        });
+
+        window.location.href = "/";
+
+      });
+
+
+
+      cargarSesion();
+
+    </script>
+
+  </body>
+
+</html>
+
+

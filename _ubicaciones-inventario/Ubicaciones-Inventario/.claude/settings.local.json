@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"C:\\\\Proyectos\\\\Ubicaciones-Inventario\" -Exclude \".venv\" | ForEach-Object { $_.Name })"
+    ]
+  }
+}

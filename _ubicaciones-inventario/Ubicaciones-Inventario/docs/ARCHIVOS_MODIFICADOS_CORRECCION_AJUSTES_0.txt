@@ -1,0 +1,70 @@
+ARCHIVOS MODIFICADOS PARA CORRECCIÓN DE AJUSTES A 0
+=====================================================
+
+Fecha: 2026-01-26
+Descripción: Correcciones para permitir ajustes a 0 y corregir visualización/búsqueda de ajustes
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. templates/ajustes.html
+   - Línea 983: Corregida validación JavaScript para permitir cantidad 0 en ubicaciones ADM macro
+   - Línea 624: Agregado filtro para no mostrar ubicaciones físicas con cantidad 0.00
+
+2. routes/detalles.py
+   - Línea 10: Agregado import de `or_` de sqlalchemy
+   - Líneas 527-555: Corregida búsqueda de movimientos para ajustes a 0 (busca por ubicacion_origen cuando ubicacion_destino es None)
+   - Líneas 563-572: Corregida determinación de ubicación real para ajustes a 0
+   - Línea 645: Actualizada respuesta JSON para usar ubicacion_real
+
+3. routes/historiales.py
+   - Líneas 495-507: Corregida búsqueda de movimientos para ajustes a 0
+   - Líneas 507-520: Corregida determinación de ubicación real (usa ubicacion_origen si ubicacion_destino es None)
+   - Línea 571: Corregida formación de ID para usar ubicacion_ref en lugar de aj.ubicacion_destino
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. Validación JavaScript (templates/ajustes.html):
+   - ANTES: `if (!ubicADM.cantidad || ubicADM.cantidad < 0)` - rechazaba 0
+   - DESPUÉS: `if (ubicADM.cantidad === undefined || ubicADM.cantidad === null || ubicADM.cantidad < 0)` - permite 0
+
+2. Visualización de ubicaciones físicas (templates/ajustes.html):
+   - ANTES: Mostraba todas las ubicaciones, incluyendo las con cantidad 0.00
+   - DESPUÉS: Filtra y muestra solo ubicaciones con cantidad > 0 (consistente con Consulta de Productos)
+
+3. Búsqueda de detalles de ajustes a 0 (routes/detalles.py):
+   - ANTES: Buscaba solo por ubicacion_destino, no encontraba ajustes a 0
+   - DESPUÉS: Si ubicacion es "None", busca por ubicacion_origen; si tiene valor, busca por ubicacion_destino o ubicacion_origen
+
+4. Formación de ID en historial (routes/historiales.py):
+   - ANTES: Usaba siempre aj.ubicacion_destino (None para ajustes a 0)
+   - DESPUÉS: Usa ubicacion_ref que obtiene ubicacion_origen si ubicacion_destino es None
+
+PROBLEMAS RESUELTOS:
+--------------------
+
+✅ Problema 1: Ahora se puede poner 0 en ubicación macro ADESA
+✅ Problema 2: Ya no se muestran ubicaciones físicas con 0.00
+✅ Problema 3: Ahora se puede ver el detalle de ajustes que llevan stock a 0
+✅ Problema 4: Consistencia en visualización entre módulos
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+-----------------------------------------
+
+1. Subir los 3 archivos modificados a sus respectivas ubicaciones:
+   - templates/ajustes.html
+   - routes/detalles.py
+   - routes/historiales.py
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario (dependiendo de la configuración de cPanel).
+
+
+
+
+
+
+
+

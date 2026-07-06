@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA · Portal de Soporte</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { adesa: { red: "#be1622", red2: "#ef1d2b", teal: "#2d9c8a", gold: "#fcb900", ink: "#111111" } },
+            fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+    <header class="bg-white border-b border-gray-100 shadow-sm">
+      <div class="max-w-6xl mx-auto px-6 py-4 flex flex-wrap items-center gap-4 justify-between">
+        <div class="flex items-center gap-3">
+          <img src="/assets/favicon.png" alt="ADESA" class="w-10 h-10" />
+          <div>
+            <div class="font-bold text-lg">Portal de Soporte ADESA</div>
+            <div id="subtitulo" class="text-xs text-gray-500">Autoservicio cliente</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 text-sm">
+          <span id="userLabel" class="text-gray-600 hidden md:inline"></span>
+          <button id="btnLogout" type="button" class="text-adesa-red font-semibold hover:underline">Salir</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="bg-adesa-ink text-white">
+      <div class="max-w-6xl mx-auto px-6 flex gap-1 overflow-x-auto">
+        <button data-tab="tickets" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-adesa-gold">Mis solicitudes</button>
+        <button data-tab="kb" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent opacity-80">Base de conocimientos</button>
+        <button data-tab="foro" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent opacity-80">Comunidad</button>
+      </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-6 py-6">
+      <!-- TICKETS -->
+      <section id="secTickets">
+        <div class="flex flex-wrap gap-3 mb-4 items-end">
+          <select id="filtroEstado" class="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white">
+            <option value="">Todos los estados</option>
+            <option value="abierto">Abierto</option>
+            <option value="en_proceso">En proceso</option>
+            <option value="en_espera">En espera</option>
+            <option value="resuelto">Resuelto</option>
+            <option value="cerrado">Cerrado</option>
+          </select>
+          <button id="btnNuevoTicket" type="button" class="ml-auto px-4 py-2 rounded-lg bg-adesa-teal text-white text-sm font-bold">
+            + Nueva solicitud
+          </button>
+        </div>
+        <div id="conteos" class="flex flex-wrap gap-2 mb-4 text-xs"></div>
+        <div class="grid lg:grid-cols-5 gap-4">
+          <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden">
+            <div class="px-4 py-3 border-b font-bold text-sm">Mis tickets</div>
+            <ul id="listaTickets" class="divide-y max-h-[65vh] overflow-y-auto"></ul>
+            <p id="emptyTickets" class="hidden text-center text-gray-400 text-sm py-10">Sin solicitudes</p>
+          </div>
+          <div id="panelTicket" class="lg:col-span-3 bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-5 hidden">
+            <div class="mb-4">
+              <span id="detRef" class="text-xs font-mono text-adesa-red font-bold"></span>
+              <h2 id="detAsunto" class="text-lg font-bold mt-1"></h2>
+              <p id="detMeta" class="text-xs text-gray-500 mt-1"></p>
+            </div>
+            <div id="hilo" class="space-y-3 max-h-[40vh] overflow-y-auto mb-4"></div>
+            <div id="zonaRespuesta" class="border-t pt-4">
+              <textarea id="txtRespuesta" rows="3" placeholder="Escribe tu respuesta…" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"></textarea>
+              <button id="btnResponder" type="button" class="mt-2 px-4 py-2 rounded-lg bg-adesa-ink text-white text-sm font-bold">Enviar respuesta</button>
+            </div>
+            <div id="zonaSatisfaccion" class="hidden border-t pt-4 mt-4">
+              <p class="text-sm font-semibold mb-2">¿Cómo calificarías la atención?</p>
+              <div id="estrellas" class="flex gap-2 text-2xl cursor-pointer"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- KB -->
+      <section id="secKb" class="hidden">
+        <input id="kbBuscar" type="search" placeholder="Buscar artículos…" class="w-full max-w-md rounded-lg border border-gray-200 px-3 py-2 text-sm mb-4" />
+        <div id="listaKb" class="grid md:grid-cols-2 gap-4"></div>
+        <article id="kbDetalle" class="hidden bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6 mt-4">
+          <button id="kbVolver" type="button" class="text-xs text-adesa-teal mb-3">← Volver</button>
+          <h2 id="kbTitulo" class="text-xl font-bold"></h2>
+          <div id="kbContenido" class="prose prose-sm mt-4 text-gray-700 whitespace-pre-wrap"></div>
+        </article>
+      </section>
+
+      <!-- FORO -->
+      <section id="secForo" class="hidden">
+        <div class="grid lg:grid-cols-4 gap-4">
+          <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-4">
+            <h3 class="font-bold text-sm mb-3">Categorías</h3>
+            <ul id="foroCats" class="space-y-1 text-sm"></ul>
+          </div>
+          <div class="lg:col-span-3 space-y-4">
+            <div id="foroTemasPanel" class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-4">
+              <div class="flex justify-between items-center mb-3">
+                <h3 id="foroCatTitulo" class="font-bold">Selecciona una categoría</h3>
+                <button id="btnNuevoTema" type="button" class="hidden text-xs px-3 py-1.5 rounded-lg bg-adesa-teal text-white font-bold">+ Nuevo tema</button>
+              </div>
+              <ul id="foroTemas" class="divide-y text-sm"></ul>
+            </div>
+            <div id="foroDetalle" class="hidden bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-4">
+              <button id="foroVolver" type="button" class="text-xs text-adesa-teal mb-2">← Temas</button>
+              <h3 id="foroTemaTitulo" class="font-bold text-lg"></h3>
+              <div id="foroPosts" class="mt-4 space-y-3"></div>
+              <textarea id="foroPostTxt" rows="2" placeholder="Tu comentario…" class="w-full mt-4 rounded-lg border px-3 py-2 text-sm"></textarea>
+              <button id="btnForoPost" type="button" class="mt-2 px-3 py-1.5 rounded-lg bg-adesa-ink text-white text-xs font-bold">Publicar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal nuevo ticket -->
+    <div id="modalNuevo" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
+        <h3 class="font-bold text-lg mb-4">Nueva solicitud de soporte</h3>
+        <form id="formNuevo" class="space-y-3 text-sm">
+          <input id="nuevoAsunto" required placeholder="Asunto" class="w-full rounded-lg border px-3 py-2" />
+          <textarea id="nuevoDesc" required rows="5" placeholder="Describe tu problema o consulta…" class="w-full rounded-lg border px-3 py-2"></textarea>
+          <div class="flex gap-2 justify-end">
+            <button type="button" id="btnCancelNuevo" class="px-4 py-2 rounded-lg border">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-adesa-teal text-white font-bold">Enviar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      function leerCookie(n) {
+        return document.cookie.split("; ").find((c) => c.startsWith(n + "="))?.split("=")[1] || "";
+      }
+      async function api(url, opts = {}) {
+        const r = await fetch(url, {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": decodeURIComponent(leerCookie("nexus_csrf")),
+            ...opts.headers,
+          },
+          ...opts,
+        });
+        if (r.status === 401) { location.href = "/"; return null; }
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(d.error || "Error " + r.status);
+        return d;
+      }
+
+      const ESTADO = { abierto: "Abierto", en_proceso: "En proceso", en_espera: "En espera", resuelto: "Resuelto", cerrado: "Cerrado" };
+      let ticketActual = null;
+      let foroCatActual = null;
+      let foroTemaActual = null;
+      let perfil = null;
+
+      async function init() {
+        try {
+          const me = await api("/api/portal/me");
+          if (!me) return;
+          perfil = me;
+          document.getElementById("userLabel").textContent = `${me.usuario.nombre} · ${me.cliente?.razon_social || me.usuario.email}`;
+          if (me.cliente?.razon_social) {
+            document.getElementById("subtitulo").textContent = me.cliente.razon_social;
+          }
+          await cargarTickets();
+        } catch (e) {
+          location.href = "/";
+        }
+      }
+
+      function activarTab(tab) {
+        document.querySelectorAll(".tab-btn").forEach((b) => {
+          const on = b.dataset.tab === tab;
+          b.classList.toggle("border-adesa-gold", on);
+          b.classList.toggle("border-transparent", !on);
+          b.classList.toggle("opacity-80", !on);
+        });
+        document.getElementById("secTickets").classList.toggle("hidden", tab !== "tickets");
+        document.getElementById("secKb").classList.toggle("hidden", tab !== "kb");
+        document.getElementById("secForo").classList.toggle("hidden", tab !== "foro");
+        if (tab === "kb") cargarKb();
+        if (tab === "foro") cargarForoCats();
+      }
+
+      document.querySelectorAll(".tab-btn").forEach((b) => b.onclick = () => activarTab(b.dataset.tab));
+
+      async function cargarTickets() {
+        const est = document.getElementById("filtroEstado").value;
+        const q = est ? `?estado=${est}` : "";
+        const { tickets, conteos } = await api("/api/portal/tickets" + q);
+        const ul = document.getElementById("listaTickets");
+        document.getElementById("emptyTickets").classList.toggle("hidden", tickets.length > 0);
+        ul.innerHTML = tickets.map((t) => `
+          <li><button type="button" data-uuid="${t.uuid}" class="ticket-item w-full text-left px-4 py-3 hover:bg-gray-50">
+            <span class="text-xs font-mono text-adesa-red font-bold">${t.referencia}</span>
+            <div class="font-semibold text-sm truncate">${t.asunto}</div>
+            <div class="text-xs text-gray-500">${ESTADO[t.estado] || t.estado} · ${new Date(t.actualizado_en).toLocaleDateString()}</div>
+          </button></li>`).join("");
+        ul.querySelectorAll(".ticket-item").forEach((btn) => btn.onclick = () => abrirTicket(btn.dataset.uuid));
+        document.getElementById("conteos").innerHTML = Object.entries(conteos || {}).map(([k, v]) =>
+          `<span class="px-2 py-1 rounded-full bg-white ring-1 ring-gray-200">${ESTADO[k] || k}: <b>${v}</b></span>`
+        ).join("");
+      }
+
+      async function abrirTicket(uuid) {
+        const { ticket, seguimientos } = await api(`/api/portal/tickets/${uuid}`);
+        ticketActual = ticket;
+        document.getElementById("panelTicket").classList.remove("hidden");
+        document.getElementById("detRef").textContent = ticket.referencia;
+        document.getElementById("detAsunto").textContent = ticket.asunto;
+        document.getElementById("detMeta").textContent = `${ESTADO[ticket.estado]} · ${ticket.asignado_nombre ? "Técnico: " + ticket.asignado_nombre : "Sin asignar"}`;
+        document.getElementById("hilo").innerHTML = (seguimientos || []).map((s) => `
+          <div class="rounded-lg p-3 text-sm ${s.tipo === "respuesta_cliente" ? "bg-blue-50" : "bg-gray-50"}">
+            <div class="text-xs text-gray-500 mb-1">${s.autor_nombre || "Sistema"} · ${new Date(s.creado_en).toLocaleString()}</div>
+            <div class="whitespace-pre-wrap">${s.contenido}</div>
+          </div>`).join("");
+        const cerrado = ["cerrado", "resuelto"].includes(ticket.estado);
+        document.getElementById("zonaRespuesta").classList.toggle("hidden", ticket.estado === "cerrado");
+        const sat = document.getElementById("zonaSatisfaccion");
+        sat.classList.toggle("hidden", !cerrado || ticket.satisfaccion);
+        if (cerrado && !ticket.satisfaccion) renderEstrellas();
+      }
+
+      function renderEstrellas() {
+        const box = document.getElementById("estrellas");
+        box.innerHTML = [1, 2, 3, 4, 5].map((n) => `<span data-v="${n}" title="${n} estrellas">☆</span>`).join("");
+        box.querySelectorAll("span").forEach((s) => s.onclick = async () => {
+          await api(`/api/portal/tickets/${ticketActual.uuid}/satisfaccion`, {
+            method: "POST",
+            body: JSON.stringify({ valor: s.dataset.v }),
+          });
+          document.getElementById("zonaSatisfaccion").classList.add("hidden");
+        });
+      }
+
+      document.getElementById("filtroEstado").onchange = cargarTickets;
+      document.getElementById("btnResponder").onclick = async () => {
+        const contenido = document.getElementById("txtRespuesta").value.trim();
+        if (!contenido || !ticketActual) return;
+        await api(`/api/portal/tickets/${ticketActual.uuid}/seguimientos`, {
+          method: "POST",
+          body: JSON.stringify({ contenido }),
+        });
+        document.getElementById("txtRespuesta").value = "";
+        abrirTicket(ticketActual.uuid);
+        cargarTickets();
+      };
+
+      document.getElementById("btnNuevoTicket").onclick = () => document.getElementById("modalNuevo").classList.remove("hidden");
+      document.getElementById("btnCancelNuevo").onclick = () => document.getElementById("modalNuevo").classList.add("hidden");
+      document.getElementById("formNuevo").onsubmit = async (e) => {
+        e.preventDefault();
+        const det = await api("/api/portal/tickets", {
+          method: "POST",
+          body: JSON.stringify({
+            asunto: document.getElementById("nuevoAsunto").value,
+            descripcion: document.getElementById("nuevoDesc").value,
+          }),
+        });
+        document.getElementById("modalNuevo").classList.add("hidden");
+        document.getElementById("formNuevo").reset();
+        await cargarTickets();
+        if (det?.ticket) abrirTicket(det.ticket.uuid);
+      };
+
+      async function cargarKb(q) {
+        const qs = q ? `?q=${encodeURIComponent(q)}` : "";
+        const { articulos } = await api("/api/portal/kb" + qs);
+        document.getElementById("listaKb").innerHTML = (articulos || []).map((a) => `
+          <button type="button" data-uuid="${a.uuid}" class="kb-item text-left bg-white rounded-xl ring-1 ring-gray-100 p-4 hover:ring-adesa-teal">
+            <h4 class="font-bold text-sm">${a.titulo}</h4>
+            <p class="text-xs text-gray-500 mt-2 line-clamp-2">${a.resumen || ""}</p>
+          </button>`).join("") || "<p class='text-sm text-gray-400'>Sin artículos publicados.</p>";
+        document.querySelectorAll(".kb-item").forEach((b) => b.onclick = () => verKb(b.dataset.uuid));
+      }
+
+      async function verKb(uuid) {
+        const { articulo } = await api(`/api/portal/kb/${uuid}`);
+        document.getElementById("listaKb").classList.add("hidden");
+        document.getElementById("kbDetalle").classList.remove("hidden");
+        document.getElementById("kbTitulo").textContent = articulo.titulo;
+        document.getElementById("kbContenido").textContent = articulo.contenido;
+      }
+      document.getElementById("kbVolver").onclick = () => {
+        document.getElementById("kbDetalle").classList.add("hidden");
+        document.getElementById("listaKb").classList.remove("hidden");
+      };
+      document.getElementById("kbBuscar").oninput = (e) => cargarKb(e.target.value);
+
+      async function cargarForoCats() {
+        const { categorias } = await api("/api/portal/foro/categorias");
+        document.getElementById("foroCats").innerHTML = (categorias || []).map((c) =>
+          `<li><button type="button" data-uuid="${c.uuid}" class="foro-cat w-full text-left px-2 py-1.5 rounded hover:bg-gray-100">${c.nombre}</button></li>`
+        ).join("");
+        document.querySelectorAll(".foro-cat").forEach((b) => b.onclick = () => cargarForoTemas(b.dataset.uuid, b.textContent));
+      }
+
+      async function cargarForoTemas(catUuid, nombre) {
+        foroCatActual = catUuid;
+        document.getElementById("foroCatTitulo").textContent = nombre;
+        document.getElementById("btnNuevoTema").classList.remove("hidden");
+        document.getElementById("foroDetalle").classList.add("hidden");
+        document.getElementById("foroTemasPanel").classList.remove("hidden");
+        const { temas } = await api(`/api/portal/foro/categorias/${catUuid}/temas`);
+        document.getElementById("foroTemas").innerHTML = (temas || []).map((t) =>
+          `<li><button type="button" data-uuid="${t.uuid}" class="foro-tema w-full text-left py-2 hover:text-adesa-teal">
+            <span class="font-semibold">${t.titulo}</span>
+            <span class="text-xs text-gray-400 block">${t.posts} mensajes · ${t.autor_nombre || "Anónimo"}</span>
+          </button></li>`
+        ).join("") || "<li class='text-gray-400 py-2'>Sin temas aún. ¡Sé el primero!</li>";
+        document.querySelectorAll(".foro-tema").forEach((b) => b.onclick = () => abrirForoTema(b.dataset.uuid));
+      }
+
+      document.getElementById("btnNuevoTema").onclick = async () => {
+        const titulo = prompt("Título del nuevo tema:");
+        if (!titulo || !foroCatActual) return;
+        const { tema } = await api("/api/portal/foro/temas", {
+          method: "POST",
+          body: JSON.stringify({ categoria_uuid: foroCatActual, titulo }),
+        });
+        await cargarForoTemas(foroCatActual, document.getElementById("foroCatTitulo").textContent);
+        if (tema) abrirForoTema(tema.uuid);
+      };
+
+      async function abrirForoTema(uuid) {
+        foroTemaActual = uuid;
+        const { tema, posts } = await api(`/api/portal/foro/temas/${uuid}`);
+        document.getElementById("foroTemasPanel").classList.add("hidden");
+        document.getElementById("foroDetalle").classList.remove("hidden");
+        document.getElementById("foroTemaTitulo").textContent = tema.titulo;
+        document.getElementById("foroPosts").innerHTML = (posts || []).map((p) =>
+          `<div class="rounded-lg bg-gray-50 p-3 text-sm"><div class="text-xs text-gray-500">${p.autor_nombre} · ${new Date(p.creado_en).toLocaleString()}</div><div class="mt-1 whitespace-pre-wrap">${p.contenido}</div></div>`
+        ).join("");
+      }
+
+      document.getElementById("foroVolver").onclick = () => {
+        document.getElementById("foroDetalle").classList.add("hidden");
+        document.getElementById("foroTemasPanel").classList.remove("hidden");
+      };
+      document.getElementById("btnForoPost").onclick = async () => {
+        const contenido = document.getElementById("foroPostTxt").value.trim();
+        if (!contenido || !foroTemaActual) return;
+        await api(`/api/portal/foro/temas/${foroTemaActual}/posts`, {
+          method: "POST",
+          body: JSON.stringify({ contenido }),
+        });
+        document.getElementById("foroPostTxt").value = "";
+        abrirForoTema(foroTemaActual);
+      };
+
+      document.getElementById("btnLogout").onclick = async () => {
+        await api("/api/auth/logout", { method: "POST" });
+        location.href = "/";
+      };
+
+      init();
+    </script>
+  </body>
+</html>

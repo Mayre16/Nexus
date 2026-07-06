@@ -1,0 +1,19 @@
+{
+  "technicalName": "almacen",
+  "displayName": "Nexus Almacén",
+  "summary": "Cola de despacho, picking guiado por ubicación y logística Store",
+  "version": "0.2.0",
+  "category": "sales",
+  "state": "installed",
+  "installable": true,
+  "autoInstall": true,
+  "depends": ["nexus_core", "store"],
+  "routes": {
+    "ui": "/almacen.html",
+    "api": "/api/almacen",
+    "dashboardPath": "/almacen.html"
+  },
+  "roles": ["admin", "empleado"],
+  "icon": "📦",
+  "sortOrder": 35
+}

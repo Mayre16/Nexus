@@ -1,0 +1,150 @@
+===========================================================
+ARCHIVOS A ACTUALIZAR EN CPANEL - MÓDULO TRANSFERENCIAS
+===========================================================
+
+FECHA: 2026-01-19
+MÓDULO: Transferencias de Ubicaciones (LocationTransfers)
+ESTADO: ✅ Implementado
+
+===========================================================
+📁 ARCHIVOS NUEVOS (CREAR)
+===========================================================
+
+1. routes/transferencias.py
+   → Nuevo blueprint para manejar transferencias entre ubicaciones
+   → Endpoint: /api/transferencias/buscar
+
+2. templates/transferencias.html
+   → Interfaz frontend para el módulo de Transferencias
+   → Muestra Origen → Destino y productos transferidos
+
+===========================================================
+📝 ARCHIVOS MODIFICADOS (ACTUALIZAR)
+===========================================================
+
+3. api/adm_cloud.py
+   → AGREGADOS métodos para LocationTransfers:
+      - listar_location_transfers()
+      - obtener_location_transfer_por_guid()
+      - buscar_location_transfer_por_docid()
+
+4. utils/helpers.py
+   → AGREGADA función obtener_productos_location_transfer()
+   → Extrae Items de una transferencia
+
+5. routes/__init__.py
+   → AGREGADO transferencias_bp a las importaciones y exports
+
+6. app_wms.py
+   → AGREGADO import de transferencias_bp
+   → AGREGADO registro del blueprint transferencias_bp
+   → AGREGADA ruta @app.route('/transferencias') para la página
+
+7. templates/index.html
+   → AGREGADO botón "🔄 Transferencias" en el menú principal
+
+===========================================================
+✅ FUNCIONALIDADES IMPLEMENTADAS
+===========================================================
+
+✅ Búsqueda de Transferencias por DocID:
+   - Busca en LocationTransfers de ADM Cloud
+   - Resuelve nombres de ubicaciones desde cache local
+   - Muestra Origen → Destino claramente
+
+✅ Visualización del sentido de transferencia:
+   - UI: "ADESA → Mirador Sur"
+   - Usa LocationID (Origen) y ReceptionLocationID (Destino)
+   - Mapea GUIDs a nombres usando SyncLocationStatus
+
+✅ Productos transferidos:
+   - SKU, Nombre, Cantidad
+   - Vista limpia y operativa (sin información contable)
+
+✅ UI operativa (solo información esencial):
+   ✅ Mostrar: DocID, Fecha, Origen → Destino, Productos
+   ❌ No mostrar: Totales, costos, notas
+
+===========================================================
+🧪 VERIFICACIÓN POST-ACTUALIZACIÓN
+===========================================================
+
+Después de subir todos los archivos:
+
+1. Acceder a: https://wms.adesa.com.do/transferencias
+2. Buscar una transferencia por DocID (ej: 00000231)
+3. Verificar que se muestre:
+   ✅ DocID y Fecha
+   ✅ Origen → Destino (nombres de ubicaciones)
+   ✅ Productos transferidos (SKU, Nombre, Cantidad)
+4. Confirmar que los nombres de ubicaciones se resuelven correctamente
+
+===========================================================
+📋 ENDPOINTS DISPONIBLES
+===========================================================
+
+POST /api/transferencias/buscar
+→ Busca una transferencia por DocID en ADM Cloud
+→ Resuelve nombres de ubicaciones desde cache local
+→ Devuelve Origen → Destino y productos
+
+GET /transferencias
+→ Página HTML del módulo de Transferencias
+
+===========================================================
+🔗 INTEGRACIÓN CON ADM CLOUD
+===========================================================
+
+Endpoints ADM Cloud utilizados:
+
+- GET /api/LocationTransfers (listar transferencias)
+- GET /api/LocationTransfers/{GUID} (detalle de transferencia)
+
+Estructura:
+- DocType: "INV_TRA"
+- LocationID → ReceptionLocationID (Origen → Destino)
+- Items[] con productos transferidos
+
+===========================================================
+📌 MAPEO DE UBICACIONES
+===========================================================
+
+El sistema usa SyncLocationStatus para mapear:
+- LocationID (GUID) → LocationName (ej: "ADESA")
+- ReceptionLocationID (GUID) → LocationName (ej: "Mirador Sur")
+
+Si no encuentra en cache, muestra parcial del GUID como fallback.
+
+===========================================================
+✅ LISTA FINAL RESUMIDA
+===========================================================
+
+ARCHIVOS NUEVOS (2):
+1. routes/transferencias.py
+2. templates/transferencias.html
+
+ARCHIVOS MODIFICADOS (5):
+3. api/adm_cloud.py
+4. utils/helpers.py
+5. routes/__init__.py
+6. app_wms.py
+7. templates/index.html
+
+TOTAL: 7 archivos (2 nuevos + 5 modificados)
+
+===========================================================
+📌 NOTAS IMPORTANTES
+===========================================================
+
+- El endpoint LocationTransfers respeta exactamente las mayúsculas
+- El módulo está separado de Recepciones y Despachos
+- Solo muestra información operativa (sin datos contables)
+- Usa cache local para resolver nombres de ubicaciones
+- El sentido Origen → Destino se muestra claramente en la UI
+
+===========================================================
+
+
+
+
+

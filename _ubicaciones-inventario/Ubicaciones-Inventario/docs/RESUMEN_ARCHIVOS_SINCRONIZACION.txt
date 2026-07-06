@@ -1,0 +1,261 @@
+═══════════════════════════════════════════════════════════════════
+📦 ARCHIVOS A SUBIR A CPANEL
+═══════════════════════════════════════════════════════════════════
+
+✅ ARCHIVOS OBLIGATORIOS (Raíz):
+   ├── app_wms.py                    ← Aplicación principal
+   ├── passenger_wsgi.py             ← Entry point para WSGI
+   ├── config.py                     ← Configuración
+   ├── requirements.txt              ← Dependencias
+   │
+   ├── api/
+   │   ├── __init__.py
+   │   └── adm_cloud.py
+   │
+   ├── database/
+   │   ├── __init__.py
+   │   └── models.py
+   │
+   ├── routes/
+   │   ├── __init__.py
+   │   ├── auth.py
+   │   ├── dashboard.py
+   │   ├── despacho.py
+   │   ├── productos.py
+   │   ├── sincronizar.py            ← Sincronización ADM Cloud
+   │   ├── ajustes.py
+   │   ├── facturas.py
+   │   └── stock.py
+   │
+   ├── templates/
+   │   ├── index.html
+   │   ├── login.html
+   │   ├── despacho.html
+   │   ├── productos.html
+   │   └── ajustes.html
+   │
+   ├── utils/
+   │   ├── __init__.py
+   │   ├── helpers.py
+   │   └── validaciones.py
+   │
+   └── static/
+       ├── css/
+       └── js/
+
+❌ NO SUBIR:
+   ├── __pycache__/                 ← Se generan automáticamente
+   ├── *.pyc                        ← Bytecode compilado
+   ├── database/wms.db              ← Se crea automáticamente
+   ├── no_cpanel/                   ← Archivos de desarrollo
+   ├── *.md                         ← Documentación (opcional)
+   ├── *.txt                        ← Archivos de notas (opcional)
+   └── *.bat                        ← Scripts de Windows
+
+
+═══════════════════════════════════════════════════════════════════
+🔄 PROCESO DE SINCRONIZACIÓN (PASO A PASO)
+═══════════════════════════════════════════════════════════════════
+
+FASE 1: PREPARACIÓN (0%)
+───────────────────────────────────────────────────────────────────
+✓ Limpiar progreso anterior
+✓ Crear tablas si no existen (ProductoADM, StockProductoADM)
+✓ Inicializar cliente ADM Cloud (conexión con API)
+Progreso: "Iniciando sincronización..."
+
+
+FASE 2: OBTENER PRODUCTOS (1% - 10%)
+───────────────────────────────────────────────────────────────────
+✓ Hacer llamadas paginadas a: GET /api/items/?skip=X&take=50
+✓ Recibir productos en lotes de 50
+✓ Acumular todos los productos (máximo 5000)
+✓ Por cada lote actualizar progreso
+Progreso: "Obteniendo productos desde ADM Cloud... X productos (Y%)"
+
+Datos obtenidos:
+  [
+    {ID: "guid", SKU: "VP1", Name: "...", Barcode: "..."},
+    ...
+  ]
+
+
+FASE 3: OBTENER UBICACIONES (10% - 12%)
+───────────────────────────────────────────────────────────────────
+✓ Llamada única a: GET /api/Locations/?skip=0&take=50
+✓ Obtener lista de ubicaciones (ID, Name)
+✓ Crear mapa: {location_id: location_name}
+Progreso: "Ubicaciones obtenidas: X. Obteniendo stock..."
+
+Datos obtenidos:
+  {
+    "guid-1": "ADESA",
+    "guid-2": "MIRADOR SUR",
+    ...
+  }
+
+
+FASE 4: OBTENER STOCK POR UBICACIÓN (12% - 20%)
+───────────────────────────────────────────────────────────────────
+✓ Para cada ubicación:
+  ├─ Llamadas paginadas a: GET /api/Stock/?LocationID=XXX&skip=Y&take=500
+  ├─ Recibir items con stock > 0 (lotes de 500)
+  ├─ Extraer por cada item:
+  │   ├─ ItemID (puede estar en ItemID, ID, o Item.ID)
+  │   ├─ SKU (puede estar en SKU, ItemSKU, o Item.SKU)
+  │   └─ Stock (prioriza campo "Stock", luego QuantityOnHand, etc.)
+  └─ Almacenar: stock_por_ubicacion[location_id][item_id] = {stock, sku}
+✓ Actualizar progreso por ubicación
+Progreso: "Obteniendo stock para [UBICACIÓN]... (X/Y) - Z%"
+
+⚠️ REGLA IMPORTANTE:
+   Si un producto existe en /Items pero NO aparece en /Stock?LocationID=XXX
+   → Su stock en esa ubicación es 0
+
+Datos obtenidos:
+  {
+    "guid-1": {  # ADESA
+      "item-guid-1": {stock: 863.0, sku: "VP1"},
+      ...
+    },
+    "guid-2": {  # MIRADOR SUR
+      "item-guid-1": {stock: 44.0, sku: "VP1"},
+      ...
+    }
+  }
+
+
+FASE 5: GUARDAR PRODUCTOS EN BD (20% - 95%)
+───────────────────────────────────────────────────────────────────
+✓ Para cada producto obtenido:
+  ├─ Buscar o crear ProductoADM en BD
+  │   ├─ Si existe → actualizar (nombre, sku, codigo_barras)
+  │   └─ Si no existe → crear nuevo registro
+  │
+  ├─ Para cada ubicación:
+  │   ├─ Buscar stock en stock_por_ubicacion[location_id][item_id]
+  │   ├─ Si existe → usar ese valor
+  │   ├─ Si NO existe → stock = 0 (ADM no devuelve stock 0)
+  │   │
+  │   └─ Buscar o crear StockProductoADM en BD
+  │       ├─ Si existe → actualizar (stock, location_name)
+  │       └─ Si no existe → crear nuevo (incluso si stock = 0)
+  │
+  └─ Commit cada 100 productos → evita pérdida de datos en timeout
+✓ Actualizar progreso cada 50 productos
+Progreso: "Procesando productos... X/Y (Z%)"
+
+Ejemplo guardado en BD:
+  ProductoADM:
+    item_id: "guid-1"
+    sku: "VP1"
+    nombre: "Nombre Producto"
+  
+  StockProductoADM (ADESA):
+    producto_id: 1
+    location_id: "guid-1"
+    location_name: "ADESA"
+    stock: 863.0
+  
+  StockProductoADM (MIRADOR SUR):
+    producto_id: 1
+    location_id: "guid-2"
+    location_name: "MIRADOR SUR"
+    stock: 44.0
+
+
+FASE 6: FINALIZACIÓN (95% - 100%)
+───────────────────────────────────────────────────────────────────
+✓ Actualizar synced_at en todos los productos
+✓ Commit final (guardar todos los cambios)
+✓ Limpiar progreso después de 5 segundos
+Progreso: "Sincronización completada: X productos procesados (100%)"
+
+
+═══════════════════════════════════════════════════════════════════
+📊 RESUMEN DE PROGRESO
+═══════════════════════════════════════════════════════════════════
+
+Fase               | Progreso  | Actividad              | Tiempo
+───────────────────┼───────────┼────────────────────────┼─────────
+Preparación        | 0%        | Inicialización         | ~1 seg
+Obtener Productos  | 1% - 10%  | Descarga productos     | ~30-60 seg
+Obtener Ubicaciones| 10% - 12% | Descarga ubicaciones   | ~2 seg
+Obtener Stock      | 12% - 20% | Descarga stock         | ~60-120 seg
+Guardar en BD      | 20% - 95% | Procesa y guarda       | ~60-180 seg
+Finalización       | 95% - 100%| Commit final           | ~2 seg
+
+Tiempo total estimado: 3-6 minutos (depende de cantidad de productos)
+
+
+═══════════════════════════════════════════════════════════════════
+🔑 PUNTOS CLAVE
+═══════════════════════════════════════════════════════════════════
+
+1. PAGINACIÓN: Todo se obtiene en lotes para manejar grandes volúmenes
+   - Productos: 50 por lote
+   - Stock: 500 por lote
+
+2. STOCK 0: Si un producto NO aparece en /Stock?LocationID=XXX
+   → Su stock en esa ubicación es 0
+
+3. COMMITS PERIÓDICOS: Cada 100 productos para evitar pérdida de datos
+   → Permite recuperar progreso parcial si hay timeout
+
+4. PROGRESO EN TIEMPO REAL: Se actualiza cada 50 productos procesados
+   → El usuario ve el avance en la barra de progreso
+
+5. BASE DE DATOS LOCAL: Permite consultas rápidas sin depender de ADM
+   → La consulta de productos es instantánea desde BD local
+
+
+═══════════════════════════════════════════════════════════════════
+✅ CHECKLIST DE DESPLIEGUE
+═══════════════════════════════════════════════════════════════════
+
+ANTES DE SUBIR:
+☐ Todos los archivos .py están presentes
+☐ requirements.txt está actualizado
+☐ passenger_wsgi.py existe y está correcto
+☐ config.py tiene las credenciales correctas
+☐ Excluidos archivos __pycache__, .pyc, .db, etc.
+
+DESPUÉS DE SUBIR:
+☐ Virtual environment creado y activado
+☐ Dependencias instaladas (pip install -r requirements.txt)
+☐ Aplicación Python configurada en cPanel
+☐ Permisos correctos en archivos (644) y carpetas (755)
+☐ Aplicación se inicia correctamente
+☐ Login funciona
+☐ Sincronización funciona y muestra progreso
+
+
+═══════════════════════════════════════════════════════════════════
+🐛 SOLUCIÓN DE PROBLEMAS COMUNES
+═══════════════════════════════════════════════════════════════════
+
+Error: "No module named 'flask'"
+→ Solución: pip install -r requirements.txt
+
+Error: "Database locked"
+→ Solución: Verificar permisos en carpeta database/ (755 o 775)
+
+Error: "Timeout during synchronization"
+→ Solución: Los commits cada 100 productos previenen pérdida.
+            Reiniciar sincronización si es necesario.
+
+Sincronización no muestra progreso
+→ Solución: Verificar endpoint /api/sincronizar/progreso
+
+Stock muestra 0.00 cuando debería tener valor
+→ Solución: Verificar que campo "Stock" se extrae correctamente
+            del API de ADM Cloud
+
+
+
+
+
+
+
+
+

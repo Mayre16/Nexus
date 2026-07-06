@@ -1,0 +1,14 @@
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\bin\Release\net8.0\TestBadBoyLogin.exe
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\bin\Release\net8.0\TestBadBoyLogin.deps.json
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\bin\Release\net8.0\TestBadBoyLogin.runtimeconfig.json
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\bin\Release\net8.0\TestBadBoyLogin.dll
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\bin\Release\net8.0\TestBadBoyLogin.pdb
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\obj\Release\net8.0\TestBadBoyLogin.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\obj\Release\net8.0\TestBadBoyLogin.AssemblyInfoInputs.cache
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\obj\Release\net8.0\TestBadBoyLogin.AssemblyInfo.cs
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\obj\Release\net8.0\TestBadBoyLogin.csproj.CoreCompileInputs.cache
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\obj\Release\net8.0\TestBadBoyLogin.dll
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\obj\Release\net8.0\refint\TestBadBoyLogin.dll
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\obj\Release\net8.0\TestBadBoyLogin.pdb
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\obj\Release\net8.0\TestBadBoyLogin.genruntimeconfig.cache
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\obj\Release\net8.0\ref\TestBadBoyLogin.dll

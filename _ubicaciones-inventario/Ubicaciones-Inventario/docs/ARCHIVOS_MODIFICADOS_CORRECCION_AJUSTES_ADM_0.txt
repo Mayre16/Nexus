@@ -1,0 +1,83 @@
+ARCHIVOS MODIFICADOS PARA CORRECCIÓN DE AJUSTES ADM A 0
+========================================================
+
+Fecha: 2026-01-26
+Descripción: Correcciones para permitir ajustes a 0 en ubicaciones ADM (Mirador Sur, etc.) y corregir visualización en historial
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. routes/ajustes.py
+   - Líneas 343-404: Mejorada obtención de stock ADM cuando producto_db no existe
+   - Líneas 358-404: Agregada validación `if diferencia != 0:` para ubicaciones ADM (igual que ubicaciones físicas)
+   - Líneas 361-404: Agregado log informativo cuando no se requiere ajuste (diferencia = 0)
+
+2. routes/historiales.py
+   - Líneas 425-436: Corregido GROUP BY para usar COALESCE(ubicacion_destino, ubicacion_origen) en lugar de solo ubicacion_destino
+   - Líneas 451-452: Corregido filtro de ubicacion_fisica para usar COALESCE
+   - Líneas 457-480: Corregida subquery de búsqueda para usar COALESCE
+   - Líneas 498-532: Simplificada lógica de obtención de movimientos (ya no necesita buscar por ubicacion_origen porque el GROUP BY ya lo maneja)
+   - Líneas 556-557: Corregido acceso a ubicacion (ahora es aj.ubicacion en lugar de aj.ubicacion_destino)
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. Validación de diferencia != 0 para ubicaciones ADM (routes/ajustes.py):
+   - ANTES: Siempre creaba movimiento, incluso si diferencia = 0
+   - DESPUÉS: Solo crea movimiento si diferencia != 0 (igual que ubicaciones físicas)
+   - BENEFICIO: Evita crear movimientos sin sentido cuando no hay cambio
+
+2. Mejora en obtención de stock ADM (routes/ajustes.py):
+   - ANTES: Si producto_db no existe, stock_adm_actual = 0 siempre
+   - DESPUÉS: Intenta buscar producto por item_id si producto_db no existe, luego busca stock
+   - BENEFICIO: Puede obtener stock real incluso si el producto no está en cache
+
+3. Corrección de GROUP BY en historial (routes/historiales.py):
+   - ANTES: Agrupaba solo por ubicacion_destino (ajustes a 0 tenían None y se agrupaban juntos)
+   - DESPUÉS: Agrupa por COALESCE(ubicacion_destino, ubicacion_origen)
+   - BENEFICIO: Ajustes a 0 ahora se agrupan correctamente por ubicación (Mirador Sur, ADESA, etc.)
+
+4. Corrección de filtros en historial (routes/historiales.py):
+   - ANTES: Filtros buscaban solo en ubicacion_destino
+   - DESPUÉS: Filtros buscan en COALESCE(ubicacion_destino, ubicacion_origen)
+   - BENEFICIO: Búsqueda y filtros funcionan correctamente para ajustes a 0
+
+PROBLEMAS RESUELTOS:
+--------------------
+
+✅ Problema 1: Falta validación diferencia != 0 para ubicaciones ADM
+   - RESUELTO: Ahora valida igual que ubicaciones físicas
+
+✅ Problema 2: Dependencia de producto_db para obtener stock ADM
+   - RESUELTO: Intenta buscar por item_id si producto_db no existe
+
+✅ Problema 3: Historial agrupa incorrectamente ajustes a 0
+   - RESUELTO: Usa COALESCE para agrupar por ubicacion_destino O ubicacion_origen
+
+✅ Problema 4: Filtros y búsqueda no funcionan para ajustes a 0
+   - RESUELTO: Filtros y búsqueda usan COALESCE
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+-----------------------------------------
+
+1. Subir los 2 archivos modificados a sus respectivas ubicaciones:
+   - routes/ajustes.py
+   - routes/historiales.py
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario (dependiendo de la configuración de cPanel).
+
+4. Probar:
+   - Ajustar Mirador Sur de 44 a 0
+   - Verificar que aparece en el historial
+   - Verificar que se puede ver el detalle
+   - Verificar que no se crean movimientos cuando diferencia = 0
+
+
+
+
+
+
+
+

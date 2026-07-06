@@ -1,0 +1,47 @@
+# ====================================================================
+# ADESA NEXUS - Entorno de base de datos LOCAL (solo desarrollo)
+# --------------------------------------------------------------------
+# Levanta MariaDB y carga automáticamente database/nexus_master.sql
+# la primera vez (carpeta docker-entrypoint-initdb.d).
+#
+#   docker compose up -d        # arrancar
+#   docker compose down         # detener (conserva datos en el volumen)
+#   docker compose down -v      # detener y BORRAR datos (reinicio limpio)
+#
+# ⚠ Credenciales de DESARROLLO. No usar en producción.
+# ====================================================================
+
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: nexus_mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: nexus_root_dev
+      MARIADB_DATABASE: adesa_nexus
+      MARIADB_USER: nexus_app            # usuario de la app (mínimo privilegio sobre este schema)
+      MARIADB_PASSWORD: nexus_dev_pw
+    ports:
+      - "3306:3306"                      # accesible desde el backend en localhost:3306
+    volumes:
+      - nexus_db_data:/var/lib/mysql
+      # Carga el esquema solo en la primera inicialización del volumen:
+      - ./database/nexus_master.sql:/docker-entrypoint-initdb.d/01-nexus_master.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Opcional: interfaz web para inspeccionar la BD en http://localhost:8080
+  adminer:
+    image: adminer:latest
+    container_name: nexus_adminer
+    restart: unless-stopped
+    depends_on:
+      - mariadb
+    ports:
+      - "8080:8080"
+
+volumes:
+  nexus_db_data:

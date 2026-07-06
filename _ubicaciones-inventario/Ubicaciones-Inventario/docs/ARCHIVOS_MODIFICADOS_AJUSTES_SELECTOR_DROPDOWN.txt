@@ -1,0 +1,78 @@
+ARCHIVOS MODIFICADOS - AJUSTES CON SELECTOR DROPDOWN Y VALIDACIÓN ESTRICTA
+============================================================================
+
+FECHA: 2025-01-26
+DESCRIPCIÓN: Cambio de checkboxes a selector desplegable + validación estricta ADESA
+
+ARCHIVOS MODIFICADOS:
+=====================
+
+1. templates/ajustes.html
+   - CAMBIADO: Checkboxes por selector desplegable (dropdown) para ubicaciones ADM
+   - AGREGADO: Lista de ubicaciones ADM seleccionadas con botón eliminar
+   - AGREGADO: Validación estricta: suma de ubicaciones físicas = cantidad ADESA
+   - AGREGADO: Advertencia detallada si hay ubicaciones físicas con stock no ajustadas
+   - AGREGADO: Mostrar ubicaciones físicas dentro de ADESA en información del producto
+   - AGREGADO: Bloqueo del botón "Registrar Ajuste" si no cuadra la validación
+   - AGREGADO: Sugerencia de sincronizar con ADM cuando hay discrepancias
+
+INSTRUCCIONES PARA CPANEL:
+===========================
+
+1. Subir archivo modificado:
+   - templates/ajustes.html
+
+2. Reiniciar aplicación Flask:
+   - Tocar el archivo tmp/restart.txt
+   - O usar "Restart App" en el panel de Python App
+
+3. Verificar:
+   - El selector desplegable muestra ubicaciones ADM disponibles
+   - Al seleccionar una ubicación, se agrega a la lista con campo de cantidad
+   - Al seleccionar ADESA, aparece sección de ubicaciones físicas
+   - La validación bloquea el botón si suma físicas ≠ cantidad ADESA
+   - Se muestran advertencias detalladas sobre ubicaciones con stock no ajustadas
+
+FUNCIONALIDADES IMPLEMENTADAS:
+==============================
+
+✅ Selector desplegable en lugar de checkboxes
+✅ Lista de ubicaciones seleccionadas con botón eliminar
+✅ Validación estricta: suma físicas = cantidad ADESA
+✅ Advertencia si hay ubicaciones físicas con stock no ajustadas
+✅ Mostrar ubicaciones físicas dentro de ADESA en información del producto
+✅ Bloqueo del botón "Registrar Ajuste" si no pasa validación
+✅ Sugerencia de sincronizar con ADM para resolver discrepancias
+
+COMPORTAMIENTO DE VALIDACIÓN:
+==============================
+
+1. Si ADESA = 30 y suma de físicas ≠ 30:
+   - Bloquea botón "Registrar Ajuste"
+   - Muestra error con diferencia
+   - Lista ubicaciones físicas con stock que no están siendo ajustadas
+
+2. Si hay ubicaciones físicas con stock que no se están ajustando:
+   - Bloquea botón "Registrar Ajuste"
+   - Muestra lista de ubicaciones con stock no ajustadas
+   - Ejemplo: "2P1D01N3 tiene 5"
+
+3. Solo permite ajuste si:
+   - Suma de ubicaciones físicas = cantidad ADESA
+   - Todas las ubicaciones físicas con stock están siendo ajustadas
+
+NOTAS IMPORTANTES:
+==================
+
+- El sistema NO permite discrepancias en ajustes
+- Si hay ubicaciones físicas con stock que no se ajustan, el sistema bloquea el ajuste
+- Se sugiere sincronizar con ADM para resolver discrepancias
+- Las ubicaciones físicas dentro de ADESA se muestran en la información del producto
+
+
+
+
+
+
+
+

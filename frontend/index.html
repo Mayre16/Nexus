@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#be1622" />
+    <!--
+      ADESA Nexus — Pantalla de acceso.
+      Branding tomado de adesa.com.do: rojo #be1622, rayo dorado #fcb900, negro/blanco.
+      Seguridad: el JWT vivirá en cookie HttpOnly (no se guarda en JS). Para
+      peticiones mutantes se lee la cookie nexus_csrf y se reenvía en X-CSRF-Token.
+    -->
+    <title>ADESA Nexus · Acceso</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Paleta de marca ADESA para Tailwind.
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              adesa: {
+                red: "#be1622",
+                red2: "#ef1d2b",
+                gold: "#fcb900",
+                ink: "#111111",
+              },
+            },
+            fontFamily: {
+              sans: ["Montserrat", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .hero-bg {
+        background-image: linear-gradient(
+            to right,
+            rgba(0, 0, 0, 0.85) 0%,
+            rgba(17, 17, 17, 0.55) 45%,
+            rgba(190, 22, 34, 0.35) 100%
+          ),
+          url("/assets/hero.png");
+        background-size: cover;
+        background-position: center;
+      }
+      .gold-underline {
+        background: linear-gradient(90deg, #fcb900, #be1622);
+      }
+    </style>
+  </head>
+  <body class="font-sans bg-adesa-ink text-white antialiased">
+    <div class="min-h-screen grid lg:grid-cols-2">
+      <!-- ===================== Panel branding (hero) ===================== -->
+      <section class="hero-bg relative hidden lg:flex flex-col justify-between p-12">
+        <!-- Logo oficial (isotipo) + ADESA NEXUS · desde 1999 -->
+        <header class="flex items-center gap-4">
+          <img src="/assets/adesa-isotype.png" alt="ADESA" class="h-14 w-auto" />
+          <div class="flex flex-col leading-none">
+            <span class="text-2xl font-black tracking-[0.2em] text-white">
+              ADESA <span class="text-adesa-red2">NEXUS</span>
+            </span>
+            <span class="mt-1 text-[11px] font-semibold tracking-[0.35em] text-adesa-gold">
+              DESDE 1999
+            </span>
+          </div>
+        </header>
+
+        <!-- Mensaje central -->
+        <div class="max-w-lg">
+          <h1 class="text-5xl font-extrabold leading-tight">
+            Un solo sistema,<br />
+            <span class="text-adesa-gold">dos mundos.</span>
+          </h1>
+          <p class="mt-5 text-lg text-gray-200">
+            La suite empresarial que unifica
+            <span class="font-semibold text-white">ADESA Energía</span> y
+            <span class="font-semibold text-white">ADESA Deportes</span>:
+            soporte, ventas, proyectos y monitoreo en una misma plataforma.
+          </p>
+          <div class="mt-8 flex gap-3">
+            <span class="px-4 py-2 rounded-full bg-adesa-red text-sm font-semibold">
+              ⚡ Energía
+            </span>
+            <span class="px-4 py-2 rounded-full bg-white/10 ring-1 ring-white/20 text-sm font-semibold">
+              🚴 Deportes
+            </span>
+          </div>
+        </div>
+
+        <!-- Pie -->
+        <footer class="text-xs text-gray-300">
+          © 2026 ADESA SRL · Medición de energía y artículos deportivos · República Dominicana
+        </footer>
+      </section>
+
+      <!-- ===================== Panel de acceso ===================== -->
+      <section class="flex items-center justify-center p-6 sm:p-12 bg-white text-adesa-ink">
+        <div class="w-full max-w-md">
+          <!-- Logo móvil -->
+          <div class="lg:hidden flex items-center gap-3 mb-10">
+            <img src="/assets/adesa-isotype.png" alt="ADESA" class="h-11 w-auto" />
+            <div class="flex flex-col leading-none">
+              <span class="text-xl font-black tracking-[0.2em] text-adesa-ink">
+                ADESA <span class="text-adesa-red">NEXUS</span>
+              </span>
+              <span class="mt-0.5 text-[10px] font-semibold tracking-[0.35em] text-adesa-red">
+                DESDE 1999
+              </span>
+            </div>
+          </div>
+
+          <h2 class="text-3xl font-extrabold">Iniciar sesión</h2>
+          <p class="mt-2 text-gray-500">Accede a tu panel de ADESA Nexus.</p>
+          <p class="mt-1 text-xs text-gray-400">¿Eres cliente? <a href="/portal.html" class="text-adesa-red font-semibold hover:underline">Portal de soporte</a></p>
+          <div class="h-1 w-16 rounded-full gold-underline mt-4"></div>
+
+          <form id="loginForm" class="mt-8 space-y-5" autocomplete="off">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700" for="email">
+                Correo electrónico
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                value="martha@adesa.com.do"
+                placeholder="tu@adesa.com.do"
+                class="mt-1 w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-adesa-red focus:ring-2 focus:ring-adesa-red/30 outline-none transition"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700" for="password">
+                Contraseña
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                placeholder="••••••••"
+                class="mt-1 w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-adesa-red focus:ring-2 focus:ring-adesa-red/30 outline-none transition"
+              />
+            </div>
+
+            <button
+              type="submit"
+              class="w-full rounded-lg bg-adesa-red hover:bg-adesa-red2 text-white font-bold py-3 transition shadow-lg shadow-adesa-red/30"
+            >
+              Entrar
+            </button>
+          </form>
+
+          <!-- Estado de conexión con el backend -->
+          <div
+            id="status"
+            class="mt-6 text-sm rounded-lg px-4 py-3 bg-gray-100 text-gray-600"
+          >
+            Comprobando conexión con el servidor…
+          </div>
+
+          <p class="mt-8 text-center text-xs text-gray-400">
+            ADESA Nexus · suite empresarial unificada
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      // Verifica que el backend responde (prueba visual de que todo corre local).
+      const statusEl = document.getElementById("status");
+      fetch("/api/health")
+        .then((r) => r.json())
+        .then((d) => {
+          statusEl.className =
+            "mt-6 text-sm rounded-lg px-4 py-3 bg-green-50 text-green-700 ring-1 ring-green-200";
+          statusEl.textContent = `✅ Servidor en línea — ${d.servicio} (${d.entorno})`;
+        })
+        .catch(() => {
+          statusEl.className =
+            "mt-6 text-sm rounded-lg px-4 py-3 bg-red-50 text-red-700 ring-1 ring-red-200";
+          statusEl.textContent = "❌ No se pudo conectar con el servidor (/api/health).";
+        });
+
+      // Lee el valor de una cookie por nombre (para el token CSRF).
+      function leerCookie(nombre) {
+        return document.cookie
+          .split("; ")
+          .find((c) => c.startsWith(nombre + "="))
+          ?.split("=")[1];
+      }
+
+      // Login real contra /api/auth/login (JWT en cookie HttpOnly + CSRF).
+      const form = document.getElementById("loginForm");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = form.querySelector("button[type=submit]");
+        btn.disabled = true;
+        btn.textContent = "Entrando…";
+
+        try {
+          const resp = await fetch("/api/auth/login", {
+            method: "POST",
+            credentials: "include", // envía/recibe cookies
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": leerCookie("nexus_csrf") || "",
+            },
+            body: JSON.stringify({
+              email: document.getElementById("email").value,
+              password: document.getElementById("password").value,
+            }),
+          });
+
+          const data = await resp.json();
+          if (resp.ok) {
+            statusEl.className =
+              "mt-6 text-sm rounded-lg px-4 py-3 bg-green-50 text-green-700 ring-1 ring-green-200";
+            statusEl.textContent = `✅ Bienvenida, ${data.usuario.nombre}. Redirigiendo…`;
+            const rol = data.usuario.rol;
+            if (rol === "cliente_externo" || rol === "cliente_suscriptor") {
+              window.location.href = "/portal.html";
+            } else {
+              window.location.href = "/dashboard.html";
+            }
+          } else {
+            statusEl.className =
+              "mt-6 text-sm rounded-lg px-4 py-3 bg-red-50 text-red-700 ring-1 ring-red-200";
+            statusEl.textContent = "❌ " + (data.error || "No se pudo iniciar sesión.");
+          }
+        } catch (_) {
+          statusEl.className =
+            "mt-6 text-sm rounded-lg px-4 py-3 bg-red-50 text-red-700 ring-1 ring-red-200";
+          statusEl.textContent = "❌ Error de red al iniciar sesión.";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Entrar";
+        }
+      });
+    </script>
+  </body>
+</html>

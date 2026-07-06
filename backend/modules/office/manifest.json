@@ -1,0 +1,19 @@
+{
+  "technicalName": "office",
+  "displayName": "Nexus Leads",
+  "summary": "Proyectos comerciales, follow-up de cotizaciones iERP, tickets y OT",
+  "version": "0.2.0",
+  "category": "crm",
+  "state": "installed",
+  "installable": true,
+  "autoInstall": true,
+  "depends": ["nexus_core"],
+  "routes": {
+    "ui": "/leads.html",
+    "api": "/api/office",
+    "dashboardPath": "/leads.html"
+  },
+  "roles": ["admin", "empleado"],
+  "icon": "🎯",
+  "sortOrder": 20
+}

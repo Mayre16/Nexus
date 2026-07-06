@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA Nexus · Store</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { adesa: { red: "#be1622", red2: "#ef1d2b", gold: "#fcb900", ink: "#111111" } },
+            fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+    <header class="bg-adesa-ink text-white">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center gap-4 justify-between">
+        <div class="flex items-center gap-3">
+          <a href="/dashboard.html" class="text-sm text-gray-400 hover:text-white">← Panel</a>
+          <span class="text-lg font-bold">Nexus Store</span>
+        </div>
+        <div class="flex gap-3 text-xs">
+          <span id="admBadge" class="px-2 py-1 rounded bg-white/10"></span>
+          <a href="/almacen.html" class="text-adesa-gold hover:underline">Almacén →</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-6">
+      <div class="flex flex-wrap gap-3 mb-4">
+        <div class="flex rounded-lg overflow-hidden ring-1 ring-gray-200 bg-white">
+          <button data-div="todos" class="filtro-div px-4 py-2 text-sm font-semibold bg-adesa-red text-white">Todos</button>
+          <button data-div="energia" class="filtro-div px-4 py-2 text-sm hover:bg-gray-50">⚡ Energía</button>
+          <button data-div="deportes" class="filtro-div px-4 py-2 text-sm hover:bg-gray-50">🚴 Deportes</button>
+        </div>
+        <button id="btnPedido" type="button" class="px-4 py-2 rounded-lg bg-adesa-red text-white text-sm font-bold disabled:opacity-40" disabled>
+          Crear pedido (<span id="carritoCount">0</span>)
+        </button>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-6">
+        <section class="lg:col-span-2">
+          <h2 class="font-bold mb-3">Catálogo</h2>
+          <div id="gridProductos" class="grid sm:grid-cols-2 gap-4"></div>
+        </section>
+        <section>
+          <h2 class="font-bold mb-3">Pedidos recientes</h2>
+          <ul id="listaPedidos" class="bg-white rounded-2xl ring-1 ring-gray-100 divide-y text-sm"></ul>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      function leerCookie(n) { return document.cookie.split("; ").find(c => c.startsWith(n + "="))?.split("=")[1] || ""; }
+      let divisionFiltro = "todos", productos = [], carrito = {}, divisionPedido = "energia";
+
+      async function api(url, opts = {}) {
+        const r = await fetch(url, {
+          credentials: "include",
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": leerCookie("nexus_csrf"), ...opts.headers },
+          ...opts,
+        });
+        if (r.status === 401) { location.href = "/"; throw new Error("auth"); }
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || "Error");
+        return j;
+      }
+
+      function renderCarrito() {
+        const n = Object.values(carrito).reduce((a, c) => a + c.cantidad, 0);
+        document.getElementById("carritoCount").textContent = n;
+        document.getElementById("btnPedido").disabled = n === 0;
+      }
+
+      async function cargarProductos() {
+        const p = divisionFiltro !== "todos" ? "?division=" + divisionFiltro : "";
+        const data = await api("/api/store/productos" + p);
+        productos = data.productos;
+        document.getElementById("admBadge").textContent = data.adm.modo === "live"
+          ? "ADM: conectado (stub)" : "ADM: modo local";
+        const grid = document.getElementById("gridProductos");
+        grid.innerHTML = "";
+        productos.forEach(pr => {
+          const disp = pr.stock_disponible - pr.stock_reservado;
+          const card = document.createElement("article");
+          card.className = "bg-white rounded-2xl p-4 ring-1 ring-gray-100";
+          card.innerHTML = `
+            <div class="text-xs text-gray-400">${pr.sku} · ${pr.division}</div>
+            <h3 class="font-bold mt-1">${pr.nombre}</h3>
+            <p class="text-sm text-gray-600 mt-1">RD$ ${Number(pr.precio).toLocaleString()}</p>
+            <p class="text-xs mt-1 ${disp > 0 ? "text-green-700" : "text-red-600"}">Stock: ${disp}</p>
+            <button type="button" class="mt-3 w-full py-2 rounded-lg text-sm font-semibold ${disp > 0 ? "bg-adesa-red text-white" : "bg-gray-200 text-gray-500"}" ${disp > 0 ? "" : "disabled"} data-uuid="${pr.uuid}">
+              + Añadir
+            </button>`;
+          if (disp > 0) card.querySelector("button").onclick = () => {
+            divisionPedido = pr.division;
+            if (!carrito[pr.uuid]) carrito[pr.uuid] = { producto_uuid: pr.uuid, cantidad: 0, nombre: pr.nombre };
+            carrito[pr.uuid].cantidad++;
+            renderCarrito();
+          };
+          grid.appendChild(card);
+        });
+      }
+
+      async function cargarPedidos() {
+        const { pedidos } = await api("/api/store/pedidos");
+        const ul = document.getElementById("listaPedidos");
+        ul.innerHTML = pedidos.length ? "" : '<li class="p-4 text-gray-400">Sin pedidos</li>';
+        pedidos.forEach(p => {
+          const li = document.createElement("li");
+          li.className = "p-4";
+          li.innerHTML = `<div class="font-mono text-xs text-adesa-red">${p.referencia}</div>
+            <div class="font-semibold">RD$ ${Number(p.total).toLocaleString()}</div>
+            <div class="text-xs text-gray-500">${p.estado} · ${p.adm_pedido_id || "sin ADM"}</div>`;
+          ul.appendChild(li);
+        });
+      }
+
+      document.querySelectorAll(".filtro-div").forEach(btn => {
+        btn.onclick = () => {
+          divisionFiltro = btn.dataset.div;
+          document.querySelectorAll(".filtro-div").forEach(b => b.classList.remove("bg-adesa-red","text-white","font-semibold"));
+          btn.classList.add("bg-adesa-red","text-white","font-semibold");
+          cargarProductos();
+        };
+      });
+
+      document.getElementById("btnPedido").onclick = async () => {
+        const lineas = Object.values(carrito).filter(l => l.cantidad > 0);
+        if (!lineas.length) return;
+        try {
+          await api("/api/store/pedidos", {
+            method: "POST",
+            body: JSON.stringify({ division: divisionPedido, lineas: lineas.map(l => ({ producto_uuid: l.producto_uuid, cantidad: l.cantidad })) }),
+          });
+          carrito = {};
+          renderCarrito();
+          cargarProductos();
+          cargarPedidos();
+          alert("Pedido creado — enviado a almacén y ADM (si configurado).");
+        } catch (e) { alert(e.message); }
+      };
+
+      api("/api/auth/me").then(() => { cargarProductos(); cargarPedidos(); }).catch(() => location.href = "/");
+    </script>
+  </body>
+</html>

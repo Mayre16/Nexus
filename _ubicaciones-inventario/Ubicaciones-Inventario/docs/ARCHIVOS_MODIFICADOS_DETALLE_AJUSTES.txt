@@ -1,0 +1,61 @@
+ARCHIVOS MODIFICADOS - PÁGINA DE DETALLE DE AJUSTES
+====================================================
+
+Fecha: 2025-01-26
+Descripción: Implementación de página de detalle completa para ajustes, similar a recepciones.
+Incluye auditoría completa, funcionalidad de revertir (solo admin) y corrección de error de ID inválido.
+
+ARCHIVOS MODIFICADOS:
+--------------------
+
+1. app_wms.py
+   - Agregada ruta /ajustes/detalle para mostrar página de detalle completa
+
+2. routes/detalles.py
+   - Corregido parseo de ID de ajuste para manejar caracteres especiales en ubicaciones
+   - Mejorado manejo de timestamps con diferentes formatos
+
+3. routes/ajustes.py
+   - Agregado import de require_admin
+   - Agregado endpoint /api/ajustes/<ajuste_id>/revertir para revertir ajustes (solo admin)
+   - Implementada lógica de reversión que:
+     * Elimina movimientos de ajuste
+     * Revierte stock en ubicaciones físicas (si aplica)
+     * Respeta Regla de Oro #4 (solo modifica stock físico si es ubicación física)
+
+4. templates/ajustes_detalle.html (NUEVO)
+   - Página completa de detalle de ajuste similar a recepciones.html
+   - Muestra información completa del ajuste
+   - Lista productos ajustados con cantidades anterior/nueva/diferencia
+   - Muestra movimientos registrados (auditoría completa)
+   - Botón para revertir ajuste (solo visible para administradores)
+   - Diseño responsive y consistente con el resto del sistema
+
+5. templates/ajustes_historial.html
+   - Actualizados botones "Ver Detalle" y "Editar" para redirigir a /ajustes/detalle
+   - Eliminado modal de detalles (ya no se usa)
+   - Eliminadas funciones mostrarModalDetalle() y cerrarModalDetalle()
+
+FUNCIONALIDADES IMPLEMENTADAS:
+------------------------------
+✅ Página de detalle completa con auditoría
+✅ Visualización de productos ajustados con cantidades
+✅ Lista de movimientos registrados (quién, cuándo, qué)
+✅ Botón Revertir Ajuste (solo administradores)
+✅ Corrección de error "Formato de ID de ajuste inválido"
+✅ Navegación consistente con otros módulos (Volver al Historial)
+
+NOTAS IMPORTANTES:
+------------------
+- El endpoint de revertir ajuste requiere rol de administrador
+- La reversión solo modifica stock físico si el ajuste fue en ubicación física (ADESA)
+- Los ajustes ADM (macro) no modifican stock físico, solo crean movimientos de auditoría
+- El ID del ajuste se parsea correctamente incluso con caracteres especiales en la ubicación
+
+
+
+
+
+
+
+

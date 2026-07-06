@@ -1,0 +1,121 @@
+═══════════════════════════════════════════════════════════════════
+📦 ARCHIVOS A ACTUALIZAR EN cPanel
+═══════════════════════════════════════════════════════════════════
+
+✅ IMPLEMENTACIÓN COMPLETA SEGÚN REGLAS DE ORO
+
+═══════════════════════════════════════════════════════════════════
+📝 ARCHIVOS MODIFICADOS
+═══════════════════════════════════════════════════════════════════
+
+1. database/models.py
+   ✓ Agregado modelo Discrepancia
+   ✓ Campos: producto_id, sku, location_id, stock_erp, stock_fisico_wms, etc.
+
+2. routes/sincronizar.py
+   ✓ Mejoras en sincronización por ubicación:
+     - Detecta productos desaparecidos (Regla #1)
+     - Actualiza StockProductoADM a 0 cuando producto desaparece
+     - Crea discrepancias cuando ADM=0 y Físico>0 (Regla #3)
+     - NO toca StockUbicacion (stock físico intacto)
+   ✓ Nuevo endpoint: /api/sincronizar/catalogo
+     - Solo usa /api/Items?skip=X&take=50 (paginación)
+     - PROHIBIDO usar /api/Items/{id} individual
+     - Actualiza: nombre, SKU, código de barras
+     - NO toca stock
+   ✓ Removida ejecución automática en segundo plano
+
+3. routes/productos.py
+   ✓ Importa modelo Discrepancia
+   ✓ Detecta y retorna discrepancias en consulta
+   ✓ Solo muestra discrepancias críticas (ADM=0 y Físico>0)
+
+4. templates/productos.html
+   ✓ Función mostrarDiscrepancias() agregada
+   ✓ Muestra alertas visuales "⚠️ DISCREPANCIA CRÍTICA"
+   ✓ Muestra comparación: Stock ERP vs Stock Físico
+
+5. templates/admin.html
+   ✓ Nueva sección "Sincronización de Catálogo"
+   ✓ Botón "🔄 Sincronizar Catálogo"
+   ✓ Barra de progreso y mensajes
+
+═══════════════════════════════════════════════════════════════════
+⚙️ PASOS POST-ACTUALIZACIÓN
+═══════════════════════════════════════════════════════════════════
+
+1. CREAR TABLA DE DISCREPANCIAS:
+   Ejecutar en Python (o usar db.create_all()):
+   
+   from app_wms import app
+   from database import db
+   from database.models import Discrepancia
+   
+   with app.app_context():
+       db.create_all()
+       print("Tabla discrepancias creada")
+
+2. VERIFICAR TABLA CREADA:
+   SELECT * FROM discrepancias LIMIT 1;
+
+═══════════════════════════════════════════════════════════════════
+✅ VERIFICACIONES POST-ACTUALIZACIÓN
+═══════════════════════════════════════════════════════════════════
+
+1. Verificar sincronización por ubicación:
+   ☐ Sincronizar ADESA
+   ☐ Verificar logs: "Productos desaparecidos: X productos..."
+   ☐ Verificar logs: "DISCREPANCIA CRÍTICA creada: SKU=..."
+   ☐ Verificar en BD que StockProductoADM se actualiza a 0
+   ☐ Verificar que StockUbicacion NO cambia
+
+2. Verificar sincronización de catálogo:
+   ☐ Ir a Panel Admin
+   ☐ Click en "🔄 Sincronizar Catálogo"
+   ☐ Verificar que complete sin timeout
+   ☐ Verificar logs: "Sincronización de catálogo completada: X actualizados..."
+   ☐ Verificar en BD que códigos de barras se actualizan
+
+3. Verificar discrepancias:
+   ☐ Buscar producto con discrepancia en /productos
+   ☐ Verificar que muestre alerta "⚠️ DISCREPANCIA CRÍTICA"
+   ☐ Verificar que muestre: Stock ERP: 0 vs Stock Físico: X
+
+═══════════════════════════════════════════════════════════════════
+📊 CARACTERÍSTICAS IMPLEMENTADAS
+═══════════════════════════════════════════════════════════════════
+
+✅ Regla #1: Stock 0 en ADM NO viene como 0
+   - Detecta productos desaparecidos
+   - Actualiza stock ERP a 0
+
+✅ Regla #2: Consultas desde BD local
+   - Todas las búsquedas usan BD local
+
+✅ Regla #3: Discrepancias se alertan
+   - Crea discrepancias cuando ADM=0 y Físico>0
+   - NO toca stock físico
+   - Muestra alertas visuales
+
+✅ Separación de sincronizaciones:
+   - Sync stock: Solo /api/Stock (rápido)
+   - Sync catálogo: Solo /api/Items paginado (eficiente)
+   - PROHIBIDO usar /api/Items/{id} individual
+
+═══════════════════════════════════════════════════════════════════
+⚠️ IMPORTANTE
+═══════════════════════════════════════════════════════════════════
+
+- El sync de catálogo ahora es MANUAL desde Panel Admin
+- Ya NO se ejecuta automáticamente en segundo plano
+- Esto evita timeouts y permite control manual
+
+═══════════════════════════════════════════════════════════════════
+
+
+
+
+
+
+
+

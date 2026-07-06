@@ -1,0 +1,77 @@
+ARCHIVOS MODIFICADOS PARA HACER FUNCIONAL EL AJUSTE DE MIRADOR SUR A 0
+======================================================================
+
+Fecha: 2026-01-26
+Descripción: Correcciones finales para que los ajustes ADM a 0 aparezcan correctamente en el historial
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. routes/ajustes.py
+   - Líneas 358-410: Agregados logs detallados para diagnóstico
+   - Líneas 414-420: Mejorado mensaje cuando no se crean movimientos
+   - Línea 385: Corregido encoding en log (removido acento en "Cálculo")
+
+2. routes/historiales.py
+   - Líneas 425-436: Corregido GROUP BY para usar COALESCE(ubicacion_destino, ubicacion_origen)
+   - Líneas 452-453: Corregido filtro de ubicacion_fisica
+   - Líneas 460-479: Corregida subquery de búsqueda
+   - Líneas 498-532: Simplificada lógica de obtención de movimientos
+   - Líneas 556-557: Corregido acceso a ubicacion en resultados
+
+3. templates/ajustes.html
+   - Líneas 1092-1096: Mejorado mensaje cuando no se crean movimientos
+
+ESTADO ACTUAL:
+--------------
+
+✅ El movimiento SÍ se está creando correctamente (confirmado por logs)
+✅ La respuesta JSON muestra total_movimientos: 1
+✅ El problema es que no aparece en el historial porque el archivo historiales.py no está actualizado en el servidor
+
+PROBLEMA IDENTIFICADO:
+----------------------
+
+El movimiento se crea con:
+- ubicacion_origen = "MIRADOR SUR"
+- ubicacion_destino = null (porque diferencia < 0)
+
+El historial antiguo agrupaba solo por ubicacion_destino, entonces los ajustes a 0 (con ubicacion_destino = null) no aparecían correctamente.
+
+SOLUCIÓN:
+---------
+
+El archivo historiales.py ya tiene la corrección con COALESCE, pero necesita subirse al servidor.
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+-----------------------------------------
+
+1. Subir los 3 archivos modificados:
+   - routes/ajustes.py (logs mejorados y corrección de encoding)
+   - routes/historiales.py (CRÍTICO: corrección de GROUP BY)
+   - templates/ajustes.html (mensaje mejorado)
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario.
+
+4. Probar:
+   - Ajustar Mirador Sur a 0
+   - Verificar que aparece en el historial
+   - Verificar que se puede ver el detalle
+
+RESULTADO ESPERADO:
+-------------------
+
+Después de subir los archivos:
+- El ajuste de Mirador Sur a 0 aparecerá en el historial
+- Se podrá ver el detalle del ajuste
+- El mensaje será claro si no se crean movimientos
+
+
+
+
+
+
+
+

@@ -1,0 +1,66 @@
+# ====================================================================
+# ADESA NEXUS - .gitignore
+# Regla Innegociable #4: ningún secreto, clave o credencial en el repo.
+# ====================================================================
+
+# Variables de entorno y secretos (NUNCA versionar)
+.env
+.env.*
+!.env.example
+config/.env
+config/*.local
+*.pem
+*.key
+*.crt
+*.p12
+
+# Dependencias
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Archivos generados / uploads de usuarios (fuera del repo)
+backend/uploads/
+backend/storage/
+backend/tmp/
+*.pdf
+!docs/**/*.pdf
+
+# Builds del frontend / Capacitor
+frontend/dist/
+frontend/www/
+frontend/.cache/
+android/
+ios/
+
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Backups y volcados de BD (pueden contener PII)
+*.sql.bak
+*.dump
+backups/
+
+# Archivos ZIP de respaldo / módulos empaquetados (muy grandes para GitHub)
+*.zip
+
+# Extracciones y artefactos locales
+BadBoy_extracted/
+BadBoy_src/**/bin/
+BadBoy_src/**/obj/
+scripts/**/bin/
+scripts/**/obj/
+dist/
+storage/
+__pycache__/
+*.pyc
+.playwright/

@@ -1,0 +1,93 @@
+ARCHIVOS MODIFICADOS PARA AGREGAR FECHA DE ÚLTIMA SINCRONIZACIÓN DE CATÁLOGO
+============================================================================
+
+Fecha: 2026-01-26
+Descripción: Agregar visualización de la última fecha de sincronización en la sección "Sincronización de Catálogo"
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. routes/sincronizar.py
+   - Línea 538: Agregado "Z" al final del ISO string para `ultima_sincronizacion` (corrección de zona horaria)
+
+2. templates/admin.html
+   - Líneas 576-579: Agregado div para mostrar última fecha de sincronización
+   - Líneas 1058-1075: Agregada función `cargarUltimaSincronizacionCatalogo()` para cargar la fecha
+   - Líneas 1077-1108: Modificada función `sincronizarCatalogo()` para actualizar la fecha después de sincronizar
+   - Línea 743: Agregada llamada a `cargarUltimaSincronizacionCatalogo()` en `DOMContentLoaded`
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. Backend (routes/sincronizar.py):
+   - Agregado "Z" al final del ISO string para indicar UTC
+   - Formato: "2026-01-27T01:30:34Z" en lugar de "2026-01-27T01:30:34"
+
+2. Frontend (templates/admin.html):
+   - Agregado div con id "catalogo-ultima-sincronizacion" para mostrar la fecha
+   - Agregada función `cargarUltimaSincronizacionCatalogo()` que:
+     * Llama al endpoint `/api/sincronizar/estado`
+     * Convierte la fecha UTC a hora local de RD
+     * Muestra la fecha formateada o "Nunca" si no hay sincronización
+   - Modificada función `sincronizarCatalogo()` para:
+     * Actualizar la fecha después de una sincronización exitosa
+   - Agregada llamada inicial en `DOMContentLoaded` para cargar la fecha al abrir la página
+
+COMPORTAMIENTO:
+---------------
+
+**ANTES:**
+- No se mostraba la última fecha de sincronización del catálogo
+- El usuario no sabía cuándo fue la última vez que se sincronizó
+
+**DESPUÉS:**
+- Se muestra la última fecha de sincronización del catálogo
+- Formato: "Última sincronización: DD/MM/YYYY, HH:MM:SS AM/PM"
+- Se actualiza automáticamente después de sincronizar
+- Muestra "Nunca" si nunca se ha sincronizado
+
+**Ejemplo de visualización:**
+```
+📦 Sincronización de Catálogo
+Actualiza nombre, SKU y código de barras de todos los productos desde ADM Cloud.
+Importante: Este proceso puede tardar varios minutos. No toca el stock.
+
+Última sincronización: 26/01/2026, 09:30:34 p. m.
+
+[🔄 Sincronizar Catálogo]
+```
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+----------------------------------------
+
+1. Subir los archivos modificados:
+   - routes/sincronizar.py
+   - templates/admin.html
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario.
+
+4. Probar:
+   - Abrir el Panel de Administración
+   - Verificar que se muestra la última fecha de sincronización del catálogo
+   - Sincronizar el catálogo y verificar que la fecha se actualiza
+   - Verificar que la hora es correcta (no 4 horas adelantada)
+
+RESULTADO ESPERADO:
+-------------------
+
+Después de la modificación:
+- ✅ Se muestra la última fecha de sincronización del catálogo
+- ✅ La fecha se carga automáticamente al abrir la página
+- ✅ La fecha se actualiza después de sincronizar
+- ✅ La hora se muestra correctamente en zona horaria de RD
+- ✅ Muestra "Nunca" si nunca se ha sincronizado
+
+
+
+
+
+
+
+

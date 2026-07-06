@@ -1,0 +1,92 @@
+===========================================================
+ARCHIVOS A SUBIR A CPANEL - MIGRACIÓN TABLAS NUEVAS
+===========================================================
+
+FECHA: 2026-01-22
+OBJETIVO: Aplicar cambios de base de datos y código nuevo
+
+===========================================================
+📁 ARCHIVOS OBLIGATORIOS (10 archivos)
+===========================================================
+
+1. database/models.py
+   → Contiene nuevos modelos: TransferenciaProcesada, MapeoUbicacionADM_WMS
+   → Campos nuevos en FacturaProcesada: location_id, location_name
+
+2. migrar_tablas_nuevas.py ⚠️ NUEVO
+   → Script de migración - DEBES ejecutarlo en cPanel
+
+3. verificar_migracion.py ⚠️ NUEVO
+   → Script de verificación - Ejecutar después de migración
+
+4. routes/facturas.py
+   → Extrae y guarda location_id y location_name de facturas
+
+5. routes/despacho.py
+   → Usa ubicación correcta (no hardcodeado a "ADESA")
+
+6. routes/transferencias.py
+   → Endpoint /api/transferencias/registrar completo
+
+7. utils/helpers.py
+   → Función obtener_productos_location_transfer()
+
+8. api/adm_cloud.py
+   → Métodos para LocationTransfers
+
+9. app_wms.py
+   → Ruta /transferencias y registro del blueprint
+
+10. routes/__init__.py
+    → Import de transferencias_bp
+
+===========================================================
+📁 ARCHIVOS OPCIONALES (UI)
+===========================================================
+
+11. templates/transferencias.html (si existe)
+12. templates/index.html (modificado con botón Transferencias)
+
+===========================================================
+🔧 SCRIPTS A EJECUTAR EN CPANEL
+===========================================================
+
+PASO 1: Ejecutar migración
+---------------------------
+En cPanel → "Execute python script":
+1. Agregar: migrar_tablas_nuevas.py
+2. Click en "Run Script"
+3. Verificar salida: "[OK] Migración completada exitosamente!"
+
+PASO 2: Verificar migración
+----------------------------
+En cPanel → "Execute python script":
+1. Agregar: verificar_migracion.py
+2. Click en "Run Script"
+3. Verificar salida: "[OK] Migración completada correctamente"
+
+===========================================================
+⚠️ IMPORTANTE
+===========================================================
+
+- NO ejecutes init_db.py en cPanel (solo para BD nuevas)
+- Solo ejecuta migrar_tablas_nuevas.py (agrega sin borrar)
+- Verifica siempre con verificar_migracion.py después
+
+===========================================================
+✅ CHECKLIST
+===========================================================
+
+[ ] Subir 10 archivos obligatorios
+[ ] Ejecutar migrar_tablas_nuevas.py en cPanel
+[ ] Verificar salida: "[OK] Migración completada"
+[ ] Ejecutar verificar_migracion.py en cPanel
+[ ] Verificar salida: "[OK] Migración completada correctamente"
+[ ] Probar búsqueda de factura (debe mostrar ubicación)
+[ ] Probar búsqueda de transferencia (debe mostrar Origen → Destino)
+
+===========================================================
+
+
+
+

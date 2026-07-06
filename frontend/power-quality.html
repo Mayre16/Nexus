@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA Nexus · Calidad de Energía</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { colors: { adesa: { red: "#be1622", ink: "#111111" } }, fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] } } } };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+    <header class="bg-adesa-ink text-white px-6 py-4 flex justify-between items-center">
+      <a href="/hub.html" class="text-sm text-gray-400 hover:text-white">← Hub</a>
+      <span class="font-bold">⚡ Calidad de Energía</span>
+    </header>
+    <main class="max-w-3xl mx-auto px-6 py-8 space-y-6">
+      <form id="formPQ" class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6 space-y-3 text-sm">
+        <h2 class="font-bold text-lg">Nuevo análisis</h2>
+        <div class="grid md:grid-cols-2 gap-3">
+          <input name="cliente_nombre" required placeholder="Cliente" class="border rounded-lg px-3 py-2" />
+          <input name="proyecto_nombre" required placeholder="Proyecto" class="border rounded-lg px-3 py-2" />
+          <input name="ubicacion" placeholder="Ubicación" class="border rounded-lg px-3 py-2" />
+          <input name="equipo_medicion" placeholder="Equipo (ej. AMPROBE DMIII)" class="border rounded-lg px-3 py-2" />
+        </div>
+        <label class="block">Archivo Excel AMPROBE / PME<input type="file" id="excelFile" accept=".xlsx,.xls" required class="mt-1 w-full text-xs" /></label>
+        <details class="text-xs">
+          <summary class="cursor-pointer font-semibold">Parámetros avanzados</summary>
+          <div class="grid md:grid-cols-2 gap-2 mt-2">
+            <input id="tensionNominal" type="number" value="120" placeholder="Tensión nominal (V)" class="border rounded px-2 py-1" />
+            <select id="conexion" class="border rounded px-2 py-1"><option>Estrella (con neutro)</option><option>Delta (sin neutro)</option></select>
+            <select id="fase" class="border rounded px-2 py-1"><option>Trifásico</option><option>Monofásico</option></select>
+            <select id="standard" class="border rounded px-2 py-1"><option>IEEE</option><option>IEC</option></select>
+          </div>
+          <label class="flex gap-2 mt-2"><input type="checkbox" id="computeEnergy" /> Calcular energía</label>
+          <label class="flex gap-2"><input type="checkbox" id="analyzePF" checked /> Factor de potencia</label>
+        </details>
+        <button type="submit" class="w-full py-2 bg-adesa-red text-white rounded-lg font-bold">Generar reporte</button>
+        <p id="msgPQ" class="text-xs text-gray-500"></p>
+      </form>
+      <section class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
+        <h2 class="font-bold mb-3">Proyectos recientes</h2>
+        <div id="listaPQ" class="text-sm text-gray-500">Cargando…</div>
+      </section>
+    </main>
+    <script>
+      function leerCookie(n) { return document.cookie.split("; ").find(c => c.startsWith(n + "="))?.split("=")[1] || ""; }
+      async function api(url, opts = {}) {
+        const r = await fetch(url, { credentials: "include", headers: { "Content-Type": "application/json", "X-CSRF-Token": leerCookie("nexus_csrf"), ...opts.headers }, ...opts });
+        if (r.status === 401 || r.status === 403) { location.href = "/"; throw new Error("auth"); }
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || "Error");
+        return j;
+      }
+      function fileToBase64(file) {
+        return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(",")[1]); r.onerror = rej; r.readAsDataURL(file); });
+      }
+      async function cargarProyectos() {
+        const { proyectos } = await api("/api/power-quality/proyectos");
+        document.getElementById("listaPQ").innerHTML = proyectos.length ? proyectos.map(p => `<div class="flex justify-between border-t py-2"><div><strong>${p.proyecto_nombre}</strong><div class="text-xs text-gray-400">${p.cliente_nombre} · ${p.estado}</div></div>${p.estado === "completado" ? `<a href="/api/power-quality/proyectos/${p.uuid}/descargar" class="text-adesa-red text-xs font-bold">Descargar</a>` : ""}</div>`).join("") : "Sin proyectos aún.";
+      }
+      document.getElementById("formPQ").onsubmit = async e => {
+        e.preventDefault();
+        const f = e.target;
+        const file = document.getElementById("excelFile").files[0];
+        document.getElementById("msgPQ").textContent = "Procesando… puede tardar un minuto.";
+        try {
+          const body = {
+            cliente_nombre: f.cliente_nombre.value,
+            proyecto_nombre: f.proyecto_nombre.value,
+            ubicacion: f.ubicacion.value,
+            equipo_medicion: f.equipo_medicion.value,
+            excel_base64: await fileToBase64(file),
+            excel_nombre: file.name,
+            parametros: {
+              client_name: f.cliente_nombre.value,
+              project_name: f.proyecto_nombre.value,
+              location: f.ubicacion.value,
+              measurement_equipment: f.equipo_medicion.value,
+              nominal_voltage: Number(document.getElementById("tensionNominal").value),
+              system_connection: document.getElementById("conexion").value,
+              system_phase_type: document.getElementById("fase").value,
+              standard: document.getElementById("standard").value,
+              compute_energy: document.getElementById("computeEnergy").checked,
+              analyze_power_factor: document.getElementById("analyzePF").checked,
+              voltage_type: "L-N",
+            },
+          };
+          await api("/api/power-quality/proyectos", { method: "POST", body: JSON.stringify(body) });
+          document.getElementById("msgPQ").textContent = "Reporte generado.";
+          cargarProyectos();
+        } catch (err) { document.getElementById("msgPQ").textContent = err.message; }
+      };
+      api("/api/auth/me").then(cargarProyectos).catch(() => location.href = "/");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - WMS</title>
+    <link rel="stylesheet" href="/static/css/wms.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+    <header class="wms-header">
+        <div class="wms-header-inner">
+            <div class="wms-header-title">
+                <span class="module-icon">⚙️</span>
+                <h1>Administración</h1>
+            </div>
+            <div class="wms-header-actions">
+                <span class="wms-header-user" id="user-info">Cargando...</span>
+                <a href="/" class="wms-btn wms-btn-secondary wms-btn-sm" title="Inicio">🏠 <span class="wms-header-btn-label">Inicio</span></a>
+                <button type="button" class="wms-btn wms-btn-secondary wms-btn-sm" onclick="cerrarSesion()" title="Cerrar sesión"><span class="wms-icon-logout" aria-hidden="true"></span> <span class="wms-header-btn-label">Salir</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Menú Lateral -->
+        <div class="sidebar">
+            <h3>📋 Menú</h3>
+            <div class="menu-item active" onclick="mostrarSeccion('sincronizacion', event)">
+                🔄 Sincronización de Productos
+            </div>
+            <div class="menu-item" onclick="mostrarSeccion('ubicaciones', event)">
+                📍 Ubicaciones Físicas WMS
+            </div>
+            <div class="menu-item" onclick="mostrarSeccion('usuarios', event)">
+                👥 Usuarios
+            </div>
+            <div class="menu-item" onclick="mostrarSeccion('notificaciones', event)">
+                📧 Notificaciones
+            </div>
+        </div>
+
+        <!-- Contenido Principal -->
+        <div class="content-area">
+            <!-- Mensajes (Toast) -->
+            <div id="message-success" class="wms-toast wms-toast-success"></div>
+            <div id="message-error" class="wms-toast wms-toast-error"></div>
+
+            <!-- Sección: Sincronización de Productos -->
+            <div id="seccion-sincronizacion" class="section active">
+                <div class="admin-info-strip info-box">
+                    <div class="admin-info-strip__item"><span class="admin-info-strip__label">Etapas</span> Sincroniza cada ubicación por separado para evitar timeouts.</div>
+                    <div class="admin-info-strip__item"><span class="admin-info-strip__label">Prioridad</span> ADESA primero; luego el resto.</div>
+                    <div class="admin-info-strip__item"><span class="admin-info-strip__label">Resultado</span> El stock queda guardado en la base local.</div>
+                </div>
+
+                <!-- Sincronización de Catálogo -->
+                <div class="card admin-card-catalog">
+                    <h2 class="admin-card-catalog__title">Sincronización de catálogo</h2>
+                    <p class="admin-card-catalog__desc">
+                        Actualiza nombre, SKU y códigos de barras desde ADM Cloud. Puede tardar varios minutos. <strong>No modifica stock.</strong>
+                    </p>
+                    <div id="catalogo-ultima-sincronizacion" class="admin-readout" role="status">
+                        <span class="admin-readout__label">Última sincronización</span>
+                        <span id="catalogo-fecha-sincronizacion" class="admin-readout__value">Cargando...</span>
+                    </div>
+                    <button type="button" class="btn-sync btn-sync--catalog" onclick="sincronizarCatalogo()" id="btn-sync-catalogo">
+                        Sincronizar catálogo
+                    </button>
+                    <div id="catalogo-progress" style="margin-top: 10px; display: none;">
+                        <div style="background: #e0e0e0; height: 20px; border-radius: 10px; overflow: hidden;">
+                            <div id="catalogo-progress-fill" style="background: #ff9800; height: 100%; width: 0%; transition: width 0.3s;"></div>
+                        </div>
+                        <div id="catalogo-message" style="margin-top: 5px; font-size: 12px; color: #666;"></div>
+                    </div>
+                </div>
+
+                <!-- Lista de Ubicaciones ADM -->
+                <div class="card">
+                    <div class="admin-section-head">
+                        <h2 class="admin-section-head__title">Ubicaciones ADM Cloud</h2>
+                        <button type="button" class="btn-sync btn-sync--ghost" onclick="cargarUbicaciones()" id="btn-refresh">
+                            Actualizar lista
+                        </button>
+                    </div>
+
+                    <div id="ubicaciones-container">
+                        <div class="empty-state">
+                            <p>Cargando ubicaciones...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Ubicaciones Físicas WMS -->
+            <div id="seccion-ubicaciones" class="section">
+                <div class="card">
+                    <div class="admin-card-toolbar">
+                        <h2 class="admin-page-title">Ubicaciones físicas WMS</h2>
+                        <div class="admin-card-toolbar-actions">
+                            <button type="button" class="btn-primary btn-primary--excel" onclick="abrirModalCargarExcel()">
+                                Cargar desde Excel
+                            </button>
+                            <button type="button" class="btn-primary" onclick="abrirModalCrear()">
+                                Crear ubicación
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <p><strong>ℹ️ Información:</strong> Las ubicaciones físicas son los lugares reales del almacén donde se almacenan los productos (ej: A-01-02, B-03-04).</p>
+                        <p><strong>💡 Tip:</strong> Puedes crear ubicaciones por pasillo, estante, nivel, zona, etc.</p>
+                    </div>
+
+                    <div class="wms-table-wrap">
+                        <table id="tabla-ubicaciones" class="wms-table admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th class="admin-col-muted">Descripción</th>
+                                    <th>Tipo</th>
+                                    <th>Estado</th>
+                                    <th class="admin-col-actions">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ubicaciones-tbody">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; padding: 40px;">
+                                        <div class="empty-state">
+                                            <p>Cargando ubicaciones...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="ubicaciones-mobile-cards" class="wms-mobile-cards admin-ubicaciones-mobile-cards" aria-label="Ubicaciones (vista móvil)"></div>
+                </div>
+            </div>
+
+            <!-- Sección: Notificaciones -->
+            <div id="seccion-notificaciones" class="section">
+                <div class="card admin-settings-card">
+                    <h2 class="admin-page-title">Configuración de notificaciones</h2>
+                    <div class="info-box admin-info-box--tight">
+                        <p><strong>Información:</strong> Activa o desactiva los emails automáticos del sistema.</p>
+                        <p><strong>Destino:</strong> Por defecto se envían a <strong>luis.useche@adesa.com.do</strong>.</p>
+                    </div>
+                    
+                    <div id="notificaciones-loading" class="admin-loading">
+                        <p>Cargando configuración…</p>
+                    </div>
+                    
+                    <div id="notificaciones-content" class="admin-settings" style="display: none;">
+                        <div class="admin-setting-row">
+                            <div class="admin-setting-text">
+                                <h3 class="admin-setting-title">Email de discrepancias</h3>
+                                <p class="admin-setting-desc">Alertas cuando se detecten discrepancias en sincronización (ADM vs físico, cambios bruscos, etc.).</p>
+                            </div>
+                            <label class="admin-switch">
+                                <input type="checkbox" id="chk-email-discrepancias" onchange="actualizarNotificaciones()" aria-label="Email de discrepancias">
+                                <span class="admin-switch-slider" aria-hidden="true"></span>
+                            </label>
+                        </div>
+                        <div class="admin-setting-row">
+                            <div class="admin-setting-text">
+                                <h3 class="admin-setting-title">Email de estado de sincronización</h3>
+                                <p class="admin-setting-desc">Resumen al terminar cada sync: completada, parcial, fallida; productos sincronizados y stock.</p>
+                            </div>
+                            <label class="admin-switch">
+                                <input type="checkbox" id="chk-email-estado-sync" onchange="actualizarNotificaciones()" aria-label="Email de estado de sincronización">
+                                <span class="admin-switch-slider" aria-hidden="true"></span>
+                            </label>
+                        </div>
+                        <div class="admin-footnote">
+                            <p>Los cambios se guardan automáticamente al usar el interruptor.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección: Usuarios -->
+            <div id="seccion-usuarios" class="section">
+                <div class="card">
+                    <div class="admin-card-toolbar">
+                        <h2 class="admin-page-title">Gestión de usuarios</h2>
+                        <button type="button" class="btn-primary" onclick="abrirModalCrearUsuario()">Crear usuario</button>
+                    </div>
+
+                    <div class="wms-list-toolbar admin-usuarios-list-toolbar admin-usuarios-toolbar--full">
+                        <button type="button" class="wms-filters-toggle" aria-expanded="false">Filtros <span class="chevron">▼</span></button>
+                        <div class="wms-filters collapsible admin-usuarios-filtros-panel">
+                            <div class="wms-filters-grid admin-usuarios-filtros-grid">
+                                <div class="wms-form-group">
+                                    <label class="wms-label" for="usuarios-filtro">Buscar</label>
+                                    <input type="text" id="usuarios-filtro" placeholder="Email o nombre..."
+                                           class="wms-input admin-usuarios-filtro-input" onkeyup="filtrarUsuarios()">
+                                </div>
+                                <div class="wms-form-group">
+                                    <label class="wms-label" for="usuarios-filtro-rol">Rol</label>
+                                    <select id="usuarios-filtro-rol" class="wms-select admin-usuarios-filtro-rol" onchange="cargarUsuarios()">
+                                        <option value="">Todos los roles</option>
+                                        <option value="administrador">Administrador</option>
+                                        <option value="despachador">Despachador</option>
+                                        <option value="almacenista">Almacenista</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <p><strong>ℹ️ Información:</strong> Crea y gestiona usuarios del sistema. Usuarios inactivos no pueden iniciar sesión.</p>
+                        <p><strong>🔒 Regla:</strong> Siempre debe existir al menos un administrador activo.</p>
+                    </div>
+                    <div class="wms-table-wrap">
+                        <table id="tabla-usuarios" class="wms-table admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Nombre</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                    <th>Último acceso</th>
+                                    <th>Cambio contraseña</th>
+                                    <th class="admin-col-actions">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usuarios-tbody">
+                                <tr><td colspan="7" style="text-align: center; padding: 30px;">Cargando usuarios...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="usuarios-mobile-cards" class="wms-mobile-cards admin-usuarios-mobile-cards" aria-label="Usuarios (vista móvil)"></div>
+                    <div id="usuarios-paginacion" style="margin-top: 15px; text-align: center;"></div>
+                </div>
+                <div class="card" style="margin-top: 20px;">
+                    <h2 class="admin-page-title">Cambiar mi contraseña</h2>
+                    <p style="color: var(--color-text-secondary); margin-bottom: 15px;">Cambia tu contraseña de acceso al sistema.</p>
+                    <a href="/cambiar-password" class="btn-secondary">Ir a Cambiar Contraseña</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Ubicación -->
+    <div id="modal-ubicacion" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-titulo">Crear Ubicación Física</h3>
+                <button class="close-modal" onclick="cerrarModal()">&times;</button>
+            </div>
+            <form id="form-ubicacion" onsubmit="guardarUbicacion(event)">
+                <input type="hidden" id="ubicacion-id" value="">
+                <div class="form-group">
+                    <label for="codigo">Código *</label>
+                    <input type="text" id="codigo" required placeholder="Ej: A-01-02" style="text-transform: uppercase;">
+                    <small style="color: var(--color-text-muted);">Código único de la ubicación (se convertirá a mayúsculas)</small>
+                </div>
+                <div class="form-group">
+                    <label for="nombre">Nombre *</label>
+                    <input type="text" id="nombre" required placeholder="Ej: Pasillo A, Estante 01, Nivel 02">
+                </div>
+                <div class="form-group">
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" placeholder="Descripción opcional de la ubicación"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="tipo">Tipo</label>
+                    <select id="tipo">
+                        <option value="">Seleccionar tipo (opcional)</option>
+                        <option value="PASILLO">Pasillo</option>
+                        <option value="ESTANTE">Estante</option>
+                        <option value="ZONA">Zona</option>
+                        <option value="BODEGA">Bodega</option>
+                        <option value="OTRO">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="activa" checked> Ubicación activa
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Guardar</button>
+                    <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Cargar Excel -->
+    <div id="modal-excel" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>📊 Cargar Ubicaciones desde Excel</h3>
+                <button class="close-modal" onclick="cerrarModalExcel()">&times;</button>
+            </div>
+            <div class="info-box" style="margin-bottom: 20px;">
+                <p><strong>📋 Formato del Excel:</strong></p>
+                <p>El archivo debe tener las siguientes columnas en la primera fila:</p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Código</strong> (requerido) - Ej: A-01-02</li>
+                    <li><strong>Nombre</strong> (requerido) - Ej: Pasillo A, Estante 01, Nivel 02</li>
+                    <li><strong>Descripción</strong> (opcional)</li>
+                    <li><strong>Tipo</strong> (opcional) - PASILLO, ESTANTE, ZONA, BODEGA, OTRO</li>
+                    <li><strong>Activa</strong> (opcional) - TRUE/FALSE o SÍ/NO (por defecto: TRUE)</li>
+                </ul>
+                <p style="margin-top: 10px;"><strong>💡 Tip:</strong> Si una ubicación ya existe (mismo código), se actualizará con los nuevos datos.</p>
+            </div>
+            <form id="form-excel" onsubmit="cargarExcel(event)">
+                <div class="form-group">
+                    <label for="archivo-excel">Seleccionar archivo Excel (.xlsx, .xls) *</label>
+                    <input type="file" id="archivo-excel" accept=".xlsx,.xls" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary" id="btn-cargar-excel">📤 Cargar y Procesar</button>
+                    <button type="button" class="btn-secondary" onclick="cerrarModalExcel()">Cancelar</button>
+                </div>
+            </form>
+            <div id="resultado-excel" style="margin-top: 20px; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Modal Crear Usuario -->
+    <div id="modal-crear-usuario" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>➕ Crear Usuario</h3>
+                <button class="close-modal" onclick="cerrarModalUsuario()">&times;</button>
+            </div>
+            <form id="form-crear-usuario" onsubmit="guardarUsuario(event)">
+                <div class="form-group">
+                    <label for="usuario-email-crear">Email *</label>
+                    <input type="email" id="usuario-email-crear" required placeholder="ejemplo@empresa.com">
+                </div>
+                <div class="form-group">
+                    <label for="usuario-nombre-crear">Nombre *</label>
+                    <input type="text" id="usuario-nombre-crear" required placeholder="Nombre completo">
+                </div>
+                <div class="form-group">
+                    <label for="usuario-rol-crear">Rol *</label>
+                    <select id="usuario-rol-crear" required>
+                        <option value="">Seleccionar rol</option>
+                        <option value="administrador">Administrador</option>
+                        <option value="despachador">Despachador</option>
+                        <option value="almacenista">Almacenista</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="usuario-password-crear">Contraseña temporal *</label>
+                    <input type="password" id="usuario-password-crear" required minlength="8"
+                           placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+                    <small style="color: var(--color-text-muted);">Contraseña temporal para que el usuario inicie sesión por primera vez</small>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="usuario-must-change-crear" checked> Forzar cambio de contraseña al primer inicio de sesión
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="usuario-activo-crear" checked> Usuario activo
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Crear Usuario</button>
+                    <button type="button" class="btn-secondary" onclick="cerrarModalUsuario()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Editar Usuario -->
+    <div id="modal-editar-usuario" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>✏️ Editar Usuario</h3>
+                <button class="close-modal" onclick="cerrarModalEditarUsuario()">&times;</button>
+            </div>
+            <form id="form-editar-usuario" onsubmit="editarUsuario(event)">
+                <input type="hidden" id="usuario-id-editar" value="">
+                <div class="form-group">
+                    <label for="usuario-email-editar">Email</label>
+                    <input type="text" id="usuario-email-editar" disabled style="background: var(--color-bg); color: var(--color-text-muted);">
+                </div>
+                <div class="form-group">
+                    <label for="usuario-nombre-editar">Nombre *</label>
+                    <input type="text" id="usuario-nombre-editar" required placeholder="Nombre completo">
+                </div>
+                <div class="form-group">
+                    <label for="usuario-rol-editar">Rol *</label>
+                    <select id="usuario-rol-editar" required>
+                        <option value="administrador">Administrador</option>
+                        <option value="despachador">Despachador</option>
+                        <option value="almacenista">Almacenista</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="usuario-activo-editar"> Usuario activo
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="usuario-must-change-editar"> Forzar cambio de contraseña al próximo inicio de sesión
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Guardar Cambios</button>
+                    <button type="button" class="btn-secondary" onclick="cerrarModalEditarUsuario()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Reset Password -->
+    <div id="modal-reset-password" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>🔑 Restablecer Contraseña</h3>
+                <button class="close-modal" onclick="cerrarModalResetPassword()">&times;</button>
+            </div>
+            <form id="form-reset-password" onsubmit="resetPasswordUsuario(event)">
+                <input type="hidden" id="usuario-id-reset" value="">
+                <p id="reset-password-info" style="margin-bottom: 15px; color: var(--color-text-secondary);"></p>
+                <div class="form-group">
+                    <label for="usuario-password-reset">Nueva contraseña temporal</label>
+                    <input type="password" id="usuario-password-reset" minlength="8"
+                           placeholder="Mínimo 8 caracteres (dejar vacío para auto-generar)" autocomplete="new-password">
+                    <small style="color: var(--color-text-muted);">Si deja vacío, se generará una contraseña aleatoria.</small>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="usuario-must-change-reset" checked> Forzar cambio de contraseña al próximo inicio de sesión
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Restablecer Contraseña</button>
+                    <button type="button" class="btn-secondary" onclick="cerrarModalResetPassword()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JsBarcode para generar códigos de barras -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <!-- pdf-lib para generar PDFs -->
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="/static/js/security_utils.js"></script>
+    <script src="/static/js/wms-common.js"></script>
+    <script src="/static/js/admin.js"></script>
+</body>
+</html>

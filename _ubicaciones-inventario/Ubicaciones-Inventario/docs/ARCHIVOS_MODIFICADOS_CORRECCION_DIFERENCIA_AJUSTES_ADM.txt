@@ -1,0 +1,43 @@
+ARCHIVOS MODIFICADOS PARA CORREGIR CÁLCULO DE DIFERENCIA EN AJUSTES ADM
+========================================================================
+
+Fecha: 2026-01-26
+Descripción: Corrección del formato de notas en ajustes ADM para que detalles.py pueda calcular la diferencia correctamente
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. routes/ajustes.py
+   - Línea 390: Cambiado formato de notas para ajustes ADM
+   - ANTES: "Ajuste de inventario. Ubicación ADM: MIRADOR SUR. Stock ADM actual: 44.0, Ajuste a: 0.0"
+   - DESPUÉS: "Ajuste de inventario. Ubicación ADM: MIRADOR SUR. Anterior: 44.0, Nuevo: 0.0"
+
+PROBLEMA RESUELTO:
+------------------
+
+El código de detalles.py busca "Anterior:" y "Nuevo:" en las notas para calcular la diferencia.
+Las notas de ajustes ADM no tenían este formato, entonces la diferencia siempre aparecía como 0.00.
+
+Ahora las notas tienen el formato correcto y detalles.py puede extraer:
+- cantidad_anterior = 44.0
+- cantidad_nueva = 0.0
+- diferencia = 0.0 - 44.0 = -44.0 ✅
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+----------------------------------------
+
+1. Subir el archivo modificado:
+   - routes/ajustes.py
+
+2. No se requieren cambios en la base de datos.
+
+3. Los ajustes ADM futuros mostrarán la diferencia correctamente.
+4. Los ajustes ADM anteriores seguirán mostrando diferencia 0.00 (porque las notas ya están guardadas con el formato antiguo).
+
+
+
+
+
+
+
+

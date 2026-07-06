@@ -1,0 +1,55 @@
+{
+
+  "technicalName": "ierp",
+
+  "displayName": "Contabilidad y ventas",
+
+  "summary": "CRM, ventas, compras, inventario, contabilidad y NCF/e-CF DGII",
+
+  "version": "1.1.0",
+
+  "category": "erp",
+
+  "author": "ADESA",
+
+  "depends": ["nexus_core"],
+
+  "installable": true,
+
+  "autoInstall": false,
+
+  "external": false,
+
+  "sharedDatabase": true,
+
+  "state": "installed",
+
+  "routes": {
+
+    "ui": "/ierp.html",
+
+    "api": "/api/ierp-nexus",
+
+    "dashboardPath": "/ierp.html",
+
+    "links": [
+
+      { "label": "Cotizaciones", "href": "/ierp.html?tab=cotizaciones" },
+
+      { "label": "Facturas", "href": "/ierp.html?tab=facturas" },
+
+      { "label": "Clientes", "href": "/ierp.html?tab=clientes" }
+
+    ]
+
+  },
+
+  "roles": ["admin", "empleado"],
+
+  "icon": "📒",
+
+  "sortOrder": 70
+
+}
+
+

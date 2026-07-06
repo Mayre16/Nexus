@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recepción - WMS</title>
+    <link rel="stylesheet" href="/static/css/wms.css">
+    <link rel="stylesheet" href="/static/css/recepciones.css">
+</head>
+<body>
+    <header class="wms-header">
+        <div class="wms-header-inner">
+            <div class="wms-header-title">
+                <span class="module-icon">📦</span>
+                <h1>Recepción</h1>
+            </div>
+            <div class="wms-header-actions">
+                <span class="wms-header-user" id="user-info">Cargando...</span>
+                <a href="/recepciones" class="wms-btn wms-btn-secondary wms-btn-sm" title="Historial">📋 <span class="wms-header-btn-label">Historial</span></a>
+                <a href="/" class="wms-btn wms-btn-secondary wms-btn-sm" title="Inicio">🏠 <span class="wms-header-btn-label">Inicio</span></a>
+                <button type="button" class="wms-btn wms-btn-secondary wms-btn-sm" onclick="cerrarSesion()" title="Cerrar sesión"><span class="wms-icon-logout" aria-hidden="true"></span> <span class="wms-header-btn-label">Salir</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="wms-page">
+        <!-- Mensajes -->
+        <div id="message-error" class="wms-toast wms-toast-error"></div>
+        <div id="message-success" class="wms-toast wms-toast-success"></div>
+
+        <!-- Búsqueda de Recepción -->
+        <div class="wms-card search-section">
+            <div class="wms-card-body">
+                <h2>Buscar Recepción</h2>
+                <form id="search-recepcion-form" class="search-form">
+                    <div class="wms-form-group">
+                        <label for="tipo-recepcion" class="wms-label">Tipo de Recepción</label>
+                        <select id="tipo-recepcion" name="tipo" class="wms-select">
+                            <option value="RECEPTION">Recepción (Conduce/Ajuste)</option>
+                            <option value="VEND_REC">Compra con Recepción (Proveedor)</option>
+                            <option value="CREDIT_NOTE">Nota de Crédito (Devolución Cliente)</option>
+                        </select>
+                    </div>
+                    <div class="wms-form-group">
+                        <label for="docid-input" class="wms-label">Número de Recepción (DocID)</label>
+                        <input type="text" id="docid-input" name="docid" class="wms-input"
+                               placeholder="Ej: 00000350" required autofocus>
+                    </div>
+                    <button type="submit" class="wms-btn wms-btn-success wms-btn-lg" id="btn-search">
+                        Buscar
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Información de la Recepción -->
+        <div id="recepcion-info" class="wms-card" style="display: none;">
+            <div class="wms-card-body">
+                <!-- Advertencia si ya fue registrada -->
+                <div id="advertencia-ya-registrada" style="display: none; background: var(--color-warning-bg); border: 2px solid var(--color-warning); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-5);">
+                    <div style="display: flex; align-items: center; gap: var(--space-3);">
+                        <span style="font-size: 24px;">⚠️</span>
+                        <div style="flex: 1;">
+                            <strong style="color: var(--color-warning-text); font-size: var(--font-size-md);">Esta recepción ya fue registrada anteriormente</strong>
+                            <div id="info-registro-anterior" style="margin-top: var(--space-2); color: var(--color-warning-text); font-size: var(--font-size-sm);"></div>
+                            <div style="margin-top: var(--space-3);">
+                                <a href="/recepciones" style="color: var(--color-info); text-decoration: underline; font-weight: 600;">Ver en el historial →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Advertencia si ubicación NO-ADESA no tiene mapeo -->
+                <div id="advertencia-sin-mapeo" style="display: none; background: var(--color-danger-bg); border: 2px solid var(--color-danger); border-radius: var(--radius-md); padding: var(--space-4); margin-bottom: var(--space-5);">
+                    <div style="display: flex; align-items: center; gap: var(--space-3);">
+                        <span style="font-size: 24px;">🚫</span>
+                        <div style="flex: 1;">
+                            <strong style="color: var(--color-danger-text); font-size: var(--font-size-md);">Ubicación no configurada en el sistema</strong>
+                            <div style="margin-top: var(--space-2); color: var(--color-danger-text); font-size: var(--font-size-sm);">
+                                La ubicación "<span id="location-name-sin-mapeo"></span>" no tiene un mapeo configurado a una ubicación física del WMS.
+                            </div>
+                            <div style="margin-top: var(--space-3); color: var(--color-danger-text); font-size: var(--font-size-sm);">
+                                <strong>Recomendación:</strong> Actualiza las ubicaciones y realiza la sincronización desde el módulo de administración para configurar el mapeo necesario.
+                            </div>
+                            <div style="margin-top: var(--space-3);">
+                                <a href="/admin" style="color: var(--color-info); text-decoration: underline; font-weight: 600;">Ir a Administración →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Botones de acción (Admin) -->
+                <div id="botones-accion-admin" style="display: none; margin-bottom: var(--space-4); display: flex; gap: var(--space-3); justify-content: flex-end;">
+                    <button id="btn-refrescar" class="wms-btn wms-btn-sm" onclick="refrescarRecepcion()" style="background: var(--color-transferencia); color: white; border-color: var(--color-transferencia);">
+                        🔄 Refrescar desde ADM
+                    </button>
+                    <button id="btn-revertir" class="wms-btn wms-btn-danger wms-btn-sm" onclick="revertirRecepcion()" style="display: none;">
+                        ⚠️ Revertir Recepción
+                    </button>
+                </div>
+                <div class="recepcion-info">
+                    <h3 id="recepcion-numero"></h3>
+                    <div class="recepcion-details">
+                        <div id="recepcion-proveedor-group">
+                            <strong>Proveedor:</strong>
+                            <span id="recepcion-proveedor"></span>
+                        </div>
+                        <div id="recepcion-referencia-group" style="display: none;">
+                            <strong>Referencia:</strong>
+                            <span id="recepcion-cliente"></span>
+                        </div>
+                        <div>
+                            <strong>Fecha:</strong>
+                            <span id="recepcion-fecha"></span>
+                        </div>
+                        <div>
+                            <strong>Ubicación ADM:</strong>
+                            <span id="recepcion-location"></span>
+                        </div>
+                        <div>
+                            <strong>Estado:</strong>
+                            <span id="recepcion-estado" class="estado-badge"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Productos -->
+                <div class="productos-section">
+                    <h2>Productos Recibidos</h2>
+                    <div id="productos-grid" class="productos-grid"></div>
+                    <button class="btn-registrar-todo" id="btn-registrar-todo" onclick="registrarTodosProductos()" style="display: none;">
+                        Registrar Todas las Asignaciones
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="empty-state" class="wms-card">
+            <div class="wms-empty">
+                <div class="wms-empty-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="80" height="80">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                </div>
+                <p class="wms-empty-title">Busca una recepción para comenzar a asignar ubicaciones</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/security_utils.js"></script>
+    <script src="/static/js/fecha_utils.js"></script>
+    <script src="/static/js/wms-common.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" crossorigin="anonymous"></script>
+    <script src="/static/js/wms-barcode.js"></script>
+    <script src="/static/js/recepciones.js"></script>
+</body>
+</html>

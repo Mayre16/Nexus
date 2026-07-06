@@ -1,0 +1,21 @@
+{
+  "technicalName": "power_quality",
+  "displayName": "Calidad de Energía",
+  "summary": "Análisis IEEE 519, AMPROBE/PME y reportes Word",
+  "version": "0.1.0",
+  "category": "memberships",
+  "state": "installed",
+  "installable": true,
+  "showInDashboard": false,
+  "parentModule": "hub",
+  "depends": ["nexus_core", "hub"],
+  "routes": {
+    "ui": "/power-quality.html",
+    "api": "/api/power-quality",
+    "dashboardPath": "/power-quality.html"
+  },
+  "roles": ["admin", "empleado", "cliente_suscriptor"],
+  "requiresAssignment": true,
+  "icon": "⚡",
+  "sortOrder": 61
+}

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA · Activar cuenta del portal</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { adesa: { red: "#be1622", teal: "#2d9c8a", ink: "#111111" } },
+            fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-lg ring-1 ring-gray-100 p-8">
+      <div class="text-center mb-6">
+        <img src="/assets/favicon.png" alt="ADESA" class="w-16 h-16 mx-auto mb-4" />
+        <h1 class="text-xl font-bold text-gray-700">Activar tu cuenta</h1>
+        <p class="text-sm text-gray-500 mt-2">Portal de autoservicio Soporte ADESA</p>
+      </div>
+      <p id="invInfo" class="text-sm text-center text-gray-600 mb-4 hidden"></p>
+      <form id="formActivar" class="space-y-4 hidden">
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase">Correo</label>
+          <input id="email" type="email" readonly class="w-full mt-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase">Nueva contraseña</label>
+          <input id="password" type="password" minlength="8" required placeholder="Mínimo 8 caracteres"
+            class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-500 uppercase">Confirmar contraseña</label>
+          <input id="password2" type="password" minlength="8" required
+            class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+        </div>
+        <button type="submit" class="w-full py-3 rounded-lg bg-adesa-teal text-white font-bold hover:opacity-90">
+          ACEPTAR LA INVITACIÓN
+        </button>
+      </form>
+      <p id="msg" class="text-sm text-center mt-4"></p>
+      <p class="text-center mt-6"><a href="/" class="text-xs text-adesa-teal hover:underline">← Volver al inicio de sesión</a></p>
+    </div>
+    <script>
+      function leerCookie(n) {
+        return document.cookie.split("; ").find((c) => c.startsWith(n + "="))?.split("=")[1] || "";
+      }
+      const params = new URLSearchParams(location.search);
+      const token = params.get("token");
+      const msg = document.getElementById("msg");
+      const form = document.getElementById("formActivar");
+      const invInfo = document.getElementById("invInfo");
+
+      if (!token) {
+        msg.className = "text-sm text-center mt-4 text-red-600";
+        msg.textContent = "Enlace inválido: falta el token de invitación.";
+      } else {
+        fetch(`/api/portal/invitacion/${encodeURIComponent(token)}`)
+          .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+          .then(({ ok, d }) => {
+            if (!ok) {
+              msg.className = "text-sm text-center text-red-600";
+              msg.textContent = d.error || "Invitación no válida.";
+              return;
+            }
+            invInfo.textContent = `Hola ${d.nombre || ""}, configura tu contraseña para acceder al portal.`;
+            invInfo.classList.remove("hidden");
+            document.getElementById("email").value = d.email;
+            form.classList.remove("hidden");
+          })
+          .catch(() => {
+            msg.textContent = "Error de red al validar la invitación.";
+            msg.className = "text-sm text-center text-red-600";
+          });
+      }
+
+      form?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const p1 = document.getElementById("password").value;
+        const p2 = document.getElementById("password2").value;
+        if (p1 !== p2) {
+          msg.className = "text-sm text-center text-red-600";
+          msg.textContent = "Las contraseñas no coinciden.";
+          return;
+        }
+        try {
+          const r = await fetch("/api/portal/activar", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRF-Token": decodeURIComponent(leerCookie("nexus_csrf")),
+            },
+            body: JSON.stringify({ token, password: p1 }),
+          });
+          const d = await r.json();
+          if (r.ok) {
+            msg.className = "text-sm text-center text-green-700 font-semibold";
+            msg.textContent = "✅ Cuenta activada. Redirigiendo al portal…";
+            setTimeout(() => { location.href = "/"; }, 2000);
+          } else {
+            msg.className = "text-sm text-center text-red-600";
+            msg.textContent = d.error || "No se pudo activar.";
+          }
+        } catch (_) {
+          msg.className = "text-sm text-center text-red-600";
+          msg.textContent = "Error de red.";
+        }
+      });
+    </script>
+  </body>
+</html>

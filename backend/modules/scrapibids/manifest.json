@@ -1,0 +1,21 @@
+{
+  "technicalName": "scrapibids",
+  "displayName": "Bids Alert",
+  "summary": "Alertas de licitaciones DGCP por palabras clave",
+  "version": "0.1.0",
+  "category": "memberships",
+  "state": "installed",
+  "installable": true,
+  "showInDashboard": false,
+  "parentModule": "hub",
+  "depends": ["nexus_core", "hub"],
+  "routes": {
+    "ui": "/scrapibids.html",
+    "api": "/api/scrapibids",
+    "dashboardPath": "/scrapibids.html"
+  },
+  "roles": ["admin", "empleado", "cliente_suscriptor"],
+  "requiresAssignment": true,
+  "icon": "📋",
+  "sortOrder": 62
+}

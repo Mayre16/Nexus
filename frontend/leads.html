@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA Nexus · Leads</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { adesa: { red: "#be1622", red2: "#ef1d2b", gold: "#fcb900", ink: "#111111" } },
+            fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+    <header class="bg-adesa-ink text-white">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center gap-4 justify-between">
+        <div class="flex items-center gap-3">
+          <a href="/dashboard.html" class="text-sm text-gray-400 hover:text-white">← Panel</a>
+          <span class="text-lg font-bold">Nexus Leads</span>
+          <span class="text-xs bg-white/10 px-2 py-0.5 rounded-full">Proyectos &amp; CRM</span>
+        </div>
+        <div class="flex gap-3 text-xs">
+          <a href="/desk.html" class="text-gray-400 hover:text-white">Desk</a>
+          <a href="/tasks.html" class="text-gray-400 hover:text-white">Tasks</a>
+          <a href="/ierp.html?tab=cotizaciones" class="text-adesa-gold hover:underline">Cotizaciones →</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-6">
+      <div class="flex flex-wrap gap-3 mb-4 items-end">
+        <div class="flex rounded-lg overflow-hidden ring-1 ring-gray-200 bg-white">
+          <button data-div="todos" class="filtro-div px-4 py-2 text-sm font-semibold bg-adesa-red text-white">Todos</button>
+          <button data-div="energia" class="filtro-div px-4 py-2 text-sm hover:bg-gray-50">⚡ Energía</button>
+          <button data-div="deportes" class="filtro-div px-4 py-2 text-sm hover:bg-gray-50">🚴 Deportes</button>
+        </div>
+        <select id="filtroTipo" class="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white">
+          <option value="">Todos los tipos</option>
+          <option value="inbound">Inbound</option>
+          <option value="ierp_proyecto">Proyecto iERP</option>
+        </select>
+        <select id="filtroEstado" class="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white">
+          <option value="">Estado comercial</option>
+          <option value="nuevo">Nuevo</option>
+          <option value="contactado">Contactado</option>
+          <option value="calificado">Calificado</option>
+          <option value="propuesta">Propuesta</option>
+          <option value="ganado">Ganado</option>
+          <option value="perdido">Perdido</option>
+        </select>
+        <select id="filtroProyecto" class="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white">
+          <option value="">Estado proyecto</option>
+          <option value="activo">Activo</option>
+          <option value="en_verificacion">En verificación</option>
+          <option value="completado">Completado</option>
+          <option value="archivado">Archivado</option>
+          <option value="cerrado">Cerrado</option>
+        </select>
+        <button id="btnNuevo" type="button" class="px-4 py-2 rounded-lg bg-adesa-red text-white text-sm font-bold">+ Nuevo lead</button>
+      </div>
+
+      <div class="grid lg:grid-cols-5 gap-4">
+        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden">
+          <div class="px-4 py-3 border-b font-bold text-sm flex justify-between">
+            <span>Pipeline</span>
+            <span id="contadorLista" class="text-gray-400 font-normal"></span>
+          </div>
+          <ul id="listaLeads" class="divide-y max-h-[70vh] overflow-y-auto"></ul>
+          <p id="emptyLista" class="hidden text-center text-gray-400 text-sm py-10">Sin leads</p>
+        </div>
+
+        <div id="panelDetalle" class="lg:col-span-3 bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-5 hidden">
+          <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
+            <div>
+              <span id="detRef" class="text-xs font-mono text-adesa-red font-bold"></span>
+              <span id="detBadgeTipo" class="ml-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-gray-100"></span>
+              <h2 id="detNombre" class="text-lg font-bold mt-1"></h2>
+              <p id="detMeta" class="text-xs text-gray-500 mt-1"></p>
+            </div>
+            <div id="detIerpBox" class="hidden text-right text-xs">
+              <div id="detIerpQuote" class="font-semibold"></div>
+              <div id="detIerpAuth" class="text-gray-500 mt-0.5"></div>
+              <div id="detIerpPipeline" class="text-gray-500"></div>
+              <a id="detIerpLink" href="#" target="_blank" class="text-adesa-red hover:underline block mt-1">Abrir cotización iERP</a>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2 mb-4">
+            <select id="detEstado" class="rounded-lg border px-2 py-1.5 text-xs"></select>
+            <select id="detEstadoProyecto" class="rounded-lg border px-2 py-1.5 text-xs hidden"></select>
+            <button id="btnGuardar" type="button" class="px-3 py-1.5 rounded-lg bg-gray-800 text-white text-xs">Guardar</button>
+          </div>
+
+          <div id="detNotas" class="text-sm bg-gray-50 rounded-xl p-4 whitespace-pre-wrap mb-4"></div>
+
+          <div class="border-t pt-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h3 class="font-bold text-sm">Vínculos <span id="detPendientes" class="text-adesa-red"></span></h3>
+              <div class="flex flex-wrap gap-1">
+                <button type="button" data-ot="ot_levantamiento" class="btnOt px-2 py-1 text-[11px] rounded bg-amber-50 text-amber-900 ring-1 ring-amber-200">+ Levantamiento</button>
+                <button type="button" data-ot="ot_verificacion" class="btnOt px-2 py-1 text-[11px] rounded bg-blue-50 text-blue-900 ring-1 ring-blue-200">+ Verificación</button>
+                <button type="button" data-ot="ot_servicio" class="btnOt px-2 py-1 text-[11px] rounded bg-green-50 text-green-900 ring-1 ring-green-200">+ Servicio</button>
+                <button id="btnTicket" type="button" class="px-2 py-1 text-[11px] rounded bg-gray-100 ring-1 ring-gray-200">+ Ticket Desk</button>
+              </div>
+            </div>
+            <ul id="listaVinculos" class="space-y-2 text-sm"></ul>
+            <p id="emptyVinculos" class="text-xs text-gray-400 py-4 text-center hidden">Sin vínculos</p>
+          </div>
+
+          <div class="border-t pt-4 mt-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h3 class="font-bold text-sm">Tareas internas</h3>
+              <div class="flex gap-1">
+                <button id="btnTareaLead" type="button" class="px-2 py-1 text-[11px] rounded bg-purple-50 text-purple-900 ring-1 ring-purple-200">+ Tarea</button>
+                <a id="linkTasksLead" href="/tasks.html" class="px-2 py-1 text-[11px] rounded bg-gray-100 ring-1 ring-gray-200">Tablero →</a>
+              </div>
+            </div>
+            <ul id="listaTareasLead" class="space-y-2 text-sm"></ul>
+            <p id="emptyTareasLead" class="text-xs text-gray-400 py-3 text-center hidden">Sin tareas vinculadas</p>
+          </div>
+
+          <div class="border-t pt-4 mt-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h3 class="font-bold text-sm">Participantes <span class="text-gray-400 font-normal text-xs">contratistas / clientes</span></h3>
+            </div>
+            <ul id="listaParticipantesLead" class="space-y-2 text-sm mb-3"></ul>
+            <div class="flex flex-wrap gap-2 items-end text-xs">
+              <input id="partLeadBuscar" list="partLeadList" placeholder="Buscar o crear…"
+                class="flex-1 min-w-[140px] rounded-lg border px-2 py-1.5" />
+              <datalist id="partLeadList"></datalist>
+              <input type="hidden" id="partLeadPersonaUuid" />
+              <select id="partLeadRol" class="rounded-lg border px-2 py-1.5">
+                <option value="contratista_levantamiento">Contratista levantamiento</option>
+                <option value="receptor_cotizacion">Receptor cotización</option>
+                <option value="etiquetado">Etiquetado</option>
+                <option value="observador">Observador</option>
+              </select>
+              <label class="flex items-center gap-1"><input id="partLeadNotificar" type="checkbox" checked /> Notificar</label>
+              <button type="button" id="btnPartLead" class="px-2 py-1.5 rounded-lg bg-purple-100 text-purple-900 font-semibold">+ Etiquetar</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="panelVacio" class="lg:col-span-3 flex items-center justify-center text-gray-400 text-sm min-h-[300px]">
+          Selecciona un lead
+        </div>
+      </div>
+    </main>
+
+    <dialog id="dlgNuevo" class="rounded-2xl p-0 backdrop:bg-black/40 w-full max-w-lg">
+      <form id="formNuevo" class="p-6">
+        <h3 class="font-bold text-lg mb-4">Nuevo lead inbound</h3>
+        <label class="block mb-3"><span class="text-xs text-gray-500">División</span>
+          <select id="nuevoDivision" class="w-full mt-1 rounded-lg border px-3 py-2 text-sm">
+            <option value="energia">Energía</option><option value="deportes">Deportes</option>
+          </select></label>
+        <label class="block mb-3"><span class="text-xs text-gray-500">Contacto *</span>
+          <input id="nuevoNombre" required class="w-full mt-1 rounded-lg border px-3 py-2 text-sm" /></label>
+        <label class="block mb-3"><span class="text-xs text-gray-500">Empresa</span>
+          <input id="nuevoEmpresa" class="w-full mt-1 rounded-lg border px-3 py-2 text-sm" /></label>
+        <label class="block mb-3"><span class="text-xs text-gray-500">Email</span>
+          <input id="nuevoEmail" type="email" class="w-full mt-1 rounded-lg border px-3 py-2 text-sm" /></label>
+        <label class="block mb-4"><span class="text-xs text-gray-500">Notas</span>
+          <textarea id="nuevoNotas" rows="3" class="w-full mt-1 rounded-lg border px-3 py-2 text-sm"></textarea></label>
+        <div class="flex justify-end gap-2">
+          <button type="button" id="btnCancel" class="px-4 py-2 text-sm">Cancelar</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-adesa-red text-white text-sm font-bold">Crear</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="dlgVinculo" class="rounded-2xl p-0 backdrop:bg-black/40 w-full max-w-md">
+      <form id="formVinculo" class="p-6">
+        <h3 id="dlgVinculoTitulo" class="font-bold text-lg mb-4">Nuevo vínculo</h3>
+        <input type="hidden" id="vinculoTipo" />
+        <label class="block mb-3"><span class="text-xs text-gray-500">Título *</span>
+          <input id="vinculoTitulo" required class="w-full mt-1 rounded-lg border px-3 py-2 text-sm" /></label>
+        <label class="block mb-3"><span class="text-xs text-gray-500">Descripción</span>
+          <textarea id="vinculoDesc" rows="2" class="w-full mt-1 rounded-lg border px-3 py-2 text-sm"></textarea></label>
+        <label class="block mb-3"><span class="text-xs text-gray-500">Asignado (empleado/contratista iERP)</span>
+          <input id="vinculoAssignee" list="assigneeList" placeholder="Buscar en iERP…" autocomplete="off"
+            class="w-full mt-1 rounded-lg border px-3 py-2 text-sm" /></label>
+        <datalist id="assigneeList"></datalist>
+        <label class="block mb-3"><span class="text-xs text-gray-500">ID iERP (empleado o contacto)</span>
+          <input id="vinculoAssigneeId" placeholder="Se completa al elegir" readonly
+            class="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono text-xs bg-gray-50" /></label>
+        <label class="block mb-3"><span class="text-xs text-gray-500">Fuente asignado</span>
+          <select id="vinculoAssigneeSource" class="w-full mt-1 rounded-lg border px-3 py-2 text-sm">
+            <option value="ierp_employee">Empleado iERP</option>
+            <option value="ierp_contact">Contratista / contacto iERP</option>
+            <option value="nexus_user">Usuario Nexus</option>
+          </select></label>
+        <label class="block mb-4"><span class="text-xs text-gray-500">Fecha límite</span>
+          <input id="vinculoFecha" type="date" class="w-full mt-1 rounded-lg border px-3 py-2 text-sm" /></label>
+        <div class="flex justify-end gap-2">
+          <button type="button" id="btnCancelVinculo" class="px-4 py-2 text-sm">Cancelar</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-adesa-red text-white text-sm font-bold">Crear</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script>
+      function leerCookie(n) { return document.cookie.split("; ").find(c => c.startsWith(n + "="))?.split("=")[1] || ""; }
+      const ESTADOS = ["nuevo","contactado","calificado","propuesta","ganado","perdido"];
+      const ESTADOS_PROYECTO = ["activo","en_verificacion","completado","archivado","cerrado"];
+      const OT_LABELS = {
+        ot_levantamiento: "Levantamiento",
+        ot_verificacion: "Verificación",
+        ot_servicio: "Servicio",
+        desk_ticket: "Ticket Desk",
+        ierp_cotizacion: "Cotización iERP",
+        nota: "Nota",
+      };
+      let divisionFiltro = "todos", leadActual = null;
+      let assigneeCache = {};
+      let assigneeTimer = null;
+      let personaLeadCache = {};
+
+      const AUTH_LABELS = {
+        NONE: "Auth: sin solicitar",
+        PENDING: "Auth: pendiente",
+        APPROVED: "Auth: aprobada",
+        REJECTED: "Auth: rechazada",
+      };
+
+      async function api(url, opts = {}) {
+        const r = await fetch(url, {
+          credentials: "include",
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": leerCookie("nexus_csrf"), ...opts.headers },
+          ...opts,
+        });
+        if (r.status === 401) { location.href = "/"; throw new Error("auth"); }
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || "Error");
+        return j;
+      }
+
+      function fmtMoney(n, cur) {
+        if (n == null) return "";
+        return Number(n).toLocaleString("es-DO", { style: "currency", currency: cur || "DOP" });
+      }
+
+      async function cargarLeads() {
+        const p = new URLSearchParams();
+        if (divisionFiltro !== "todos") p.set("division", divisionFiltro);
+        const est = document.getElementById("filtroEstado").value;
+        if (est) p.set("estado", est);
+        const tipo = document.getElementById("filtroTipo").value;
+        if (tipo) p.set("tipo", tipo);
+        const ep = document.getElementById("filtroProyecto").value;
+        if (ep) p.set("estado_proyecto", ep);
+        const { leads } = await api("/api/office/leads?" + p);
+        document.getElementById("contadorLista").textContent = leads.length + " lead(s)";
+        const ul = document.getElementById("listaLeads");
+        ul.innerHTML = "";
+        document.getElementById("emptyLista").classList.toggle("hidden", leads.length > 0);
+        leads.forEach(l => {
+          const li = document.createElement("li");
+          li.className = "px-4 py-3 cursor-pointer hover:bg-gray-50" + (leadActual?.uuid === l.uuid ? " bg-red-50" : "");
+          const badge = l.tipo === "ierp_proyecto"
+            ? `<span class="text-[10px] bg-adesa-gold/20 text-adesa-ink px-1.5 rounded">iERP</span>`
+            : "";
+          const pend = l.pendientes_count > 0 ? `<span class="text-adesa-red font-bold">${l.pendientes_count} pend.</span>` : "";
+          li.innerHTML = `<div class="flex justify-between gap-2">
+              <div class="font-semibold text-sm">${l.referencia} · ${l.nombre_contacto} ${badge}</div>
+              ${pend}
+            </div>
+            <div class="text-xs text-gray-500">${l.empresa || l.ierp_company_name || "—"} · ${l.estado}${l.estado_proyecto ? " · " + l.estado_proyecto : ""}</div>`;
+          li.onclick = () => abrirLead(l.uuid);
+          ul.appendChild(li);
+        });
+      }
+
+      function renderVinculos(vinculos) {
+        const ul = document.getElementById("listaVinculos");
+        ul.innerHTML = "";
+        document.getElementById("emptyVinculos").classList.toggle("hidden", vinculos.length > 0);
+        vinculos.forEach(v => {
+          const li = document.createElement("li");
+          li.className = "flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-gray-50 ring-1 ring-gray-100";
+          const assignee = v.assignee_name || v.nexus_asignado_nombre || "";
+          const puedeFacturar =
+            leadActual?.ierp_quote_id &&
+            ["ot_servicio", "ot_verificacion"].includes(v.tipo) &&
+            v.estado === "completado" &&
+            !v.facturacion_autorizada;
+          const facturado = v.facturacion_autorizada
+            ? `<span class="text-[10px] text-green-700 font-semibold">Facturación autorizada</span>`
+            : "";
+          li.innerHTML = `<div class="flex-1 min-w-[180px]">
+              <span class="text-[10px] uppercase font-bold text-gray-400">${OT_LABELS[v.tipo] || v.tipo}</span>
+              <div class="font-medium">${v.titulo}</div>
+              <div class="text-xs text-gray-500">${assignee ? "→ " + assignee + " · " : ""}${v.estado}</div>
+              ${facturado}
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              ${puedeFacturar ? `<button type="button" data-fact="${v.uuid}" class="btn-fact px-2 py-1 text-[10px] rounded bg-adesa-gold/30 text-adesa-ink font-bold ring-1 ring-adesa-gold/50">Autorizar facturación</button>` : ""}
+              <select data-vuuid="${v.uuid}" class="vinculo-estado text-xs rounded border px-2 py-1">
+                ${["pendiente","en_progreso","completado","cancelado"].map(e =>
+                  `<option value="${e}" ${e===v.estado?"selected":""}>${e}</option>`).join("")}
+              </select>
+            </div>`;
+          ul.appendChild(li);
+        });
+        ul.querySelectorAll(".vinculo-estado").forEach(sel => {
+          sel.onchange = async () => {
+            await api(`/api/office/leads/${leadActual.uuid}/vinculos/${sel.dataset.vuuid}`, {
+              method: "PATCH", body: JSON.stringify({ estado: sel.value }),
+            });
+            abrirLead(leadActual.uuid);
+          };
+        });
+        ul.querySelectorAll(".btn-fact").forEach(btn => {
+          btn.onclick = async () => {
+            if (!confirm("¿Autorizar facturación y crear borrador en iERP?")) return;
+            try {
+              await api(`/api/office/leads/${leadActual.uuid}/vinculos/${btn.dataset.fact}/autorizar-facturacion`, {
+                method: "POST", body: JSON.stringify({}),
+              });
+              abrirLead(leadActual.uuid);
+            } catch (e) {
+              alert(e.message || "Error al autorizar facturación");
+            }
+          };
+        });
+      }
+
+      async function buscarAssigneesIerp(term) {
+        if (!leadActual?.ierp_tenant_id || !term || term.length < 2) return;
+        const src = document.getElementById("vinculoAssigneeSource").value;
+        const tipo = src === "ierp_contact" ? "ierp_contact" : "";
+        const p = new URLSearchParams({
+          tenant_id: leadActual.ierp_tenant_id,
+          search: term,
+        });
+        if (tipo) p.set("tipo", tipo);
+        const data = await api("/api/office/ierp/assignees?" + p);
+        const dl = document.getElementById("assigneeList");
+        dl.innerHTML = "";
+        assigneeCache = {};
+        (data.assignees || []).forEach(a => {
+          assigneeCache[a.name] = a;
+          const opt = document.createElement("option");
+          opt.value = a.name;
+          opt.label = a.subtitle ? `${a.name} (${a.subtitle})` : a.name;
+          dl.appendChild(opt);
+        });
+      }
+
+      async function abrirLead(uuid) {
+        const l = await api("/api/office/leads/" + uuid);
+        leadActual = l;
+        document.getElementById("panelVacio").classList.add("hidden");
+        document.getElementById("panelDetalle").classList.remove("hidden");
+        document.getElementById("detRef").textContent = l.referencia;
+        document.getElementById("detNombre").textContent = l.nombre_contacto;
+        document.getElementById("detMeta").textContent =
+          `${l.division} · ${l.email || "sin email"} · ${l.telefono || ""}`;
+        document.getElementById("detNotas").textContent = l.notas || "(sin notas)";
+
+        const badge = document.getElementById("detBadgeTipo");
+        badge.textContent = l.tipo === "ierp_proyecto" ? "Proyecto iERP" : "Inbound";
+        badge.className = "ml-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full " +
+          (l.tipo === "ierp_proyecto" ? "bg-adesa-gold/30" : "bg-gray-100");
+
+        const ierpBox = document.getElementById("detIerpBox");
+        if (l.tipo === "ierp_proyecto" && l.ierp_quote_number) {
+          ierpBox.classList.remove("hidden");
+          document.getElementById("detIerpQuote").textContent =
+            `${l.ierp_quote_number} · ${fmtMoney(l.ierp_quote_total, l.ierp_quote_currency)}`;
+          document.getElementById("detIerpAuth").textContent =
+            AUTH_LABELS[l.ierp_auth_status] || (l.ierp_auth_status ? "Auth: " + l.ierp_auth_status : "");
+          document.getElementById("detIerpPipeline").textContent =
+            l.ierp_pipeline_stage ? "Pipeline: " + l.ierp_pipeline_stage : "";
+          const link = document.getElementById("detIerpLink");
+          link.href = l.ierp_quote_url || "#";
+        } else {
+          ierpBox.classList.add("hidden");
+        }
+
+        const selP = document.getElementById("detEstadoProyecto");
+        if (l.tipo === "ierp_proyecto") {
+          selP.classList.remove("hidden");
+          selP.innerHTML = ESTADOS_PROYECTO.map(e =>
+            `<option value="${e}" ${e===l.estado_proyecto?"selected":""}>Proyecto: ${e}</option>`).join("");
+        } else {
+          selP.classList.add("hidden");
+        }
+
+        document.getElementById("detPendientes").textContent =
+          l.pendientes_count > 0 ? `(${l.pendientes_count} pendientes)` : "";
+
+        const sel = document.getElementById("detEstado");
+        sel.innerHTML = ESTADOS.map(e => `<option value="${e}" ${e===l.estado?"selected":""}>${e}</option>`).join("");
+        renderVinculos(l.vinculos || []);
+        await renderTareasLead();
+        await renderParticipantesLead();
+        cargarLeads();
+      }
+
+      async function renderParticipantesLead() {
+        if (!leadActual) return;
+        const { participantes } = await api("/api/personas/evento/lead/" + leadActual.uuid);
+        const ul = document.getElementById("listaParticipantesLead");
+        ul.innerHTML = "";
+        const ROL = {
+          contratista_levantamiento: "Contratista levant.",
+          receptor_cotizacion: "Receptor cotiz.",
+          etiquetado: "Etiquetado",
+          observador: "Observador",
+          asignado: "Asignado",
+        };
+        (participantes || []).forEach((p) => {
+          const li = document.createElement("li");
+          li.className = "flex justify-between gap-2 p-2 rounded-xl bg-purple-50/50 ring-1 ring-purple-100 text-xs";
+          li.innerHTML = `<span><strong>${p.nombre_completo}</strong> · ${ROL[p.rol_participacion] || p.rol_participacion}${p.notificado_en ? " ✉" : ""}</span>
+            <button type="button" class="text-red-600">Quitar</button>`;
+          li.querySelector("button").onclick = async () => {
+            await api("/api/personas/vinculos/" + p.uuid, { method: "DELETE" });
+            renderParticipantesLead();
+          };
+          ul.appendChild(li);
+        });
+      }
+
+      async function renderTareasLead() {
+        if (!leadActual) return;
+        const data = await api("/api/tasks?lead_uuid=" + encodeURIComponent(leadActual.uuid));
+        const tareas = data.tareas || [];
+        const ul = document.getElementById("listaTareasLead");
+        ul.innerHTML = "";
+        document.getElementById("emptyTareasLead").classList.toggle("hidden", tareas.length > 0);
+        document.getElementById("linkTasksLead").href = "/tasks.html?lead_uuid=" + leadActual.uuid;
+        const EST = { pendiente: "Pendiente", en_progreso: "En progreso", completado: "Completado", archivado: "Archivado" };
+        tareas.forEach((t) => {
+          const li = document.createElement("li");
+          li.className = "flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-purple-50/50 ring-1 ring-purple-100";
+          li.innerHTML = `<div class="flex-1 min-w-[160px]">
+              <span class="text-[10px] font-mono text-gray-400">${t.referencia}</span>
+              <div class="font-medium">${t.titulo}</div>
+              <div class="text-xs text-gray-500">${EST[t.estado] || t.estado}${t.asignado_nombre ? " · " + t.asignado_nombre : ""}</div>
+            </div>
+            <a href="/tasks.html?lead_uuid=${leadActual.uuid}" class="text-[10px] text-adesa-red hover:underline">Abrir</a>`;
+          ul.appendChild(li);
+        });
+      }
+
+      function abrirDlgVinculo(tipo) {
+        document.getElementById("vinculoTipo").value = tipo;
+        document.getElementById("dlgVinculoTitulo").textContent = "Nueva OT — " + (OT_LABELS[tipo] || tipo);
+        document.getElementById("vinculoTitulo").value = OT_LABELS[tipo] + (leadActual?.referencia ? " " + leadActual.referencia : "");
+        document.getElementById("vinculoDesc").value = "";
+        document.getElementById("vinculoAssignee").value = "";
+        document.getElementById("vinculoAssigneeId").value = "";
+        document.getElementById("vinculoFecha").value = "";
+        document.getElementById("assigneeList").innerHTML = "";
+        assigneeCache = {};
+        document.getElementById("dlgVinculo").showModal();
+      }
+
+      document.getElementById("btnTareaLead").onclick = () => {
+        if (!leadActual) return;
+        window.location.href = "/tasks.html?lead_uuid=" + leadActual.uuid + "&nuevo=1";
+      };
+
+      document.getElementById("partLeadBuscar").addEventListener("input", (e) => {
+        clearTimeout(window._plb);
+        window._plb = setTimeout(async () => {
+          const q = e.target.value.trim();
+          if (q.length < 2) return;
+          const { personas } = await api("/api/personas?q=" + encodeURIComponent(q));
+          const dl = document.getElementById("partLeadList");
+          dl.innerHTML = "";
+          personaLeadCache = {};
+          (personas || []).forEach((p) => {
+            const label = p.nombre_completo + (p.email ? " <" + p.email + ">" : "");
+            personaLeadCache[label] = p.uuid;
+            personaLeadCache[p.nombre_completo] = p.uuid;
+            const opt = document.createElement("option");
+            opt.value = label;
+            dl.appendChild(opt);
+          });
+        }, 300);
+      });
+      document.getElementById("partLeadBuscar").addEventListener("change", (e) => {
+        document.getElementById("partLeadPersonaUuid").value = personaLeadCache[e.target.value] || "";
+      });
+      document.getElementById("btnPartLead").onclick = async () => {
+        if (!leadActual) return;
+        let pid = document.getElementById("partLeadPersonaUuid").value;
+        const buscar = document.getElementById("partLeadBuscar").value.trim();
+        if (!pid && buscar) pid = personaLeadCache[buscar];
+        if (!pid) {
+          const nombre = buscar || prompt("Nombre del contratista/cliente:");
+          if (!nombre?.trim()) return;
+          const email = prompt("Email para notificaciones:") || "";
+          const p = await api("/api/personas", {
+            method: "POST",
+            body: JSON.stringify({ nombre_completo: nombre.trim(), email: email.trim() || null, tipo: "contratista" }),
+          });
+          pid = p.uuid;
+        }
+        await api("/api/personas/evento/lead/" + leadActual.uuid, {
+          method: "POST",
+          body: JSON.stringify({
+            persona_uuid: pid,
+            rol_participacion: document.getElementById("partLeadRol").value,
+            notificar: document.getElementById("partLeadNotificar").checked,
+          }),
+        });
+        document.getElementById("partLeadBuscar").value = "";
+        document.getElementById("partLeadPersonaUuid").value = "";
+        renderParticipantesLead();
+      };
+
+      document.querySelectorAll(".filtro-div").forEach(btn => {
+        btn.onclick = () => {
+          divisionFiltro = btn.dataset.div;
+          document.querySelectorAll(".filtro-div").forEach(b => b.classList.remove("bg-adesa-red","text-white","font-semibold"));
+          btn.classList.add("bg-adesa-red","text-white","font-semibold");
+          cargarLeads();
+        };
+      });
+      ["filtroEstado","filtroTipo","filtroProyecto"].forEach(id => {
+        document.getElementById(id).onchange = cargarLeads;
+      });
+
+      document.getElementById("btnNuevo").onclick = () => document.getElementById("dlgNuevo").showModal();
+      document.getElementById("btnCancel").onclick = () => document.getElementById("dlgNuevo").close();
+      document.getElementById("btnCancelVinculo").onclick = () => document.getElementById("dlgVinculo").close();
+
+      document.getElementById("vinculoAssignee").addEventListener("input", (e) => {
+        clearTimeout(assigneeTimer);
+        assigneeTimer = setTimeout(() => buscarAssigneesIerp(e.target.value.trim()), 300);
+      });
+      document.getElementById("vinculoAssignee").addEventListener("change", (e) => {
+        const hit = assigneeCache[e.target.value];
+        if (hit) {
+          document.getElementById("vinculoAssigneeId").value = hit.id;
+          document.getElementById("vinculoAssigneeSource").value = hit.source || "ierp_employee";
+        }
+      });
+      document.getElementById("vinculoAssigneeSource").addEventListener("change", () => {
+        document.getElementById("assigneeList").innerHTML = "";
+        assigneeCache = {};
+        const term = document.getElementById("vinculoAssignee").value.trim();
+        if (term.length >= 2) buscarAssigneesIerp(term);
+      });
+
+      document.querySelectorAll(".btnOt").forEach(btn => {
+        btn.onclick = () => { if (leadActual) abrirDlgVinculo(btn.dataset.ot); };
+      });
+
+      document.getElementById("btnTicket").onclick = async () => {
+        if (!leadActual) return;
+        const titulo = prompt("Asunto del ticket Desk:", `Seguimiento ${leadActual.referencia}`);
+        if (!titulo) return;
+        await api(`/api/office/leads/${leadActual.uuid}/tickets`, {
+          method: "POST",
+          body: JSON.stringify({ titulo, asunto: titulo }),
+        });
+        abrirLead(leadActual.uuid);
+      };
+
+      document.getElementById("formNuevo").onsubmit = async e => {
+        e.preventDefault();
+        await api("/api/office/leads", { method: "POST", body: JSON.stringify({
+          division: document.getElementById("nuevoDivision").value,
+          nombre_contacto: document.getElementById("nuevoNombre").value,
+          empresa: document.getElementById("nuevoEmpresa").value,
+          email: document.getElementById("nuevoEmail").value,
+          notas: document.getElementById("nuevoNotas").value,
+        })});
+        document.getElementById("dlgNuevo").close();
+        cargarLeads();
+      };
+
+      document.getElementById("formVinculo").onsubmit = async e => {
+        e.preventDefault();
+        if (!leadActual) return;
+        const tipo = document.getElementById("vinculoTipo").value;
+        await api(`/api/office/leads/${leadActual.uuid}/vinculos`, {
+          method: "POST",
+          body: JSON.stringify({
+            tipo,
+            titulo: document.getElementById("vinculoTitulo").value,
+            descripcion: document.getElementById("vinculoDesc").value || null,
+            assignee_source: document.getElementById("vinculoAssigneeSource").value,
+            assignee_id: document.getElementById("vinculoAssigneeId").value || null,
+            assignee_name: document.getElementById("vinculoAssignee").value || null,
+            fecha_limite: document.getElementById("vinculoFecha").value || null,
+          }),
+        });
+        document.getElementById("dlgVinculo").close();
+        abrirLead(leadActual.uuid);
+      };
+
+      document.getElementById("btnGuardar").onclick = async () => {
+        if (!leadActual) return;
+        const body = { estado: document.getElementById("detEstado").value };
+        const ep = document.getElementById("detEstadoProyecto");
+        if (!ep.classList.contains("hidden")) body.estado_proyecto = ep.value;
+        await api("/api/office/leads/" + leadActual.uuid, { method: "PATCH", body: JSON.stringify(body) });
+        abrirLead(leadActual.uuid);
+      };
+
+      api("/api/auth/me").then(() => {
+        cargarLeads();
+        const h = location.hash.replace(/^#/, "");
+        if (h) abrirLead(h);
+      }).catch(() => location.href = "/");
+    </script>
+  </body>
+</html>

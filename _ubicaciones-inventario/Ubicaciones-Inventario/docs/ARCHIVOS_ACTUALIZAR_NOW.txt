@@ -1,0 +1,78 @@
+═══════════════════════════════════════════════════════════════
+  ⚠️  ACTUALIZACIÓN URGENTE - ARCHIVO CRÍTICO
+═══════════════════════════════════════════════════════════════
+
+El problema: Estás viendo la interfaz antigua "Consultor ADM Cloud API"
+La solución: Actualizar templates/index.html
+
+═══════════════════════════════════════════════════════════════
+
+📁 ARCHIVO QUE DEBES ACTUALIZAR EN CPANEL
+═══════════════════════════════════════════════════════════════
+
+✅ CARPETA templates/
+   ───────────────────────────────────────────────────────────
+   ✏️  index.html (MODIFICADO - Nueva interfaz WMS)
+
+═══════════════════════════════════════════════════════════════
+
+🔄 INSTRUCCIONES RÁPIDAS
+═══════════════════════════════════════════════════════════════
+
+1. Descarga el archivo: templates/index.html (desde tu proyecto local)
+
+2. En CPanel File Manager:
+   - Ve a: /home2/adesa/wms.adesa.com.do/templates/
+   - BORRA el archivo: index.html (el antiguo)
+   - SUBE el nuevo: index.html
+
+3. Reinicia la aplicación:
+   - Setup Python App > wms.adesa.com.do > RESTART
+
+4. Limpia el caché del navegador:
+   - Presiona: Ctrl + Shift + R (o Ctrl + F5)
+   - O ve a: Configuración del navegador > Limpiar datos de navegación
+
+5. Prueba:
+   - Accede a: https://wms.adesa.com.do/
+   - Deberías ver la nueva página de inicio del WMS
+
+═══════════════════════════════════════════════════════════════
+
+💡 ALTERNATIVA: Si prefieres subir todo de nuevo
+═══════════════════════════════════════════════════════════════
+
+1. Ejecuta: crear_zip_cpanel.bat (esto incluirá el index.html actualizado)
+
+2. En CPanel:
+   - Borra: templates/index.html (el antiguo)
+   - Extrae el ZIP en la raíz
+   - Verifica que el nuevo index.html esté en templates/
+
+3. Reinicia la aplicación
+
+═══════════════════════════════════════════════════════════════
+
+✅ VERIFICACIÓN
+═══════════════════════════════════════════════════════════════
+
+Después de actualizar, deberías ver:
+- Logo 🚚
+- Título "WMS Despacho"
+- Subtítulo "Sistema de Gestión de Almacenes"
+- Botones para ir a Despacho o Login
+
+Si ves "Consultor ADM Cloud API", significa que el archivo no se actualizó.
+
+═══════════════════════════════════════════════════════════════
+
+
+
+
+
+
+
+
+
+
+

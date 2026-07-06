@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA Nexus · Bids Alert</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { colors: { adesa: { red: "#be1622", ink: "#111111" } }, fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] } } } };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+    <header class="bg-adesa-ink text-white px-6 py-4 flex justify-between items-center">
+      <a href="/hub.html" class="text-sm text-gray-400 hover:text-white">← Hub</a>
+      <span class="font-bold">📋 Bids Alert</span>
+    </header>
+    <main class="max-w-3xl mx-auto px-6 py-8 space-y-6">
+      <form id="formSB" class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6 space-y-4 text-sm">
+        <h2 class="font-bold text-lg">Tu configuración</h2>
+        <p class="text-gray-500 text-xs">Define palabras clave, a qué correo llegan las alertas y con qué frecuencia se buscan licitaciones en comprasdominicana.gob.do.</p>
+
+        <label class="block font-semibold">Palabras clave <span class="font-normal text-gray-400">(una por línea)</span>
+          <textarea id="keywords" rows="8" class="mt-1 w-full border rounded-lg px-3 py-2 font-mono text-xs" placeholder="transformador&#10;UPS&#10;Schneider"></textarea>
+        </label>
+
+        <label class="block font-semibold">Correo destino
+          <input type="email" id="correo" required class="mt-1 w-full border rounded-lg px-3 py-2" placeholder="alertas@tuempresa.com" />
+        </label>
+
+        <div class="grid md:grid-cols-2 gap-3">
+          <label class="block font-semibold">Frecuencia
+            <select id="frecuencia" class="mt-1 w-full border rounded-lg px-3 py-2">
+              <option value="diaria">Diaria</option>
+              <option value="semanal">Semanal</option>
+              <option value="personalizada">Personalizada</option>
+            </select>
+          </label>
+          <label class="block font-semibold">Hora de ejecución
+            <input type="time" id="hora" value="11:00" class="mt-1 w-full border rounded-lg px-3 py-2" />
+          </label>
+        </div>
+
+        <fieldset>
+          <legend class="font-semibold text-sm mb-2">Días de la semana</legend>
+          <div class="flex flex-wrap gap-3 text-xs">
+            <label><input type="checkbox" class="dia" value="1" checked /> Lun</label>
+            <label><input type="checkbox" class="dia" value="2" checked /> Mar</label>
+            <label><input type="checkbox" class="dia" value="3" checked /> Mié</label>
+            <label><input type="checkbox" class="dia" value="4" checked /> Jue</label>
+            <label><input type="checkbox" class="dia" value="5" checked /> Vie</label>
+            <label><input type="checkbox" class="dia" value="6" /> Sáb</label>
+            <label><input type="checkbox" class="dia" value="7" /> Dom</label>
+          </div>
+        </fieldset>
+
+        <label class="flex items-center gap-2"><input type="checkbox" id="activo" checked /> Monitoreo activo</label>
+        <label class="flex items-center gap-2"><input type="checkbox" id="publica" checked /> Búsqueda pública (sin login portal)</label>
+
+        <div class="flex gap-2">
+          <button type="submit" class="flex-1 py-2 bg-adesa-red text-white rounded-lg font-bold">Guardar</button>
+          <button type="button" id="btnEjecutar" class="px-4 py-2 bg-gray-800 text-white rounded-lg text-xs">Ejecutar ahora</button>
+        </div>
+        <p id="msgSB" class="text-xs text-gray-500"></p>
+      </form>
+
+      <section class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
+        <h2 class="font-bold mb-3">Historial de ejecuciones</h2>
+        <div id="historial" class="text-sm text-gray-500">Cargando…</div>
+      </section>
+    </main>
+    <script>
+      function leerCookie(n) { return document.cookie.split("; ").find(c => c.startsWith(n + "="))?.split("=")[1] || ""; }
+      async function api(url, opts = {}) {
+        const r = await fetch(url, { credentials: "include", headers: { "Content-Type": "application/json", "X-CSRF-Token": leerCookie("nexus_csrf"), ...opts.headers }, ...opts });
+        if (r.status === 401 || r.status === 403) { location.href = "/"; throw new Error("auth"); }
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || "Error");
+        return j;
+      }
+      function diasSeleccionados() {
+        return [...document.querySelectorAll(".dia:checked")].map(c => c.value).join(",");
+      }
+      function setDias(str) {
+        const set = new Set((str || "1,2,3,4,5").split(","));
+        document.querySelectorAll(".dia").forEach(c => { c.checked = set.has(c.value); });
+      }
+      async function cargar() {
+        const [{ config }, { ejecuciones }] = await Promise.all([
+          api("/api/scrapibids/config"),
+          api("/api/scrapibids/ejecuciones"),
+        ]);
+        document.getElementById("keywords").value = (config.palabras_clave || []).join("\n");
+        document.getElementById("correo").value = config.correo_destino || "";
+        document.getElementById("frecuencia").value = config.frecuencia || "diaria";
+        document.getElementById("hora").value = (config.hora_ejecucion || "11:00:00").slice(0, 5);
+        setDias(config.dias_semana);
+        document.getElementById("activo").checked = config.activo !== false && config.activo !== 0;
+        document.getElementById("publica").checked = config.busqueda_publica !== false && config.busqueda_publica !== 0;
+        document.getElementById("historial").innerHTML = ejecuciones.length
+          ? ejecuciones.map(e => `<div class="border-t py-2 flex justify-between"><span>${e.inicio_en}</span><span class="${e.estado === "error" ? "text-red-600" : "text-green-700"}">${e.estado} · ${e.licitaciones_nuevas} nuevas</span></div>`).join("")
+          : "Sin ejecuciones registradas.";
+      }
+      document.getElementById("formSB").onsubmit = async e => {
+        e.preventDefault();
+        const hora = document.getElementById("hora").value + ":00";
+        try {
+          await api("/api/scrapibids/config", { method: "PUT", body: JSON.stringify({
+            palabras_clave: document.getElementById("keywords").value.split(/\n+/).map(s => s.trim()).filter(Boolean),
+            correo_destino: document.getElementById("correo").value,
+            frecuencia: document.getElementById("frecuencia").value,
+            hora_ejecucion: hora,
+            dias_semana: diasSeleccionados() || "1,2,3,4,5",
+            activo: document.getElementById("activo").checked,
+            busqueda_publica: document.getElementById("publica").checked,
+          })});
+          document.getElementById("msgSB").textContent = "Configuración guardada.";
+          cargar();
+        } catch (err) { document.getElementById("msgSB").textContent = err.message; }
+      };
+      document.getElementById("btnEjecutar").onclick = async () => {
+        document.getElementById("msgSB").textContent = "Ejecutando scraper…";
+        try {
+          const r = await api("/api/scrapibids/ejecutar", { method: "POST", body: "{}" });
+          document.getElementById("msgSB").textContent = r.mensaje || "Listo.";
+          cargar();
+        } catch (err) { document.getElementById("msgSB").textContent = err.message; }
+      };
+      api("/api/auth/me").then(cargar).catch(() => location.href = "/");
+    </script>
+  </body>
+</html>

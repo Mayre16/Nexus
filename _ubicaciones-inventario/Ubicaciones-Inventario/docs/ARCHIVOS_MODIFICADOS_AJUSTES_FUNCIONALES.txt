@@ -1,0 +1,122 @@
+ARCHIVOS MODIFICADOS PARA HACER EL MÓDULO DE AJUSTES FUNCIONAL
+================================================================
+
+FECHA: 2025-01-22
+DESCRIPCIÓN: Implementación completa del módulo de ajustes funcional con:
+- Búsqueda usando cache local (base de datos)
+- Carga masiva desde Excel
+- Soporte para múltiples ubicaciones físicas por SKU
+- Validaciones completas
+
+ARCHIVOS MODIFICADOS:
+=====================
+
+1. routes/ajustes.py
+   - Modificado: buscar_producto_ajuste() ahora usa cache local (ProductoADM) en lugar de ADM Cloud
+   - Agregado: Nuevo endpoint /api/ajustes/cargar-excel para procesar archivos Excel
+   - Agregado: Import de openpyxl y ProductoADM
+   - Agregado: Validaciones completas para Excel (SKU, ubicación, cantidad)
+   - Agregado: Reporte de errores por fila del Excel
+   - Agregado: Soporte para notas generales y por fila
+
+2. app_wms.py
+   - Agregado: Ruta /docs/<filename> para servir archivos de documentación (plantillas Excel)
+   - Agregado: Import de send_from_directory y os
+
+3. requirements.txt
+   - Agregado: openpyxl>=3.1.0 (para procesar archivos Excel)
+
+4. templates/ajustes_historial.html
+   - Agregado: Botón "Cargar Excel" en el header
+   - Agregado: Modal completo para carga masiva desde Excel
+   - Agregado: Funciones JavaScript: abrirModalCargaMasiva(), cerrarModalCargaMasiva(), procesarExcel()
+   - Agregado: Vista previa de resultados y errores del procesamiento
+
+5. templates/ajustes.html
+   - Modificado: Texto informativo actualizado para reflejar uso de ajustes (no solo inventario inicial)
+
+ARCHIVOS CREADOS:
+=================
+
+1. docs/EJEMPLO_AJUSTES_MASIVOS.xlsx
+   - Archivo Excel de ejemplo con estructura correcta
+   - Columnas: SKU, Ubicación Física, Cantidad, Notas, Product ID (opcional)
+   - Incluye ejemplos de múltiples ubicaciones para el mismo SKU
+
+FUNCIONALIDADES IMPLEMENTADAS:
+==============================
+
+✅ Búsqueda usando cache local
+   - Ahora busca en ProductoADM (base de datos local) en lugar de ADM Cloud
+   - Más rápido y no depende de conexión externa
+   - Mismo comportamiento que "Consulta de Productos"
+
+✅ Carga masiva desde Excel
+   - Endpoint: POST /api/ajustes/cargar-excel
+   - Formato flexible: busca columnas por nombre o posición
+   - Validaciones:
+     * SKU debe existir en cache local
+     * Ubicación física debe existir y estar activa
+     * Cantidad debe ser > 0
+   - Reporte de errores detallado por fila
+   - Soporte para notas generales y por fila
+
+✅ Múltiples ubicaciones físicas por SKU
+   - Un mismo SKU puede aparecer en múltiples filas del Excel
+   - Cada fila representa una ubicación física diferente
+   - Se procesan todas las asignaciones correctamente
+
+✅ Validaciones completas
+   - Regla de Oro #4: Solo modifica StockUbicacion si la ubicación física existe
+   - Validación de SKU en cache local
+   - Validación de ubicación física activa
+   - Validación de cantidad positiva
+
+CAMPOS DEL EXCEL:
+=================
+
+Columna A: SKU (obligatorio)
+Columna B: Ubicación Física (obligatorio)
+Columna C: Cantidad (obligatorio, > 0)
+Columna D: Notas/Justificación (opcional)
+Columna E: Product ID (opcional, se busca automáticamente si falta)
+
+INSTRUCCIONES PARA CPANEL:
+===========================
+
+1. Subir archivos modificados:
+   - routes/ajustes.py
+   - app_wms.py
+   - requirements.txt
+   - templates/ajustes_historial.html
+   - templates/ajustes.html
+   - docs/EJEMPLO_AJUSTES_MASIVOS.xlsx
+
+2. Instalar dependencia nueva:
+   - En cPanel, ejecutar: pip install openpyxl>=3.1.0
+   - O agregar a requirements.txt y reinstalar dependencias
+
+3. Reiniciar aplicación Flask
+
+4. Verificar:
+   - Búsqueda de productos en ajustes funciona con cache local
+   - Botón "Cargar Excel" aparece en historial de ajustes
+   - Modal de carga masiva funciona correctamente
+   - Archivo Excel de ejemplo se puede descargar desde /docs/EJEMPLO_AJUSTES_MASIVOS.xlsx
+
+NOTAS IMPORTANTES:
+==================
+
+- El módulo ahora es completamente funcional y sigue las mismas reglas que Recepciones y Transferencias
+- La búsqueda es más rápida al usar cache local
+- El Excel permite carga inicial masiva de inventario
+- Todos los ajustes se registran como movimientos tipo "ADJUSTMENT"
+- Se aplica Regla de Oro #4: solo modifica StockUbicacion si la ubicación física existe y está activa
+
+
+
+
+
+
+
+

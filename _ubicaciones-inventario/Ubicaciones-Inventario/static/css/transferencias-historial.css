@@ -1,0 +1,18 @@
+.status-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.status-procesada { background: var(--color-success-bg); color: var(--color-success-text); }
+.status-pendiente { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.status-error     { background: var(--color-danger-bg);  color: var(--color-danger-text); }
+
+.search-bar { display: flex; gap: var(--space-3); margin-bottom: var(--space-4); }
+.search-bar input { flex: 1; }
+
+@media (max-width: 768px) {
+    .search-bar { flex-direction: column; }
+}

@@ -1,0 +1,40 @@
+═══════════════════════════════════════════════════════════════
+  ⚠️ IMPORTANTE: RUTA CORRECTA PARA CPANEL
+═══════════════════════════════════════════════════════════════
+
+🔴 PROBLEMA DETECTADO:
+
+Tu Python App espera archivos en:
+  /home2/adesa/wms.adesa.com.do/
+
+Pero los archivos pueden estar en:
+  /home2/adesa/public_html/wms.adesa.com.do/
+
+═══════════════════════════════════════════════════════════════
+
+✅ SOLUCIÓN RÁPIDA:
+
+1. En File Manager, COPIAR todos los archivos desde:
+   /public_html/wms.adesa.com.do/
+   
+   Hacia:
+   /home2/adesa/wms.adesa.com.do/
+
+2. Archivos a copiar:
+   - app_wms.py
+   - passenger_wsgi.py
+   - config.py
+   - requirements.txt
+   - init_db.py
+   - Carpetas: api/, routes/, database/, templates/, utils/
+
+3. Después de copiar:
+   - "Run Pip Install" funcionará ✅
+   - Podrás ejecutar init_db.py ✅
+
+═══════════════════════════════════════════════════════════════
+
+📖 Para instrucciones detalladas, ver:
+   docs/SOLUCION_RUTA_INCORRECTA.md
+
+═══════════════════════════════════════════════════════════════

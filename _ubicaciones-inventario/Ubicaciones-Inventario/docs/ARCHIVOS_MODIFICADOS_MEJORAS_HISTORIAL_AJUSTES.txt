@@ -1,0 +1,56 @@
+ARCHIVOS MODIFICADOS - MEJORAS HISTORIAL DE AJUSTES
+====================================================
+
+Fecha: 2025-01-26
+Descripción: Mejoras en el módulo de Historial de Ajustes:
+- Mejora de visualización con SKUs, tipo de ajuste, y diferenciación de ubicaciones
+- Implementación de modal de detalles completo
+- Funcionalidad de botones "Ver Detalle" y "Editar"
+
+ARCHIVOS MODIFICADOS:
+--------------------
+
+1. templates/ajustes_historial.html
+   - Actualizada tabla para mostrar más columnas: Ubicación, Productos (SKU), Tipo, Cantidad
+   - Agregado modal de detalles completo con información detallada del ajuste
+   - Implementada función verDetalle() que muestra modal con detalles
+   - Implementada función editarAjuste() que redirige al formulario de edición
+   - Mejorada visualización con badges de tipo (Físico/ADM) e iconos de ubicación
+   - Agregada columna de cantidad total ajustada
+   - Mejorado truncamiento de notas largas con tooltip
+
+2. templates/ajustes.html
+   - Implementada función cargarDetallesAjuste() para cargar ajustes existentes
+   - Actualizado DOMContentLoaded para soportar parámetros timestamp y ubicacion
+   - Mejorada carga de asignaciones desde ajustes existentes para edición
+
+NOTAS IMPORTANTES:
+------------------
+- El backend ya tenía las mejoras implementadas (SKUs, tipo, iconos) en routes/historiales.py
+- El endpoint /api/detalles/ajuste/<ajuste_id> ya existía y funciona correctamente
+- Los botones "Ver Detalle" y "Editar" ahora funcionan correctamente
+- El modal de detalles muestra información completa: productos, cantidades, diferencias, notas
+- La edición carga los datos del ajuste en el formulario para modificación
+
+CAMBIOS EN LA INTERFAZ:
+-----------------------
+- Nueva columna "Cantidad" en el historial
+- Badges de color para diferenciar ajustes Físicos (verde) vs ADM (azul)
+- Iconos de ubicación: 📍 para físicas, 🏢 para ADM
+- Modal de detalles con tabla de productos y cantidades
+- Mejor visualización de SKUs (hasta 3, luego "... (+N más)")
+
+FUNCIONALIDADES IMPLEMENTADAS:
+------------------------------
+✅ Ver Detalle: Muestra modal con información completa del ajuste
+✅ Editar: Carga el ajuste en el formulario para modificación
+✅ Visualización mejorada: SKUs, tipo, cantidades, iconos
+✅ Diferenciación clara entre ajustes físicos y ADM
+
+
+
+
+
+
+
+

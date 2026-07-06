@@ -1,0 +1,105 @@
+ARCHIVOS MODIFICADOS PARA CORREGIR ZONA HORARIA (4 HORAS ADELANTADA)
+====================================================================
+
+Fecha: 2026-01-26
+Descripción: Corrección de zona horaria para mostrar la hora correcta de RD (UTC-4) en lugar de UTC
+
+PROBLEMA:
+---------
+Las fechas mostraban 4 horas adelantadas porque:
+1. Python guarda fechas en UTC (usando `datetime.utcnow()`)
+2. `isoformat()` no incluye el indicador "Z" para UTC
+3. JavaScript interpreta fechas sin "Z" como hora local
+4. Si el navegador está en RD (UTC-4), muestra 4 horas menos de lo correcto
+
+SOLUCIÓN:
+---------
+1. Agregar "Z" al final del ISO string en el backend para indicar UTC
+2. Especificar `timeZone: 'America/Santo_Domingo'` en el frontend para convertir a hora local de RD
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. routes/productos.py
+   - Línea 140: Agregado "Z" al final del ISO string para `updated_at` de ubicaciones ADM
+   - Línea 165: Agregado "Z" al final del ISO string para `updated_at` de ubicaciones físicas WMS
+
+2. templates/productos.html
+   - Líneas 565-571: Agregado `timeZone: 'America/Santo_Domingo'` y lógica para agregar "Z" si no existe
+   - Líneas 581 y 608: Agregado `timeZone: 'America/Santo_Domingo'` y lógica para agregar "Z" si no existe
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. Backend (routes/productos.py):
+   - Agregado "Z" al final del ISO string para indicar que es UTC
+   - Formato: "2026-01-27T01:16:00Z" en lugar de "2026-01-27T01:16:00"
+
+2. Frontend (templates/productos.html):
+   - Agregada lógica para agregar "Z" si la fecha no lo tiene (compatibilidad)
+   - Agregado `timeZone: 'America/Santo_Domingo'` para convertir UTC a hora local de RD
+   - Agregado `hour12: true` para formato de 12 horas con AM/PM
+
+COMPORTAMIENTO:
+---------------
+
+**ANTES:**
+- Fecha guardada: "2026-01-27T01:16:00" (UTC, sin indicador)
+- JavaScript interpreta: Hora local (asume que es hora local)
+- Muestra: "27/01/2026, 01:16 a. m." (incorrecto, 4 horas adelantada)
+
+**DESPUÉS:**
+- Fecha guardada: "2026-01-27T01:16:00Z" (UTC, con indicador)
+- JavaScript interpreta: UTC correctamente
+- Convierte a: Hora local de RD (UTC-4)
+- Muestra: "26/01/2026, 09:16 p. m." (correcto)
+
+**Ejemplo:**
+- UTC: 27/01/2026, 01:16:00
+- RD (UTC-4): 26/01/2026, 21:16:00 (9:16 PM del día anterior)
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+----------------------------------------
+
+1. Subir los archivos modificados:
+   - routes/productos.py
+   - templates/productos.html
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario.
+
+4. Probar:
+   - Buscar un producto y verificar que la hora de actualización muestra la hora correcta de RD
+   - Verificar que no está 4 horas adelantada
+   - Comparar con la hora actual del sistema
+
+RESULTADO ESPERADO:
+-------------------
+
+Después de la corrección:
+- ✅ Las fechas se interpretan correctamente como UTC
+- ✅ Se convierten automáticamente a hora local de RD (UTC-4)
+- ✅ La hora mostrada es la correcta (no 4 horas adelantada)
+- ✅ Formato consistente con zona horaria de RD
+
+NOTA TÉCNICA:
+-------------
+
+**Por qué agregar "Z":**
+- "Z" indica que la fecha está en UTC (Zulu time)
+- Sin "Z", JavaScript asume que es hora local del navegador
+- Con "Z", JavaScript sabe que debe convertir de UTC a hora local
+
+**Por qué especificar timeZone:**
+- `timeZone: 'America/Santo_Domingo'` fuerza la conversión a zona horaria de RD
+- Asegura consistencia independientemente de la configuración del navegador
+- RD está en UTC-4 (hora estándar) o UTC-4 (sin horario de verano)
+
+
+
+
+
+
+
+

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - WMS</title>
+    <link rel="stylesheet" href="/static/css/wms.css">
+    <link rel="stylesheet" href="/static/css/admin-nuevo.css">
+</head>
+<body>
+    <header class="wms-header">
+        <div class="wms-header-inner">
+            <div class="wms-header-title">
+                <span class="module-icon">⚙️</span>
+                <h1>Panel de Administración</h1>
+            </div>
+            <div class="wms-header-actions">
+                <span class="wms-header-user" id="user-info">Cargando...</span>
+                <a href="/" class="wms-btn wms-btn-secondary wms-btn-sm" title="Inicio">🏠 <span class="wms-header-btn-label">Inicio</span></a>
+                <button type="button" class="wms-btn wms-btn-secondary wms-btn-sm" onclick="cerrarSesion()" title="Cerrar sesión"><span class="wms-icon-logout" aria-hidden="true"></span> <span class="wms-header-btn-label">Salir</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="wms-page">
+        <div class="admin-layout">
+            <!-- Menú Lateral -->
+            <div class="sidebar">
+                <h3>📋 Menú</h3>
+                <div class="menu-item active" onclick="mostrarSeccion('sincronizacion')">
+                    🔄 Sincronización de Productos
+                </div>
+                <div class="menu-item" onclick="mostrarSeccion('ubicaciones')">
+                    📍 Ubicaciones Físicas WMS
+                </div>
+            </div>
+
+            <!-- Contenido Principal -->
+            <div class="content-area">
+                <!-- Mensajes Toast -->
+                <div id="message-success" class="wms-toast wms-toast-success"></div>
+                <div id="message-error" class="wms-toast wms-toast-error"></div>
+
+                <!-- Sección: Sincronización de Productos -->
+                <div id="seccion-sincronizacion" class="section active">
+                    <div class="info-box">
+                        <p><strong>ℹ️ Sincronización por Etapas:</strong> Sincroniza ubicaciones individualmente para evitar timeouts.</p>
+                        <p><strong>🎯 Prioridad:</strong> ADESA primero (para despacho rápido), luego las demás ubicaciones.</p>
+                        <p><strong>✅ Resultado:</strong> Cada ubicación sincronizada guarda su stock en la base de datos local.</p>
+                    </div>
+
+                    <!-- Sincronización de Catálogo -->
+                    <div class="wms-card catalogo-card" style="margin-bottom: var(--space-5);">
+                        <div class="wms-card-body">
+                            <h2 style="margin-bottom: var(--space-3);">📦 Sincronización de Catálogo</h2>
+                            <p style="color: var(--color-text-secondary); font-size: var(--font-size-sm); margin-bottom: var(--space-4);">
+                                Actualiza nombre, SKU y código de barras de todos los productos desde ADM Cloud.<br>
+                                <strong>Importante:</strong> Este proceso puede tardar varios minutos. No toca el stock.
+                            </p>
+                            <button class="btn-sync" onclick="sincronizarCatalogo()" id="btn-sync-catalogo" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
+                                🔄 Sincronizar Catálogo
+                            </button>
+                            <div id="catalogo-progress" style="margin-top: var(--space-3); display: none;">
+                                <div class="progress-bar-track">
+                                    <div id="catalogo-progress-fill" class="progress-bar-fill"></div>
+                                </div>
+                                <div id="catalogo-message" style="margin-top: var(--space-2); font-size: var(--font-size-xs); color: var(--color-text-muted);"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Ubicaciones ADM -->
+                    <div class="wms-card">
+                        <div class="wms-card-header">
+                            <h2>📍 Ubicaciones ADM Cloud</h2>
+                            <button class="btn-sync" onclick="cargarUbicaciones()" id="btn-refresh">
+                                🔄 Actualizar Lista
+                            </button>
+                        </div>
+                        <div class="wms-card-body">
+                            <div id="ubicaciones-container">
+                                <div class="empty-state">
+                                    <p>Cargando ubicaciones...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Ubicaciones Físicas WMS -->
+                <div id="seccion-ubicaciones" class="section">
+                    <div class="wms-card">
+                        <div class="wms-card-header">
+                            <h2>📍 Ubicaciones Físicas WMS</h2>
+                            <button class="btn-primary" onclick="abrirModalCrear()">
+                                ➕ Crear Ubicación
+                            </button>
+                        </div>
+                        <div class="wms-card-body">
+                            <div class="info-box">
+                                <p><strong>ℹ️ Información:</strong> Las ubicaciones físicas son los lugares reales del almacén donde se almacenan los productos (ej: A-01-02, B-03-04).</p>
+                                <p><strong>💡 Tip:</strong> Puedes crear ubicaciones por pasillo, estante, nivel, zona, etc.</p>
+                            </div>
+
+                            <div class="wms-table-wrap">
+                                <table class="wms-table" id="tabla-ubicaciones">
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Nombre</th>
+                                            <th>Descripción</th>
+                                            <th>Tipo</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ubicaciones-tbody">
+                                        <tr>
+                                            <td colspan="6" class="text-center" style="padding: var(--space-10);">
+                                                <div class="empty-state">
+                                                    <p>Cargando ubicaciones...</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Ubicación -->
+    <div id="modal-ubicacion" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-titulo">Crear Ubicación Física</h3>
+                <button class="close-modal" onclick="cerrarModal()">&times;</button>
+            </div>
+            <div style="padding: var(--space-6);">
+                <form id="form-ubicacion" onsubmit="guardarUbicacion(event)">
+                    <input type="hidden" id="ubicacion-id" value="">
+                    <div class="form-group">
+                        <label for="codigo">Código *</label>
+                        <input type="text" id="codigo" required placeholder="Ej: A-01-02" style="text-transform: uppercase;">
+                        <small style="color: var(--color-text-muted); font-size: var(--font-size-xs);">Código único de la ubicación (se convertirá a mayúsculas)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="nombre">Nombre *</label>
+                        <input type="text" id="nombre" required placeholder="Ej: Pasillo A, Estante 01, Nivel 02">
+                    </div>
+                    <div class="form-group">
+                        <label for="descripcion">Descripción</label>
+                        <textarea id="descripcion" placeholder="Descripción opcional de la ubicación"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipo">Tipo</label>
+                        <select id="tipo">
+                            <option value="">Seleccionar tipo (opcional)</option>
+                            <option value="PASILLO">Pasillo</option>
+                            <option value="ESTANTE">Estante</option>
+                            <option value="ZONA">Zona</option>
+                            <option value="BODEGA">Bodega</option>
+                            <option value="OTRO">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="activa" checked> Ubicación activa
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Guardar</button>
+                        <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/security_utils.js"></script>
+    <script src="/static/js/wms-common.js"></script>
+    <script src="/static/js/admin-nuevo.js"></script>
+</body>
+</html>

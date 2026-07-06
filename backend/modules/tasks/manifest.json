@@ -1,0 +1,19 @@
+{
+  "technicalName": "tasks",
+  "displayName": "Nexus Tasks",
+  "summary": "Tablero interno Kanban: backlog, QA, checklists de equipo",
+  "version": "0.1.0",
+  "category": "service",
+  "state": "installed",
+  "installable": true,
+  "autoInstall": true,
+  "depends": ["nexus_core"],
+  "routes": {
+    "ui": "/tasks.html",
+    "api": "/api/tasks",
+    "dashboardPath": "/tasks.html"
+  },
+  "roles": ["admin", "empleado"],
+  "icon": "📋",
+  "sortOrder": 15
+}

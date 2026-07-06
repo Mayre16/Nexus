@@ -1,0 +1,43 @@
+ARCHIVOS A ACTUALIZAR EN CPANEL - PERMITIR CANTIDAD 0 EN AJUSTES
+================================================================
+
+Fecha: 2025-01-26
+Descripción: Corrección para permitir ajustar ubicaciones físicas a cantidad 0 (eliminar stock).
+El backend ahora permite cantidad 0 en ajustes, permitiendo eliminar stock de ubicaciones específicas.
+
+ARCHIVOS A ACTUALIZAR:
+---------------------
+
+1. routes/ajustes.py
+   📍 Ubicación: routes/ajustes.py
+   ✅ Cambios: 
+      - Reemplazada validación que usaba validar_cantidad() (rechazaba cantidad <= 0)
+      - Nueva validación específica que permite cantidad 0
+      - Solo rechaza valores negativos, NaN o que excedan el límite máximo
+   📝 Líneas modificadas: ~193-220 (validación de cantidades en asignaciones)
+
+RESUMEN DEL CAMBIO:
+-------------------
+- ANTES: El backend rechazaba cualquier cantidad <= 0
+- AHORA: El backend permite cantidad 0 (solo rechaza negativos)
+
+CASOS DE USO HABILITADOS:
+-------------------------
+✅ Ajustar una ubicación física a 0 (eliminar stock de esa ubicación)
+✅ Ajustar ADESA a 0 (eliminar todo el stock)
+✅ Ajustes donde todas las cantidades sean 0
+
+NOTAS IMPORTANTES:
+------------------
+- Este cambio solo afecta al módulo de Ajustes
+- Otras validaciones (recepciones, despachos, etc.) siguen usando validar_cantidad() que rechaza 0
+- La validación del frontend ya permite 0 (cambios anteriores)
+- El procesamiento del backend ya podía manejar 0, solo faltaba permitirlo en la validación
+
+
+
+
+
+
+
+

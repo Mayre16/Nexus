@@ -1,0 +1,19 @@
+{
+  "technicalName": "portal",
+  "displayName": "Portal de Soporte",
+  "summary": "Autoservicio cliente: tickets, base de conocimientos y foro",
+  "version": "0.1.0",
+  "category": "service",
+  "state": "installed",
+  "installable": true,
+  "autoInstall": true,
+  "depends": ["nexus_core", "desk"],
+  "routes": {
+    "ui": "/portal.html",
+    "api": "/api/portal",
+    "dashboardPath": "/portal.html"
+  },
+  "roles": ["cliente_externo", "cliente_suscriptor", "admin", "empleado"],
+  "icon": "🌐",
+  "sortOrder": 11
+}

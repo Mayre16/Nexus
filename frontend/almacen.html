@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA Nexus · Almacén</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { adesa: { red: "#be1622", red2: "#ef1d2b", gold: "#fcb900", ink: "#111111" } },
+            fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+    <header class="bg-adesa-ink text-white">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center gap-4 justify-between">
+        <div class="flex items-center gap-3">
+          <a href="/dashboard.html" class="text-sm text-gray-400 hover:text-white">← Panel</a>
+          <span class="text-lg font-bold">Nexus Almacén</span>
+          <span class="text-xs bg-white/10 px-2 py-0.5 rounded-full">picking por ubicación</span>
+        </div>
+        <a href="/store.html" class="text-xs text-adesa-gold hover:underline">← Store</a>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-6">
+      <div class="flex flex-wrap gap-2 mb-4 border-b border-gray-200 pb-2">
+        <button type="button" data-tab="cola" class="tab-btn px-4 py-2 text-sm font-semibold rounded-lg bg-adesa-red text-white">Cola de pedidos</button>
+        <button type="button" data-tab="ubicaciones" class="tab-btn px-4 py-2 text-sm rounded-lg hover:bg-gray-100">Ubicaciones</button>
+      </div>
+
+      <!-- TAB COLA -->
+      <section id="tab-cola">
+        <div class="flex flex-wrap gap-3 mb-4">
+          <div class="flex rounded-lg overflow-hidden ring-1 ring-gray-200 bg-white">
+            <button data-div="todos" class="filtro-div px-4 py-2 text-sm font-semibold bg-adesa-red text-white">Todos</button>
+            <button data-div="energia" class="filtro-div px-4 py-2 text-sm hover:bg-gray-50">⚡ Energía</button>
+            <button data-div="deportes" class="filtro-div px-4 py-2 text-sm hover:bg-gray-50">🚴 Deportes</button>
+          </div>
+          <select id="filtroEstado" class="rounded-lg border px-3 py-2 text-sm bg-white">
+            <option value="">Pendientes (activos)</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="picking">Picking</option>
+            <option value="empacado">Empacado</option>
+            <option value="listo_envio">Listo envío</option>
+          </select>
+        </div>
+
+        <div class="grid lg:grid-cols-5 gap-4">
+          <div class="lg:col-span-2 bg-white rounded-2xl ring-1 ring-gray-100 overflow-hidden">
+            <div class="px-4 py-3 border-b font-bold text-sm">Cola de pedidos</div>
+            <ul id="listaCola" class="divide-y max-h-[70vh] overflow-y-auto"></ul>
+          </div>
+          <div id="panelDetalle" class="lg:col-span-3 bg-white rounded-2xl ring-1 ring-gray-100 p-5 hidden">
+            <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
+              <div>
+                <span id="detRef" class="text-xs font-mono text-adesa-red font-bold"></span>
+                <h2 id="detCliente" class="text-lg font-bold mt-1"></h2>
+                <p id="detMeta" class="text-xs text-gray-500 mt-1"></p>
+              </div>
+              <span id="detEstadoBadge" class="text-xs font-bold px-2 py-1 rounded-full bg-gray-100"></span>
+            </div>
+
+            <div id="progresoPicking" class="mb-4 hidden">
+              <div class="flex justify-between text-xs text-gray-500 mb-1">
+                <span>Picking físico</span>
+                <span id="progresoTexto">0%</span>
+              </div>
+              <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div id="progresoBarra" class="h-full bg-adesa-gold transition-all" style="width:0%"></div>
+              </div>
+            </div>
+
+            <div id="zonaPicking" class="space-y-3 mb-4 max-h-[45vh] overflow-y-auto"></div>
+
+            <div class="flex flex-wrap gap-2 pt-3 border-t">
+              <button id="btnIniciarPicking" type="button" class="hidden px-3 py-1.5 rounded-lg bg-adesa-gold text-adesa-ink text-xs font-bold">Iniciar picking</button>
+              <button id="btnCompletarPicking" type="button" class="hidden px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-bold">Picking completo → Empacado</button>
+              <select id="detEstado" class="rounded-lg border px-2 py-1.5 text-xs">
+                <option value="pendiente">Pendiente</option>
+                <option value="picking">Picking</option>
+                <option value="empacado">Empacado</option>
+                <option value="listo_envio">Listo envío</option>
+                <option value="enviado">Enviado ✓</option>
+              </select>
+              <button id="btnAvanzar" type="button" class="px-3 py-1.5 rounded-lg bg-adesa-red text-white text-xs font-bold">Actualizar estado</button>
+            </div>
+          </div>
+          <div id="panelVacio" class="lg:col-span-3 flex items-center justify-center text-gray-400 text-sm min-h-[300px] rounded-2xl bg-white ring-1 ring-gray-100">
+            Selecciona un pedido de la cola
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB UBICACIONES -->
+      <section id="tab-ubicaciones" class="hidden">
+        <div class="grid lg:grid-cols-3 gap-4">
+          <div class="lg:col-span-2 bg-white rounded-2xl ring-1 ring-gray-100 overflow-hidden">
+            <div class="px-4 py-3 border-b font-bold text-sm flex justify-between">
+              <span>Ubicaciones físicas</span>
+              <span class="text-xs font-normal text-gray-400">Pasillo · Estante · Nivel</span>
+            </div>
+            <ul id="listaUbicaciones" class="divide-y max-h-[60vh] overflow-y-auto"></ul>
+          </div>
+          <div id="formUbicacion" class="bg-white rounded-2xl ring-1 ring-gray-100 p-5 hidden">
+            <h3 class="font-bold text-sm mb-3">Nueva ubicación</h3>
+            <div class="space-y-2 text-sm">
+              <input id="ubCodigo" class="w-full border rounded-lg px-3 py-2 font-mono uppercase" placeholder="Código (A-01-02)" />
+              <input id="ubNombre" class="w-full border rounded-lg px-3 py-2" placeholder="Nombre descriptivo" />
+              <div class="grid grid-cols-3 gap-2">
+                <input id="ubPasillo" class="border rounded-lg px-2 py-2" placeholder="Pasillo" />
+                <input id="ubEstante" class="border rounded-lg px-2 py-2" placeholder="Estante" />
+                <input id="ubNivel" class="border rounded-lg px-2 py-2" placeholder="Nivel" />
+              </div>
+              <button id="btnCrearUbicacion" type="button" class="w-full py-2 rounded-lg bg-adesa-red text-white font-bold text-xs">Crear ubicación</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="fixed bottom-4 right-4 hidden px-4 py-3 rounded-xl shadow-lg text-sm text-white bg-adesa-ink z-50"></div>
+
+    <script>
+      function leerCookie(n) { return document.cookie.split("; ").find(c => c.startsWith(n + "="))?.split("=")[1] || ""; }
+      let divisionFiltro = "todos", ordenActual = null, usuarioActual = null, almacenIdDefault = null;
+
+      function toast(msg, ok = true) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.className = "fixed bottom-4 right-4 px-4 py-3 rounded-xl shadow-lg text-sm text-white z-50 " + (ok ? "bg-green-700" : "bg-adesa-red");
+        t.classList.remove("hidden");
+        setTimeout(() => t.classList.add("hidden"), 3500);
+      }
+
+      async function api(url, opts = {}) {
+        const r = await fetch(url, {
+          credentials: "include",
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": leerCookie("nexus_csrf"), ...opts.headers },
+          ...opts,
+        });
+        if (r.status === 401) { location.href = "/"; throw new Error("auth"); }
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || "Error");
+        return j;
+      }
+
+      const estadoLabel = { pendiente: "Pendiente", picking: "Picking", empacado: "Empacado", listo_envio: "Listo envío", enviado: "Enviado" };
+
+      async function cargarCola() {
+        const p = new URLSearchParams();
+        if (divisionFiltro !== "todos") p.set("division", divisionFiltro);
+        const est = document.getElementById("filtroEstado").value;
+        if (est) p.set("estado", est);
+        const { cola } = await api("/api/almacen/pedidos?" + p);
+        const ul = document.getElementById("listaCola");
+        ul.innerHTML = cola.length ? "" : '<li class="p-4 text-gray-400 text-sm">Cola vacía</li>';
+        cola.forEach(o => {
+          const li = document.createElement("li");
+          li.className = "px-4 py-3 cursor-pointer hover:bg-gray-50" + (ordenActual?.uuid === o.uuid ? " bg-red-50" : "");
+          const icon = o.almacen_estado === "picking" ? "📍" : o.almacen_estado === "empacado" ? "📦" : "○";
+          li.innerHTML = `<div class="font-semibold text-sm">${icon} ${o.referencia}</div>
+            <div class="text-xs text-gray-500">${estadoLabel[o.almacen_estado] || o.almacen_estado} · ${o.cliente_nombre || "—"}</div>`;
+          li.onclick = () => abrirOrden(o.uuid);
+          ul.appendChild(li);
+        });
+      }
+
+      function renderLineaPicking(ln, ordenUuid) {
+        const completa = ln.completa;
+        const sugerenciaHtml = (ln.sugerencias || []).map(s =>
+          `<span class="inline-block text-[10px] bg-amber-50 text-amber-800 px-1.5 py-0.5 rounded mr-1">${s.codigo}: ${s.cantidad_sugerida} u</span>`
+        ).join("");
+
+        const opcionesUbic = (ln.stock_ubicaciones || []).map(u =>
+          `<option value="${u.ubicacion_uuid}">${u.codigo} (${u.cantidad} disp.)</option>`
+        ).join("");
+
+        const picksHtml = (ln.picks || []).map(p =>
+          `<div class="text-[10px] text-gray-500">✓ ${p.cantidad} desde ${p.ubicacion_codigo}</div>`
+        ).join("");
+
+        return `<div class="border rounded-xl p-3 ${completa ? "bg-green-50 border-green-200" : "bg-gray-50"}" data-sku="${ln.sku}">
+          <div class="flex justify-between items-start gap-2">
+            <div>
+              <div class="font-semibold text-sm">${ln.descripcion}</div>
+              <div class="font-mono text-xs text-gray-500">${ln.sku}</div>
+            </div>
+            <div class="text-right text-xs">
+              <div class="font-bold">${ln.cantidad_pickeada}/${ln.cantidad_pedida}</div>
+              ${ln.cantidad_pendiente > 0 ? `<div class="text-adesa-red">-${ln.cantidad_pendiente} pend.</div>` : '<div class="text-green-600">✓</div>'}
+            </div>
+          </div>
+          ${sugerenciaHtml ? `<div class="mt-2">Sugerido: ${sugerenciaHtml}</div>` : ""}
+          ${ln.sin_stock_suficiente ? '<div class="text-xs text-red-600 mt-1">⚠ Stock insuficiente en ubicaciones</div>' : ""}
+          ${picksHtml ? `<div class="mt-1">${picksHtml}</div>` : ""}
+          ${!completa ? `<div class="mt-2 flex flex-wrap gap-2 items-end pick-form">
+            <select class="pick-ubic border rounded-lg px-2 py-1 text-xs flex-1 min-w-[120px]" ${!opcionesUbic ? "disabled" : ""}>
+              <option value="">Ubicación…</option>${opcionesUbic}
+            </select>
+            <input type="number" class="pick-cant border rounded-lg px-2 py-1 text-xs w-16" min="1" max="${ln.cantidad_pendiente}" value="${Math.min(1, ln.cantidad_pendiente)}" />
+            <button type="button" class="btn-registrar-pick px-2 py-1 rounded-lg bg-adesa-ink text-white text-xs font-bold" data-uuid="${ordenUuid}" data-sku="${ln.sku}" ${!opcionesUbic ? "disabled" : ""}>Sacar</button>
+          </div>` : ""}
+        </div>`;
+      }
+
+      function actualizarProgreso(picking) {
+        const box = document.getElementById("progresoPicking");
+        if (!picking?.progreso) { box.classList.add("hidden"); return; }
+        box.classList.remove("hidden");
+        const p = picking.progreso;
+        document.getElementById("progresoTexto").textContent = `${p.pickeadas}/${p.total_unidades} (${p.porcentaje}%)`;
+        document.getElementById("progresoBarra").style.width = p.porcentaje + "%";
+      }
+
+      function actualizarBotonesPicking(o) {
+        const st = o.estado;
+        const completo = o.picking?.progreso?.completo;
+        document.getElementById("btnIniciarPicking").classList.toggle("hidden", st !== "pendiente");
+        document.getElementById("btnCompletarPicking").classList.toggle("hidden", !(st === "picking" && completo));
+      }
+
+      async function abrirOrden(uuid) {
+        const o = await api("/api/almacen/pedidos/" + uuid);
+        ordenActual = o;
+        document.getElementById("panelVacio").classList.add("hidden");
+        document.getElementById("panelDetalle").classList.remove("hidden");
+        document.getElementById("detRef").textContent = o.referencia;
+        document.getElementById("detCliente").textContent = o.cliente_nombre || "Cliente walk-in";
+        document.getElementById("detMeta").textContent = `${o.division} · RD$ ${Number(o.total).toLocaleString()} · ADM: ${o.adm_pedido_id || "—"}`;
+        document.getElementById("detEstado").value = o.estado;
+        const badge = document.getElementById("detEstadoBadge");
+        badge.textContent = estadoLabel[o.estado] || o.estado;
+        badge.className = "text-xs font-bold px-2 py-1 rounded-full " + (
+          o.estado === "picking" ? "bg-amber-100 text-amber-800" :
+          o.estado === "empacado" ? "bg-green-100 text-green-800" : "bg-gray-100"
+        );
+
+        actualizarProgreso(o.picking);
+        document.getElementById("zonaPicking").innerHTML = (o.picking?.lineas || []).map(ln => renderLineaPicking(ln, uuid)).join("");
+        actualizarBotonesPicking(o);
+        cargarCola();
+      }
+
+      async function cargarUbicaciones() {
+        const { ubicaciones } = await api("/api/almacen/ubicaciones");
+        if (ubicaciones[0]) almacenIdDefault = ubicaciones[0].almacen_id;
+        const ul = document.getElementById("listaUbicaciones");
+        ul.innerHTML = ubicaciones.length ? "" : '<li class="p-4 text-gray-400 text-sm">Sin ubicaciones</li>';
+        ubicaciones.forEach(u => {
+          const li = document.createElement("li");
+          li.className = "px-4 py-3";
+          li.innerHTML = `<div class="font-mono font-bold text-sm text-adesa-red">${u.codigo}</div>
+            <div class="text-xs text-gray-600">${u.nombre}</div>
+            <div class="text-[10px] text-gray-400">${u.almacen_nombre || ""} · ${u.tipo}</div>`;
+          ul.appendChild(li);
+        });
+        if (usuarioActual?.rol === "admin") {
+          document.getElementById("formUbicacion").classList.remove("hidden");
+        }
+      }
+
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("bg-adesa-red", "text-white", "font-semibold"));
+          btn.classList.add("bg-adesa-red", "text-white", "font-semibold");
+          document.getElementById("tab-cola").classList.toggle("hidden", btn.dataset.tab !== "cola");
+          document.getElementById("tab-ubicaciones").classList.toggle("hidden", btn.dataset.tab !== "ubicaciones");
+          if (btn.dataset.tab === "ubicaciones") cargarUbicaciones();
+        };
+      });
+
+      document.querySelectorAll(".filtro-div").forEach(btn => {
+        btn.onclick = () => {
+          divisionFiltro = btn.dataset.div;
+          document.querySelectorAll(".filtro-div").forEach(b => b.classList.remove("bg-adesa-red","text-white","font-semibold"));
+          btn.classList.add("bg-adesa-red","text-white","font-semibold");
+          cargarCola();
+        };
+      });
+
+      document.getElementById("filtroEstado").onchange = cargarCola;
+
+      document.getElementById("btnIniciarPicking").onclick = async () => {
+        if (!ordenActual) return;
+        await api("/api/almacen/pedidos/" + ordenActual.uuid + "/picking/iniciar", { method: "POST", body: "{}" });
+        toast("Picking iniciado");
+        await abrirOrden(ordenActual.uuid);
+      };
+
+      document.getElementById("btnCompletarPicking").onclick = async () => {
+        if (!ordenActual) return;
+        try {
+          await api("/api/almacen/pedidos/" + ordenActual.uuid + "/picking/completar", { method: "POST", body: "{}" });
+          toast("Picking completo — pedido empacado");
+          await abrirOrden(ordenActual.uuid);
+        } catch (e) { toast(e.message, false); }
+      };
+
+      document.getElementById("btnAvanzar").onclick = async () => {
+        if (!ordenActual) return;
+        await api("/api/almacen/pedidos/" + ordenActual.uuid + "/estado", {
+          method: "PATCH",
+          body: JSON.stringify({ estado: document.getElementById("detEstado").value }),
+        });
+        cargarCola();
+        if (document.getElementById("detEstado").value !== "enviado") abrirOrden(ordenActual.uuid);
+        else {
+          document.getElementById("panelDetalle").classList.add("hidden");
+          document.getElementById("panelVacio").classList.remove("hidden");
+          ordenActual = null;
+        }
+      };
+
+      document.getElementById("zonaPicking").addEventListener("click", async (e) => {
+        const btn = e.target.closest(".btn-registrar-pick");
+        if (!btn || !ordenActual) return;
+        const card = btn.closest("[data-sku]");
+        const ubic = card.querySelector(".pick-ubic").value;
+        const cant = Number(card.querySelector(".pick-cant").value);
+        if (!ubic || cant < 1) { toast("Selecciona ubicación y cantidad", false); return; }
+        try {
+          await api("/api/almacen/pedidos/" + btn.dataset.uuid + "/picking/registrar", {
+            method: "POST",
+            body: JSON.stringify({ sku: btn.dataset.sku, asignaciones: [{ ubicacion_uuid: ubic, cantidad: cant }] }),
+          });
+          toast(`Sacado ${cant} × ${btn.dataset.sku}`);
+          await abrirOrden(ordenActual.uuid);
+        } catch (err) { toast(err.message, false); }
+      });
+
+      document.getElementById("btnCrearUbicacion").onclick = async () => {
+        if (!almacenIdDefault) { toast("No hay almacén configurado", false); return; }
+        try {
+          await api("/api/almacen/ubicaciones", {
+            method: "POST",
+            body: JSON.stringify({
+              almacenId: almacenIdDefault,
+              codigo: document.getElementById("ubCodigo").value,
+              nombre: document.getElementById("ubNombre").value,
+              pasillo: document.getElementById("ubPasillo").value,
+              estante: document.getElementById("ubEstante").value,
+              nivel: document.getElementById("ubNivel").value,
+            }),
+          });
+          toast("Ubicación creada");
+          ["ubCodigo","ubNombre","ubPasillo","ubEstante","ubNivel"].forEach(id => document.getElementById(id).value = "");
+          cargarUbicaciones();
+        } catch (e) { toast(e.message, false); }
+      };
+
+      api("/api/auth/me").then(u => {
+        usuarioActual = u.usuario || u;
+        cargarCola();
+      }).catch(() => location.href = "/");
+    </script>
+  </body>
+</html>

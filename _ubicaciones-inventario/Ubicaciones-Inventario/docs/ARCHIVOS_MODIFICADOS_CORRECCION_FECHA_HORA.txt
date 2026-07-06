@@ -1,0 +1,94 @@
+ARCHIVOS MODIFICADOS PARA CORREGIR FECHA Y HORA DE ACTUALIZACIÓN
+==================================================================
+
+Fecha: 2026-01-26
+Descripción: Corrección de formato de fecha/hora y visualización de fecha de actualización en "Buscar Producto"
+
+PROBLEMAS CORREGIDOS:
+---------------------
+
+1. **Fecha de actualización no visible en "Buscar Producto":**
+   - El resumen de ADESA no mostraba la fecha de actualización
+   - Las ubicaciones ADM mostraban solo la fecha, no la hora
+
+2. **Hora de sincronización incorrecta en Admin:**
+   - Mostraba hora UTC en lugar de hora local de RD (UTC-4)
+   - Ejemplo: Mostraba "1:16:41 a. m." cuando eran las 9:16 PM
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. templates/productos.html
+   - Líneas 561-576: Agregada fecha de actualización al resumen de ADESA
+   - Líneas 581 y 608: Cambiado formato de fecha para incluir hora (de `toLocaleDateString` a `toLocaleString`)
+
+2. templates/admin.html
+   - Línea 835: Corregido formato de fecha para usar zona horaria de RD (America/Santo_Domingo)
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. Resumen de ADESA en productos.html:
+   - Agregada búsqueda de la ubicación ADESA en `data.ubicaciones_adm`
+   - Agregada visualización de fecha de actualización debajo del stock
+   - Formato: "Actualizado: DD/MM/YYYY, HH:MM"
+
+2. Formato de fecha en ubicaciones ADM:
+   - Cambiado de `toLocaleDateString` (solo fecha) a `toLocaleString` (fecha y hora)
+   - Formato: "Actualizado: DD/MM/YYYY, HH:MM"
+   - Aplicado tanto en ubicaciones ADM como en ubicaciones físicas WMS
+
+3. Zona horaria en admin.html:
+   - Agregada especificación de zona horaria: `timeZone: 'America/Santo_Domingo'`
+   - Agregado formato completo con hora, minutos y segundos
+   - Agregado formato de 12 horas con AM/PM
+
+COMPORTAMIENTO:
+---------------
+
+**ANTES:**
+- Resumen ADESA: Solo mostraba stock (ej: "📦 En mano (ADESA): 8.00")
+- Ubicaciones ADM: Solo mostraba fecha (ej: "Actualizado: 27/1/2026")
+- Admin sincronización: Mostraba hora UTC (ej: "1:16:41 a. m." cuando eran las 9:16 PM)
+
+**DESPUÉS:**
+- Resumen ADESA: Muestra stock y fecha de actualización
+  ```
+  📦 En mano (ADESA): 8.00
+  Actualizado: 27/1/2026, 9:16 PM
+  ```
+- Ubicaciones ADM: Muestra fecha y hora (ej: "Actualizado: 27/1/2026, 9:16 PM")
+- Admin sincronización: Muestra hora local de RD (ej: "27/1/2026, 9:16:41 p. m.")
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+----------------------------------------
+
+1. Subir los archivos modificados:
+   - templates/productos.html
+   - templates/admin.html
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario.
+
+4. Probar:
+   - Buscar un producto y verificar que el resumen de ADESA muestra la fecha de actualización
+   - Verificar que las ubicaciones ADM muestran fecha y hora
+   - Verificar que en Admin, la hora de sincronización muestra la hora correcta de RD
+
+RESULTADO ESPERADO:
+-------------------
+
+Después de la corrección:
+- ✅ El resumen de ADESA muestra la fecha de actualización
+- ✅ Las ubicaciones ADM muestran fecha y hora de actualización
+- ✅ La hora de sincronización en Admin muestra la hora local de RD correcta
+- ✅ Formato consistente en todas las secciones
+
+
+
+
+
+
+
+

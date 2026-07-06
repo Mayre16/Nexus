@@ -1,0 +1,83 @@
+═══════════════════════════════════════════════════════════════
+  SOLUCIÓN ERROR 500 - BÚSQUEDA DE FACTURAS
+═══════════════════════════════════════════════════════════════
+
+El error 500 indica un problema en el servidor. He mejorado el
+manejo de errores para identificar el problema específico.
+
+═══════════════════════════════════════════════════════════════
+
+📁 ARCHIVOS ACTUALIZADOS
+═══════════════════════════════════════════════════════════════
+
+✅ api/adm_cloud.py
+   ───────────────────────────────────────────────────────────
+   ✏️  Mejorado manejo de excepciones en buscar_factura_por_docid
+   ✏️  Mejor comparación de DocID (con y sin ceros a la izquierda)
+   ✏️  Manejo de errores al obtener detalle de factura
+
+✅ routes/facturas.py
+   ───────────────────────────────────────────────────────────
+   ✏️  Mejorado manejo de errores con traceback detallado
+   ✏️  Captura de excepciones al consultar ADM Cloud
+
+═══════════════════════════════════════════════════════════════
+
+🔍 DIAGNÓSTICO DEL ERROR
+═══════════════════════════════════════════════════════════════
+
+Para identificar el problema exacto, necesitamos ver los logs:
+
+1. En CPanel File Manager:
+   - Ve a: /home2/adesa/wms.adesa.com.do/
+   - Busca: stderr.log
+   - Abre el archivo y copia el último error (traceback)
+
+2. Alternativamente, después de subir los archivos actualizados:
+   - Intenta buscar la factura nuevamente
+   - El mensaje de error ahora incluirá más detalles
+
+═══════════════════════════════════════════════════════════════
+
+✅ PASOS PARA SOLUCIONAR
+═══════════════════════════════════════════════════════════════
+
+1. SUBIR ARCHIVOS ACTUALIZADOS:
+   - api/adm_cloud.py
+   - routes/facturas.py
+
+2. REINICIAR APLICACIÓN:
+   - Setup Python App > wms.adesa.com.do > RESTART
+
+3. PROBAR DE NUEVO:
+   - Busca factura: 2967
+   - Tipo: Contado (CashInvoice)
+
+4. SI PERSISTE EL ERROR:
+   - Revisa stderr.log para ver el error específico
+   - El mensaje de error ahora incluirá más detalles
+
+═══════════════════════════════════════════════════════════════
+
+💡 NOTAS
+═══════════════════════════════════════════════════════════════
+
+- La búsqueda ahora busca hasta 2000 facturas (antes 500)
+- Compara DocID con y sin ceros a la izquierda
+- Manejo de errores mejorado para identificar problemas
+
+Si el error persiste, necesitamos ver el stderr.log para
+identificar el problema específico en el servidor.
+
+═══════════════════════════════════════════════════════════════
+
+
+
+
+
+
+
+
+
+
+

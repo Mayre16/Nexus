@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA Nexus · Configuración</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { adesa: { red: "#be1622", red2: "#ef1d2b", gold: "#fcb900", ink: "#111111" } },
+            fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+    <header class="bg-adesa-ink text-white">
+      <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <a href="/dashboard.html" class="text-sm text-gray-400 hover:text-white">← Panel</a>
+          <span class="text-lg font-bold">Configuración Nexus</span>
+        </div>
+        <span class="text-xs text-adesa-gold">Solo administradores</span>
+      </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-6 py-8 space-y-8">
+      <p class="text-sm text-gray-500">
+        Ajustes generales de la plataforma (correo, notificaciones, integraciones).
+        El iERP mantiene su propia configuración contable; aquí va lo compartido por Desk, Leads, Store, etc.
+      </p>
+
+      <section class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
+        <h2 class="font-bold text-lg mb-4">Estado rápido</h2>
+        <div id="estadoRapido" class="grid sm:grid-cols-2 gap-3 text-sm"></div>
+      </section>
+
+      <section class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
+        <h2 class="font-bold text-lg mb-4">Correo saliente (SMTP)</h2>
+        <div class="grid lg:grid-cols-2 gap-6">
+          <div>
+            <h3 class="font-semibold text-sm mb-3 text-adesa-red">⚡ Energía</h3>
+            <form id="formSmtpEnergia" class="space-y-2 text-sm">
+              <label class="flex items-center gap-2"><input type="checkbox" name="enabled" checked /> Activo</label>
+              <input name="host" placeholder="Host SMTP" class="w-full border rounded-lg px-3 py-2" />
+              <input name="port" type="number" placeholder="Puerto (465)" class="w-full border rounded-lg px-3 py-2" />
+              <input name="user" placeholder="Usuario / correo" class="w-full border rounded-lg px-3 py-2" />
+              <input name="password" type="password" placeholder="Contraseña (vacío = no cambiar)" class="w-full border rounded-lg px-3 py-2" />
+              <input name="from" placeholder="Remitente visible" class="w-full border rounded-lg px-3 py-2" />
+              <div class="flex gap-2 pt-2">
+                <button type="submit" class="px-4 py-2 bg-adesa-red text-white rounded-lg font-bold text-xs">Guardar</button>
+                <button type="button" data-test="energia" class="btnTest px-4 py-2 bg-gray-800 text-white rounded-lg text-xs">Probar</button>
+              </div>
+            </form>
+          </div>
+          <div>
+            <h3 class="font-semibold text-sm mb-3">🚴 Deportes</h3>
+            <form id="formSmtpDeportes" class="space-y-2 text-sm">
+              <label class="flex items-center gap-2"><input type="checkbox" name="enabled" checked /> Activo</label>
+              <input name="host" placeholder="Host SMTP" class="w-full border rounded-lg px-3 py-2" />
+              <input name="port" type="number" placeholder="Puerto (465)" class="w-full border rounded-lg px-3 py-2" />
+              <input name="user" placeholder="Usuario / correo" class="w-full border rounded-lg px-3 py-2" />
+              <input name="password" type="password" placeholder="Contraseña" class="w-full border rounded-lg px-3 py-2" />
+              <input name="from" placeholder="Remitente visible" class="w-full border rounded-lg px-3 py-2" />
+              <div class="flex gap-2 pt-2">
+                <button type="submit" class="px-4 py-2 bg-adesa-red text-white rounded-lg font-bold text-xs">Guardar</button>
+                <button type="button" data-test="deportes" class="btnTest px-4 py-2 bg-gray-800 text-white rounded-lg text-xs">Probar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <p id="smtpMsg" class="text-xs mt-4 text-gray-500"></p>
+      </section>
+
+      <section class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
+        <h2 class="font-bold text-lg mb-4">Notificaciones</h2>
+        <div class="grid md:grid-cols-2 gap-6 text-sm">
+          <form id="formNotifTickets" class="space-y-2">
+            <h3 class="font-semibold">Desk — Tickets</h3>
+            <label class="flex gap-2"><input type="checkbox" name="enabled" /> Activar correos</label>
+            <label class="flex gap-2"><input type="checkbox" name="on_create" /> Al crear ticket</label>
+            <label class="flex gap-2"><input type="checkbox" name="on_assign" /> Al asignar agente</label>
+            <button type="submit" class="mt-2 px-4 py-2 bg-gray-800 text-white rounded-lg text-xs">Guardar</button>
+          </form>
+          <form id="formNotifLeads" class="space-y-2">
+            <h3 class="font-semibold">Leads — OT / proyectos</h3>
+            <label class="flex gap-2"><input type="checkbox" name="enabled" /> Activar correos</label>
+            <label class="flex gap-2"><input type="checkbox" name="on_ot" /> Al crear OT (levantamiento/verificación)</label>
+            <label class="flex gap-2"><input type="checkbox" name="on_ticket" /> Al vincular ticket Desk</label>
+            <button type="submit" class="mt-2 px-4 py-2 bg-gray-800 text-white rounded-lg text-xs">Guardar</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
+        <h2 class="font-bold text-lg mb-4">Integraciones</h2>
+        <div id="integraciones" class="space-y-3 text-sm"></div>
+        <p class="text-xs text-gray-400 mt-4">URLs y claves sensibles del iERP/ADM siguen en <code class="bg-gray-100 px-1 rounded">config/.env</code> del servidor. Aquí solo activas o desactivas el uso por módulo.</p>
+      </section>
+
+      <section class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
+        <h2 class="font-bold text-lg mb-2">Módulos por usuario</h2>
+        <p class="text-sm text-gray-500 mb-4">Asigna qué aplicaciones ve cada usuario en su panel (Hub, Power Quality, ScrapiBids, Desk, etc.). Admin siempre ve todo.</p>
+        <div class="grid md:grid-cols-2 gap-4 text-sm">
+          <label class="block font-semibold">Usuario
+            <select id="selUsuarioMod" class="mt-1 w-full border rounded-lg px-3 py-2">
+              <option value="">Selecciona…</option>
+            </select>
+          </label>
+          <div id="modulosCheckboxes" class="md:col-span-2 grid sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto p-3 bg-gray-50 rounded-xl"></div>
+          <button type="button" id="btnGuardarModulos" class="md:col-span-2 px-4 py-2 bg-adesa-red text-white rounded-lg font-bold text-xs">Guardar módulos del usuario</button>
+        </div>
+        <p id="modulosMsg" class="text-xs mt-3 text-gray-500"></p>
+      </section>
+
+      <p id="feedback" class="text-sm font-semibold hidden"></p>
+    </main>
+
+    <script>
+      function leerCookie(n) { return document.cookie.split("; ").find(c => c.startsWith(n + "="))?.split("=")[1] || ""; }
+      let cfg = null;
+
+      async function api(url, opts = {}) {
+        const r = await fetch(url, {
+          credentials: "include",
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": leerCookie("nexus_csrf"), ...opts.headers },
+          ...opts,
+        });
+        if (r.status === 401 || r.status === 403) { location.href = "/"; throw new Error("auth"); }
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || j.reason || "Error");
+        return j;
+      }
+
+      function badge(ok, label) {
+        return `<span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${ok ? "bg-green-50 text-green-800" : "bg-amber-50 text-amber-900"}">${ok ? "✓" : "!"} ${label}</span>`;
+      }
+
+      function llenarSmtp(formId, division, status) {
+        const f = document.getElementById(formId);
+        const c = cfg.config?.[`smtp.${division}`] || {};
+        f.enabled.checked = status.enabled !== false;
+        f.host.value = c.host || status.host || "";
+        f.port.value = c.port || 465;
+        f.user.value = c.user || status.from || "";
+        f.from.value = c.from || status.from || "";
+      }
+
+      function formToObj(form) {
+        const o = {};
+        [...form.elements].forEach(el => {
+          if (!el.name || el.type === "submit" || el.type === "button") return;
+          if (el.type === "checkbox") o[el.name] = el.checked;
+          else o[el.name] = el.value;
+        });
+        return o;
+      }
+
+      async function cargar() {
+        cfg = await api("/api/settings");
+        const s = cfg.smtp_status;
+        document.getElementById("estadoRapido").innerHTML = [
+          badge(s.energia.configured, `SMTP Energía (${s.energia.source})`),
+          badge(s.deportes.configured, `SMTP Deportes (${s.deportes.source})`),
+          badge(cfg.integrations.ierp.enabled, "iERP addon"),
+          badge(cfg.integrations.imap.enabled, "IMAP Desk"),
+          badge(cfg.integrations.adm.configured, "ADM API"),
+        ].join("");
+
+        llenarSmtp("formSmtpEnergia", "energia", s.energia);
+        llenarSmtp("formSmtpDeportes", "deportes", s.deportes);
+
+        const nt = cfg.notifications.tickets;
+        const nl = cfg.notifications.leads;
+        const ft = document.getElementById("formNotifTickets");
+        ft.enabled.checked = nt.enabled !== false;
+        ft.on_create.checked = nt.on_create !== false;
+        ft.on_assign.checked = nt.on_assign !== false;
+        const fl = document.getElementById("formNotifLeads");
+        fl.enabled.checked = nl.enabled !== false;
+        fl.on_ot.checked = nl.on_ot !== false;
+        fl.on_ticket.checked = nl.on_ticket !== false;
+
+        const integ = cfg.integrations;
+        document.getElementById("integraciones").innerHTML = `
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+            <div><strong>Nexus iERP</strong><div class="text-xs text-gray-500">${integ.ierp.api_url || "—"} · key ${integ.ierp.leads_key_configured ? "OK" : "falta"}</div></div>
+            <label class="flex gap-2 text-xs"><input id="togIerp" type="checkbox" ${integ.ierp.enabled ? "checked" : ""}/> Activo</label>
+          </div>
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+            <div><strong>IMAP Desk</strong><div class="text-xs text-gray-500">Polling ${integ.imap.poll_minutes} min</div></div>
+            <label class="flex gap-2 text-xs"><input id="togImap" type="checkbox" ${integ.imap.enabled ? "checked" : ""}/> Activo</label>
+          </div>
+          <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+            <div><strong>ADM Cloud</strong><div class="text-xs text-gray-500">${integ.adm.url || "sin URL"}</div></div>
+            <label class="flex gap-2 text-xs"><input id="togAdm" type="checkbox" ${integ.adm.enabled ? "checked" : ""}/> Activo</label>
+          </div>`;
+
+        document.getElementById("togIerp").onchange = e => api("/api/settings/integrations/ierp", { method: "PUT", body: JSON.stringify({ enabled: e.target.checked }) });
+        document.getElementById("togImap").onchange = e => api("/api/settings/integrations/imap", { method: "PUT", body: JSON.stringify({ enabled: e.target.checked }) });
+        document.getElementById("togAdm").onchange = e => api("/api/settings/integrations/adm", { method: "PUT", body: JSON.stringify({ enabled: e.target.checked }) });
+      }
+
+      document.getElementById("formSmtpEnergia").onsubmit = async e => {
+        e.preventDefault();
+        await api("/api/settings/smtp/energia", { method: "PUT", body: JSON.stringify(formToObj(e.target)) });
+        document.getElementById("smtpMsg").textContent = "SMTP Energía guardado.";
+        cargar();
+      };
+      document.getElementById("formSmtpDeportes").onsubmit = async e => {
+        e.preventDefault();
+        await api("/api/settings/smtp/deportes", { method: "PUT", body: JSON.stringify(formToObj(e.target)) });
+        document.getElementById("smtpMsg").textContent = "SMTP Deportes guardado.";
+        cargar();
+      };
+
+      document.querySelectorAll(".btnTest").forEach(btn => {
+        btn.onclick = async () => {
+          const to = prompt("Enviar prueba a:", "");
+          if (!to) return;
+          try {
+            const r = await api("/api/settings/test-smtp", { method: "POST", body: JSON.stringify({ division: btn.dataset.test, to }) });
+            alert(r.ok ? "Correo enviado: " + (r.messageId || "OK") : (r.error || "Error"));
+          } catch (err) { alert(err.message); }
+        };
+      });
+
+      document.getElementById("formNotifTickets").onsubmit = async e => {
+        e.preventDefault();
+        await api("/api/settings/notifications/tickets", { method: "PUT", body: JSON.stringify(formToObj(e.target)) });
+        alert("Notificaciones Desk guardadas.");
+      };
+      document.getElementById("formNotifLeads").onsubmit = async e => {
+        e.preventDefault();
+        await api("/api/settings/notifications/leads", { method: "PUT", body: JSON.stringify(formToObj(e.target)) });
+        alert("Notificaciones Leads guardadas.");
+      };
+
+      let catalogoModulos = [];
+      async function cargarModulosUsuario() {
+        const [{ usuarios }, { modulos }] = await Promise.all([
+          api("/api/usuario-modulos/usuarios"),
+          api("/api/usuario-modulos/catalogo"),
+        ]);
+        catalogoModulos = modulos;
+        const sel = document.getElementById("selUsuarioMod");
+        sel.innerHTML = '<option value="">Selecciona…</option>' + usuarios.map(u =>
+          `<option value="${u.uuid}">${u.nombre_completo} (${u.email}) — ${u.rol}</option>`).join("");
+        document.getElementById("modulosCheckboxes").innerHTML = modulos.map(m =>
+          `<label class="flex gap-2 items-start p-2 bg-white rounded-lg ring-1 ring-gray-100"><input type="checkbox" class="chkMod" value="${m.technicalName}" /><span>${m.icon || "📦"} ${m.displayName}${m.requiresAssignment ? " <span class=\"text-adesa-red\">*</span>" : ""}</span></label>`).join("");
+      }
+      document.getElementById("selUsuarioMod").onchange = async () => {
+        const uuid = document.getElementById("selUsuarioMod").value;
+        document.querySelectorAll(".chkMod").forEach(c => { c.checked = false; });
+        if (!uuid) return;
+        const data = await api("/api/usuario-modulos/usuarios/" + uuid);
+        const set = new Set(data.modulos || []);
+        document.querySelectorAll(".chkMod").forEach(c => { c.checked = set.has(c.value); });
+      };
+      document.getElementById("btnGuardarModulos").onclick = async () => {
+        const uuid = document.getElementById("selUsuarioMod").value;
+        if (!uuid) { document.getElementById("modulosMsg").textContent = "Selecciona un usuario."; return; }
+        const modulos = [...document.querySelectorAll(".chkMod:checked")].map(c => c.value);
+        await api("/api/usuario-modulos/usuarios/" + uuid, { method: "PUT", body: JSON.stringify({ modulos }) });
+        document.getElementById("modulosMsg").textContent = "Módulos actualizados.";
+      };
+
+      api("/api/auth/me").then(u => {
+        if (u.usuario?.rol !== "admin" && u.rol !== "admin") { location.href = "/dashboard.html"; return; }
+        cargar();
+        cargarModulosUsuario();
+      }).catch(() => location.href = "/");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Ajustes - WMS</title>
+    <link rel="stylesheet" href="/static/css/wms.css">
+    <link rel="stylesheet" href="/static/css/ajustes-historial.css">
+</head>
+<body>
+    <header class="wms-header">
+        <div class="wms-header-inner">
+            <div class="wms-header-title">
+                <span class="module-icon">📋</span>
+                <h1>Historial de Ajustes</h1>
+            </div>
+            <div class="wms-header-actions">
+                <span class="wms-header-user" id="user-info">Cargando...</span>
+                <a href="/" class="wms-btn wms-btn-secondary wms-btn-sm" title="Inicio">🏠 <span class="wms-header-btn-label">Inicio</span></a>
+                <button type="button" class="wms-btn wms-btn-secondary wms-btn-sm" onclick="cerrarSesion()" title="Cerrar sesión"><span class="wms-icon-logout" aria-hidden="true"></span> <span class="wms-header-btn-label">Salir</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="wms-page">
+        <div id="message-success" class="wms-toast wms-toast-success"></div>
+        <div id="message-error" class="wms-toast wms-toast-error"></div>
+        <div id="message-warning" class="wms-toast wms-toast-warning"></div>
+
+        <div class="wms-card">
+            <div class="wms-card-header">
+                <h2>📋 Registros de Ajustes</h2>
+                <div class="header-btn-group">
+                    <button class="wms-btn wms-btn-secondary wms-btn-sm" onclick="abrirModalDescargarCatalogo()">📥 Catálogo</button>
+                    <button class="wms-btn wms-btn-success wms-btn-sm" onclick="abrirModalCargaMasiva()">📊 Excel</button>
+                    <button class="wms-btn wms-btn-primary wms-btn-sm" onclick="nuevoAjuste()">+ Nuevo Ajuste</button>
+                </div>
+            </div>
+
+            <div class="wms-card-body">
+                <div class="wms-list-toolbar">
+                <button class="wms-filters-toggle" type="button">Filtros <span class="chevron">▼</span></button>
+                <div class="wms-list-toolbar-search">
+                    <input type="text" id="search" class="wms-input" placeholder="Buscar por notas, ubicación..." onkeyup="if(event.key==='Enter') aplicarFiltros()">
+                </div>
+                </div>
+                <div class="wms-filters collapsible">
+                    <div class="wms-filters-grid">
+                        <div class="wms-form-group">
+                            <label class="wms-label">Fecha Desde</label>
+                            <input type="date" id="fecha_desde" class="wms-input">
+                        </div>
+                        <div class="wms-form-group">
+                            <label class="wms-label">Fecha Hasta</label>
+                            <input type="date" id="fecha_hasta" class="wms-input">
+                        </div>
+                        <div class="wms-form-group">
+                            <label class="wms-label">Ubicación</label>
+                            <input type="text" id="ubicacion_fisica" class="wms-input" placeholder="Ej: 2P1D01N1">
+                        </div>
+                        <div class="wms-form-group">
+                            <label class="wms-label">SKU</label>
+                            <input type="text" id="sku" class="wms-input" placeholder="Ej: VP1">
+                        </div>
+                        <div class="wms-form-group">
+                            <label class="wms-label">Tipo Ajuste</label>
+                            <select id="tipo_ajuste" class="wms-select">
+                                <option value="">Todos</option>
+                                <option value="Físico">Físico</option>
+                                <option value="ADM">ADM</option>
+                            </select>
+                        </div>
+                        <div class="wms-form-group">
+                            <label class="wms-label">Usuario</label>
+                            <select id="usuario_id" class="wms-select">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="wms-filters-actions">
+                        <button class="wms-btn wms-btn-secondary wms-btn-sm" onclick="limpiarFiltros()">Limpiar</button>
+                        <button class="wms-btn wms-btn-primary wms-btn-sm" onclick="aplicarFiltros()">Aplicar Filtros</button>
+                    </div>
+                </div>
+
+                <div class="wms-table-wrap">
+                    <table class="wms-table" id="tabla-ajustes">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Ubicación</th>
+                                <th>Productos (SKU)</th>
+                                <th>Tipo</th>
+                                <th>Cantidad</th>
+                                <th>Usuario</th>
+                                <th>Notas</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ajustes-tbody">
+                            <tr><td colspan="8" class="text-center" style="padding:var(--space-8)"><div class="wms-loading"><div class="wms-spinner"></div> Cargando...</div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="wms-mobile-cards" id="ajustes-cards"></div>
+
+                <div class="wms-pagination">
+                    <div class="wms-pagination-info" id="pagination-info">Mostrando 0 de 0 registros</div>
+                    <div class="wms-pagination-controls" id="pagination-controls"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Descargar Catálogo -->
+    <div id="modal-descargar-catalogo" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>📥 Descargar Catálogo</h2>
+                <button class="modal-close" onclick="cerrarModalDescargarCatalogo()">&times;</button>
+            </div>
+            <div class="modal-info">Elija el tipo de catálogo. Ambos formatos son compatibles con la carga masiva.</div>
+            <div class="catalog-option" onclick="descargarCatalogo('wms')">
+                <h3>📊 Stock por Ubicaciones Físicas</h3>
+                <p>Solo productos con stock &gt; 0 en ubicaciones físicas. Un producto en TIENDA y 1L1AN1 genera dos filas.</p>
+                <div class="count" id="catalogo-wms-count">—</div>
+            </div>
+            <div class="catalog-option" onclick="descargarCatalogo('completo')">
+                <h3>📋 Catálogo Completo</h3>
+                <p>Todos los productos activos con Stock Ref. ADM. Incluye hoja de instrucciones.</p>
+                <div class="count" id="catalogo-completo-count">—</div>
+            </div>
+            <div style="text-align:right; margin-top:var(--space-4);">
+                <button class="wms-btn wms-btn-secondary" onclick="cerrarModalDescargarCatalogo()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Carga Masiva -->
+    <div id="modal-carga-masiva" class="modal-overlay">
+        <div class="modal-box modal-box-lg">
+            <div class="modal-header">
+                <h2>📊 Carga Masiva desde Excel</h2>
+                <button class="modal-close" onclick="cerrarModalCargaMasiva()">&times;</button>
+            </div>
+            <div class="modal-info">
+                <strong>Formato Recomendado (Catálogo):</strong><br>
+                Col A: Product ID · Col B: SKU · Col C: Nombre · Col D: Stock Ref. ADM · Col E: Ubicación Física · Col F: Cantidad Actual<br><br>
+                <strong>Formato Legacy:</strong><br>
+                Col A: SKU · Col B: Ubicación Física · Col C: Cantidad · Col D: Notas · Col E: Product ID<br><br>
+                <em>Use "Descargar Catálogo" para obtener el archivo base. Modifique la columna "Cantidad Actual".</em>
+            </div>
+            <div class="wms-form-group">
+                <label class="wms-label">Archivo Excel (.xlsx)</label>
+                <input type="file" id="archivo-excel" accept=".xlsx,.xls" class="wms-input">
+            </div>
+            <div class="wms-form-group">
+                <label class="wms-label">Notas Generales (opcional)</label>
+                <textarea id="notas-generales" class="wms-input" placeholder="Ej: Inventario inicial - Fecha: 2025-01-22" style="min-height:80px;resize:vertical;"></textarea>
+            </div>
+            <div id="resultado-carga" style="margin-bottom:var(--space-4);"></div>
+            <div style="display:flex; gap:var(--space-3); justify-content:flex-end;">
+                <button class="wms-btn wms-btn-secondary" onclick="cerrarModalCargaMasiva()">Cancelar</button>
+                <button class="wms-btn wms-btn-success" onclick="procesarExcel()">Procesar Archivo</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/security_utils.js"></script>
+    <script src="/static/js/wms-common.js"></script>
+    <script src="/static/js/ajustes-historial.js"></script>
+</body>
+</html>

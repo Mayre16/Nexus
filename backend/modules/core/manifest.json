@@ -1,0 +1,15 @@
+{
+  "technicalName": "nexus_core",
+  "displayName": "Nexus Core",
+  "summary": "Plataforma base: auth, usuarios, módulos",
+  "version": "0.1.0",
+  "category": "platform",
+  "state": "installed",
+  "installable": false,
+  "showInDashboard": false,
+  "depends": [],
+  "routes": { "api": "/api/auth" },
+  "roles": ["admin", "empleado", "cliente_externo", "cliente_suscriptor"],
+  "icon": "⚙️",
+  "sortOrder": 0
+}

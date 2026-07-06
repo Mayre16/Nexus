@@ -1,0 +1,140 @@
+═══════════════════════════════════════════════════════════════
+  CÓMO VER LOS ERRORES DETALLADOS
+═══════════════════════════════════════════════════════════════
+
+He agregado logging detallado. Ahora los errores aparecerán en:
+
+═══════════════════════════════════════════════════════════════
+
+📁 UBICACIONES DE LOGS EN CPANEL
+═══════════════════════════════════════════════════════════════
+
+1. stderr.log
+   ────────────
+   Ubicación: /home2/adesa/wms.adesa.com.do/stderr.log
+   
+   Este archivo ahora debería mostrar los errores detallados.
+   
+   ⚠️ IMPORTANTE: Si está vacío después de un error, puede ser:
+   - El archivo se está creando en otra ubicación
+   - Los permisos no permiten escribir
+   - Necesitas refrescar el archivo
+
+2. stdout.log
+   ───────────
+   Ubicación: /home2/adesa/wms.adesa.com.do/stdout.log
+   
+   También puede contener información de depuración.
+
+3. EN LA RESPUESTA JSON (NUEVO)
+   ─────────────────────────────
+   Ahora el error también aparecerá en la respuesta del navegador.
+   
+   Cómo verlo:
+   - Abre DevTools (F12)
+   - Ve a la pestaña "Network"
+   - Busca la petición: api/facturas/buscar
+   - Haz clic en ella
+   - Ve a la pestaña "Response"
+   - Ahí verás el JSON con el campo "traceback" que contiene
+     los detalles del error
+
+═══════════════════════════════════════════════════════════════
+
+✅ PASOS PARA VER EL ERROR
+═══════════════════════════════════════════════════════════════
+
+OPCIÓN 1: Ver en DevTools (MÁS FÁCIL)
+──────────────────────────────────────
+1. Abre la página de despacho
+2. Presiona F12 (DevTools)
+3. Ve a la pestaña "Network"
+4. Intenta buscar la factura (ej: 2967)
+5. En la lista de peticiones, busca: "facturas/buscar"
+6. Haz clic en ella
+7. Ve a la pestaña "Response" o "Preview"
+8. Verás un JSON con:
+   {
+     "success": false,
+     "error": "...",
+     "message": "...",
+     "traceback": [...]  ← AQUÍ ESTÁN LOS DETALLES
+   }
+
+OPCIÓN 2: Ver en stderr.log
+────────────────────────────
+1. En CPanel File Manager:
+   - Ve a: /home2/adesa/wms.adesa.com.do/
+   - Busca: stderr.log
+   - Abre el archivo
+   - Debería mostrar el error detallado
+
+2. Si está vacío:
+   - Intenta buscar la factura una vez más
+   - Espera 2-3 segundos
+   - Refresca el archivo (F5)
+   - El error debería aparecer
+
+OPCIÓN 3: Ver en la consola del navegador
+──────────────────────────────────────────
+1. Abre DevTools (F12)
+2. Ve a la pestaña "Console"
+3. Intenta buscar la factura
+4. Ahora deberías ver más detalles del error
+
+═══════════════════════════════════════════════════════════════
+
+📝 ARCHIVOS ACTUALIZADOS CON LOGGING
+═══════════════════════════════════════════════════════════════
+
+✅ app_wms.py
+   - Manejo global de errores 500
+   - Logging a stderr y stdout
+   - Traceback completo en respuesta JSON
+
+✅ routes/facturas.py
+   - Logging detallado de cada paso
+   - Errores escritos a stderr
+   - Traceback en respuesta JSON
+
+═══════════════════════════════════════════════════════════════
+
+🔄 PASOS PARA ACTUALIZAR
+═══════════════════════════════════════════════════════════════
+
+1. SUBIR ARCHIVOS:
+   - app_wms.py
+   - routes/facturas.py
+
+2. REINICIAR:
+   - Setup Python App > RESTART
+
+3. PROBAR:
+   - Busca factura: 2967
+   - Abre DevTools > Network > Response
+   - O revisa stderr.log
+
+═══════════════════════════════════════════════════════════════
+
+💡 NOTA SOBRE CACHÉ
+═══════════════════════════════════════════════════════════════
+
+Sí, también deberías limpiar el caché del navegador:
+- Presiona: Ctrl + Shift + R (Windows) o Cmd + Shift + R (Mac)
+- O ve a: Configuración > Privacidad > Limpiar datos de navegación
+
+Pero más importante, los errores ahora aparecen en la respuesta
+JSON directamente, así que puedes verlos sin necesidad de logs.
+
+═══════════════════════════════════════════════════════════════
+
+
+
+
+
+
+
+
+
+
+

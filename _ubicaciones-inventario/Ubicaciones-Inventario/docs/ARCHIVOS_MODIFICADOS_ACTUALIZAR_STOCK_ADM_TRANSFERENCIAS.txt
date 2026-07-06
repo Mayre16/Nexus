@@ -1,0 +1,144 @@
+ARCHIVOS MODIFICADOS PARA ACTUALIZAR StockProductoADM EN TRANSFERENCIAS
+========================================================================
+
+Fecha: 2026-01-26
+Descripción: Corrección para que las transferencias actualicen StockProductoADM cuando se involucran ubicaciones macro (NO-ADESA)
+
+PROBLEMA:
+---------
+Al procesar una transferencia desde/hacia ubicación macro (NO-ADESA), el stock en StockProductoADM no se actualizaba, mostrando valores incorrectos en la consulta de productos.
+
+Ejemplo:
+- Transferencia: P2-P1-AL-N2 → ADESA (1.00)
+- Después de la transferencia, P2-P1-AL-N2 seguía mostrando 1.00 en lugar de 0.00
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. routes/transferencias.py
+   - Línea 10: Agregados imports de ProductoADM y StockProductoADM
+   - Líneas 552-585: Agregada actualización de StockProductoADM para origen NO-ADESA
+   - Líneas 612-650: Agregada actualización de StockProductoADM para destino NO-ADESA
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. Imports agregados:
+   - `ProductoADM`: Para buscar el producto por SKU o item_id
+   - `StockProductoADM`: Para actualizar el stock en ubicaciones macro
+
+2. Actualización de StockProductoADM para origen NO-ADESA:
+   - Busca el producto por SKU o item_id
+   - Busca el registro de StockProductoADM para la ubicación origen
+   - Resta la cantidad transferida del stock
+   - Si no existe registro, crea uno con stock 0
+   - Agregados logs informativos
+
+3. Actualización de StockProductoADM para destino NO-ADESA:
+   - Busca el producto por SKU o item_id
+   - Busca el registro de StockProductoADM para la ubicación destino
+   - Suma la cantidad transferida al stock
+   - Si no existe registro, crea uno con la cantidad transferida
+   - Agregados logs informativos
+
+COMPORTAMIENTO:
+---------------
+
+**Escenario: Transferencia P2-P1-AL-N2 → ADESA (1.00)**
+
+**ANTES:**
+1. Origen NO-ADESA: Solo crea movimiento
+2. Destino ADESA: Modifica StockUbicacion (2P1D01N1: +1.00)
+3. StockProductoADM: NO se modifica
+4. Consulta muestra: P2-P1-AL-N2 = 1.00 ❌ (incorrecto)
+
+**DESPUÉS:**
+1. Origen NO-ADESA: 
+   - Crea movimiento
+   - Actualiza StockProductoADM (P2-P1-AL-N2: -1.00) ✅
+2. Destino ADESA: Modifica StockUbicacion (2P1D01N1: +1.00)
+3. Consulta muestra: P2-P1-AL-N2 = 0.00 ✅ (correcto)
+
+**Escenario: Transferencia ADESA → Mirador Sur (1.00)**
+
+**ANTES:**
+1. Origen ADESA: Modifica StockUbicacion (2P1D01N1: -1.00)
+2. Destino NO-ADESA: Solo crea movimiento
+3. StockProductoADM: NO se modifica
+4. Consulta muestra: Mirador Sur = valor anterior ❌ (incorrecto)
+
+**DESPUÉS:**
+1. Origen ADESA: Modifica StockUbicacion (2P1D01N1: -1.00)
+2. Destino NO-ADESA:
+   - Crea movimiento
+   - Actualiza StockProductoADM (Mirador Sur: +1.00) ✅
+3. Consulta muestra: Mirador Sur = valor anterior + 1.00 ✅ (correcto)
+
+SEGURIDAD:
+----------
+
+✅ NO rompe ninguna lógica existente:
+- Solo actualiza StockProductoADM (cache local)
+- No modifica StockUbicacion para ubicaciones NO-ADESA (correcto)
+- La sincronización sobrescribirá el valor (esperado y correcto)
+
+✅ Validaciones:
+- Verifica que el producto exista antes de actualizar
+- Verifica que location_id exista antes de actualizar
+- No permite stock negativo en origen (usa max(0.0, stock_anterior - cantidad))
+
+✅ Logs informativos:
+- Registra cada actualización de StockProductoADM
+- Registra advertencias si no se encuentra producto o location_id
+
+COMPARACIÓN CON OTROS MÓDULOS:
+-------------------------------
+
+| Módulo | ¿Actualiza StockProductoADM para ubicaciones macro? |
+|--------|-----------------------------------------------------|
+| Ajustes | ✅ Sí (implementado anteriormente) |
+| Transferencias | ✅ Sí (implementado ahora) |
+| Recepciones | ❌ No (solo actualiza StockUbicacion para ADESA) |
+| Despachos | ❌ No (solo actualiza StockUbicacion para ADESA) |
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+----------------------------------------
+
+1. Subir el archivo modificado:
+   - routes/transferencias.py
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario.
+
+4. Probar:
+   - Procesar transferencia desde ubicación macro (NO-ADESA) hacia ADESA
+   - Consultar el producto
+   - Verificar que el stock de la ubicación origen se actualiza correctamente
+   - Procesar transferencia desde ADESA hacia ubicación macro (NO-ADESA)
+   - Verificar que el stock de la ubicación destino se actualiza correctamente
+
+RESULTADO ESPERADO:
+-------------------
+
+Después de procesar una transferencia:
+- ✅ El stock en StockProductoADM se actualiza inmediatamente
+- ✅ La consulta de productos muestra el stock correcto
+- ✅ El usuario ve el cambio reflejado sin esperar la sincronización
+- ✅ La sincronización eventualmente sobrescribirá el valor (esperado)
+
+NOTA IMPORTANTE:
+----------------
+
+**Regla de Oro #4:**
+- Solo modifica StockUbicacion si la ubicación física existe y es ADESA
+- **NO prohíbe** modificar StockProductoADM para ubicaciones macro (NO-ADESA)
+- StockProductoADM es cache de ADM Cloud, puede actualizarse temporalmente para mejorar UX
+
+
+
+
+
+
+
+

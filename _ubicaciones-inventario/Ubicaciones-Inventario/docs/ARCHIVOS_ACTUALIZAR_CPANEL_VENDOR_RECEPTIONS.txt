@@ -1,0 +1,142 @@
+===========================================================
+ARCHIVOS A ACTUALIZAR EN CPANEL - SOPORTE VENDOR RECEPTIONS
+===========================================================
+
+FECHA: 2026-01-19
+FUNCIONALIDAD: Compra con Recepción (Proveedor) - VendorReceptions
+ESTADO: ✅ Implementado
+
+===========================================================
+📝 ARCHIVOS MODIFICADOS (ACTUALIZAR)
+===========================================================
+
+1. api/adm_cloud.py
+   → AGREGADOS métodos para VendorReceptions:
+      - listar_vendor_recepciones()
+      - obtener_vendor_recepcion_por_guid()
+      - buscar_vendor_recepcion_por_docid()
+
+2. utils/helpers.py
+   → AGREGADA función obtener_productos_vendor_recepcion()
+   → Extrae Items de VendorReception (incluye Cost, TaxAmount, etc.)
+
+3. routes/recepciones.py
+   → MODIFICADO endpoint /api/recepciones/buscar
+   → Ahora acepta parámetro "tipo" (RECEPTION o VEND_REC)
+   → Detecta automáticamente el tipo de recepción
+   → Devuelve campos adicionales para VendorReception:
+      - proveedor, ncf, fiscal_id (RNC), referencia, tax_amount (ITBIS)
+
+4. templates/recepciones.html
+   → AGREGADO selector de tipo de recepción
+      - "Recepción (Conduce/Ajuste)" → Receptions
+      - "Compra con Recepción (Proveedor)" → VendorReceptions
+   → AGREGADOS campos adicionales para VendorReception:
+      - Proveedor
+      - NCF
+      - RNC
+      - No. Factura
+      - ITBIS
+   → Los campos adicionales se muestran solo cuando es VendorReception
+
+===========================================================
+✅ FUNCIONALIDADES IMPLEMENTADAS
+===========================================================
+
+✅ Búsqueda de Recepciones (2 tipos):
+   - Recepción normal (Receptions) → Conduce/Ajuste
+   - Compra con Recepción (VendorReceptions) → Proveedor
+
+✅ Campos adicionales en VendorReception:
+   - Proveedor (RelationshipName)
+   - NCF (Número de Comprobante Fiscal)
+   - RNC (FiscalID)
+   - No. Factura/Referencia (Reference)
+   - ITBIS (TaxAmount)
+
+✅ Productos de VendorReception:
+   - Incluye Cost, ExtendedCost (costos)
+   - Incluye TaxPercent, TaxAmount (impuestos por línea)
+
+✅ Misma funcionalidad de asignación:
+   - Ambos tipos permiten asignar ubicaciones físicas
+   - Ambos crean movimientos tipo RECEIPT
+   - Ambos incrementan StockUbicacion
+
+===========================================================
+🧪 VERIFICACIÓN POST-ACTUALIZACIÓN
+===========================================================
+
+Después de subir todos los archivos:
+
+1. Acceder a: https://wms.adesa.com.do/recepciones
+2. Seleccionar tipo: "Compra con Recepción (Proveedor)"
+3. Buscar una recepción por DocID (ej: 00000048)
+4. Verificar que se muestren:
+   ✅ Proveedor
+   ✅ NCF
+   ✅ RNC
+   ✅ No. Factura
+   ✅ ITBIS
+   ✅ Productos con cantidades
+5. Asignar ubicaciones físicas a los productos
+6. Registrar la recepción
+
+===========================================================
+📋 ENDPOINTS DISPONIBLES
+===========================================================
+
+POST /api/recepciones/buscar
+→ Parámetros: {docid, tipo} 
+→ tipo: "RECEPTION" o "VEND_REC"
+→ Busca en Receptions o VendorReceptions según el tipo
+
+POST /api/recepciones/registrar
+→ Registra recepción asignando ubicaciones físicas
+→ Funciona con ambos tipos de recepción
+
+GET /recepciones
+→ Página HTML del módulo de Recepción
+→ Ahora incluye selector de tipo
+
+===========================================================
+🔗 INTEGRACIÓN CON ADM CLOUD
+===========================================================
+
+Endpoints ADM Cloud utilizados:
+
+1. GET /api/Receptions (Recepción normal)
+   → DocType: "RECEPTION"
+   
+2. GET /api/VendorReceptions (Compra con Recepción) ✅ NUEVO
+   → DocType: "VEND_REC"
+   → Campos adicionales: NCF, RNC, Proveedor, ITBIS
+
+===========================================================
+✅ LISTA FINAL RESUMIDA
+===========================================================
+
+ARCHIVOS MODIFICADOS (4):
+1. api/adm_cloud.py
+2. utils/helpers.py
+3. routes/recepciones.py
+4. templates/recepciones.html
+
+TOTAL: 4 archivos
+
+===========================================================
+📌 NOTAS IMPORTANTES
+===========================================================
+
+- El endpoint VendorReceptions respeta exactamente las mayúsculas
+- El módulo de Recepción ahora maneja 2 fuentes diferentes
+- Ambos tipos comparten la misma lógica de asignación
+- Los campos adicionales solo se muestran para VendorReception
+- La funcionalidad existente de Receptions se mantiene intacta
+
+===========================================================
+
+
+
+
+

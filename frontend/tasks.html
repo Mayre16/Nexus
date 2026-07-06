@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA Nexus · Tasks</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { adesa: { red: "#be1622", red2: "#ef1d2b", gold: "#fcb900", ink: "#111111" } },
+            fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+    <header class="bg-adesa-ink text-white">
+      <div class="max-w-[1400px] mx-auto px-6 py-4 flex flex-wrap items-center gap-4 justify-between">
+        <div class="flex items-center gap-3">
+          <a href="/dashboard.html" class="text-sm text-gray-400 hover:text-white">← Panel</a>
+          <span class="text-lg font-bold">Nexus Tasks</span>
+          <span class="text-xs bg-white/10 px-2 py-0.5 rounded-full">Tablero interno</span>
+        </div>
+        <div class="flex gap-3 text-xs">
+          <a href="/leads.html" class="text-gray-400 hover:text-white">Leads</a>
+          <a href="/desk.html" class="text-gray-400 hover:text-white">Desk</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-[1400px] mx-auto px-6 py-6">
+      <div class="flex flex-wrap gap-3 mb-4 items-end">
+        <div class="flex rounded-lg overflow-hidden ring-1 ring-gray-200 bg-white">
+          <button data-div="todos" class="filtro-div px-4 py-2 text-sm font-semibold bg-adesa-red text-white">Todos</button>
+          <button data-div="energia" class="filtro-div px-4 py-2 text-sm hover:bg-gray-50">⚡ Energía</button>
+          <button data-div="deportes" class="filtro-div px-4 py-2 text-sm hover:bg-gray-50">🚴 Deportes</button>
+          <button data-div="interno" class="filtro-div px-4 py-2 text-sm hover:bg-gray-50">🏢 Interno</button>
+        </div>
+        <input id="filtroBuscar" type="search" placeholder="Buscar título…"
+          class="rounded-lg border border-gray-200 px-3 py-2 text-sm flex-1 min-w-[160px]" />
+        <label class="flex items-center gap-2 text-xs text-gray-600">
+          <input id="chkArchivados" type="checkbox" class="rounded" />
+          Ver archivadas
+        </label>
+        <button id="btnNuevo" type="button" class="px-4 py-2 rounded-lg bg-adesa-red text-white text-sm font-bold">+ Nueva tarea</button>
+      </div>
+
+      <div id="conteos" class="flex flex-wrap gap-2 mb-4 text-xs text-gray-500"></div>
+
+      <div id="tablero" class="grid md:grid-cols-3 gap-4">
+        <section class="kanban-col bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 flex flex-col min-h-[420px]" data-estado="pendiente">
+          <div class="px-4 py-3 border-b font-bold text-sm flex justify-between">
+            <span>Pendiente</span><span class="col-count text-gray-400 font-normal">0</span>
+          </div>
+          <ul class="col-list flex-1 p-3 space-y-2 overflow-y-auto max-h-[65vh]"></ul>
+        </section>
+        <section class="kanban-col bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 flex flex-col min-h-[420px]" data-estado="en_progreso">
+          <div class="px-4 py-3 border-b font-bold text-sm flex justify-between">
+            <span>En progreso</span><span class="col-count text-gray-400 font-normal">0</span>
+          </div>
+          <ul class="col-list flex-1 p-3 space-y-2 overflow-y-auto max-h-[65vh]"></ul>
+        </section>
+        <section class="kanban-col bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 flex flex-col min-h-[420px]" data-estado="completado">
+          <div class="px-4 py-3 border-b font-bold text-sm flex justify-between">
+            <span>Completado</span><span class="col-count text-gray-400 font-normal">0</span>
+          </div>
+          <ul class="col-list flex-1 p-3 space-y-2 overflow-y-auto max-h-[65vh]"></ul>
+        </section>
+      </div>
+
+      <div id="panelArchivados" class="hidden mt-6 bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-4">
+        <h3 class="font-bold text-sm mb-3">Archivadas <span id="archCount" class="text-gray-400 font-normal"></span></h3>
+        <ul id="listaArchivados" class="space-y-2"></ul>
+        <p id="emptyArchivados" class="hidden text-center text-gray-400 text-sm py-6">Sin tareas archivadas</p>
+      </div>
+    </main>
+
+    <dialog id="dlgTarea" class="rounded-2xl p-0 backdrop:bg-black/40 w-full max-w-lg open:animate-none">
+      <form id="formTarea" class="p-6 max-h-[90vh] overflow-y-auto">
+        <h3 id="dlgTitulo" class="font-bold text-lg mb-4">Nueva tarea</h3>
+        <input type="hidden" id="tareaUuid" />
+        <label class="block mb-3">
+          <span class="text-xs text-gray-500">Título</span>
+          <input id="tareaTitulo" required maxlength="255" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+        </label>
+        <label class="block mb-3">
+          <span class="text-xs text-gray-500">Descripción</span>
+          <textarea id="tareaDesc" rows="3" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm"></textarea>
+        </label>
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <label class="block">
+            <span class="text-xs text-gray-500">División</span>
+            <select id="tareaDivision" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm">
+              <option value="interno">Interno (global)</option>
+              <option value="energia">Energía</option>
+              <option value="deportes">Deportes</option>
+            </select>
+          </label>
+          <label class="block">
+            <span class="text-xs text-gray-500">Prioridad</span>
+            <select id="tareaPrioridad" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm">
+              <option value="baja">Baja</option>
+              <option value="media" selected>Media</option>
+              <option value="alta">Alta</option>
+            </select>
+          </label>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <label class="block">
+            <span class="text-xs text-gray-500">Estado</span>
+            <select id="tareaEstado" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm">
+              <option value="pendiente">Pendiente</option>
+              <option value="en_progreso">En progreso</option>
+              <option value="completado">Completado</option>
+            </select>
+          </label>
+          <label class="block">
+            <span class="text-xs text-gray-500">Asignado</span>
+            <select id="tareaAsignado" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm">
+              <option value="">Sin asignar</option>
+            </select>
+          </label>
+        </div>
+        <label class="block mb-3">
+          <span class="text-xs text-gray-500">Etiquetas (separadas por coma)</span>
+          <input id="tareaEtiquetas" placeholder="qa, dev, pruebas" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+        </label>
+        <label class="block mb-3">
+          <span class="text-xs text-gray-500">Fecha límite</span>
+          <input id="tareaLimite" type="date" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm" />
+        </label>
+        <label class="block mb-4">
+          <span class="text-xs text-gray-500">Lead vinculado (UUID, opcional)</span>
+          <input id="tareaLeadUuid" class="w-full mt-1 rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono text-xs" />
+        </label>
+
+        <div id="panelParticipantes" class="hidden border-t pt-4 mb-4">
+          <h4 class="text-xs font-bold uppercase text-gray-400 mb-2">Participantes etiquetados</h4>
+          <ul id="listaParticipantes" class="space-y-2 mb-3 text-sm"></ul>
+          <div class="flex flex-wrap gap-2 items-end">
+            <label class="flex-1 min-w-[140px]">
+              <span class="text-[10px] text-gray-500">Buscar persona</span>
+              <input id="partBuscar" list="partList" placeholder="Nombre o email…"
+                class="w-full mt-0.5 rounded-lg border border-gray-200 px-2 py-1.5 text-xs" />
+              <datalist id="partList"></datalist>
+              <input type="hidden" id="partPersonaUuid" />
+            </label>
+            <select id="partRol" class="rounded-lg border border-gray-200 px-2 py-1.5 text-xs">
+              <option value="etiquetado">Etiquetado</option>
+              <option value="asignado">Asignado</option>
+              <option value="contratista_levantamiento">Contratista levantamiento</option>
+              <option value="receptor_cotizacion">Receptor cotización</option>
+              <option value="observador">Observador</option>
+            </select>
+            <label class="text-[10px] flex items-center gap-1"><input id="partNotificar" type="checkbox" checked /> Notificar</label>
+            <button type="button" id="btnAddPart" class="px-2 py-1.5 text-xs rounded-lg bg-purple-100 text-purple-900 font-semibold">+ Etiquetar</button>
+          </div>
+          <button type="button" id="btnNuevaPersona" class="mt-2 text-[10px] text-adesa-red hover:underline">+ Crear contratista/cliente</button>
+        </div>
+
+        <div id="dlgAcciones" class="flex flex-wrap justify-between gap-2">
+          <div class="flex gap-2">
+            <button type="button" id="btnArchivar" class="hidden px-3 py-2 text-xs rounded-lg bg-gray-100 text-gray-700">Archivar</button>
+            <button type="button" id="btnRestaurar" class="hidden px-3 py-2 text-xs rounded-lg bg-amber-50 text-amber-900">Restaurar</button>
+          </div>
+          <div class="flex gap-2">
+            <button type="button" id="btnCancelTarea" class="px-4 py-2 text-sm text-gray-600">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-adesa-red text-white text-sm font-bold">Guardar</button>
+          </div>
+        </div>
+      </form>
+    </dialog>
+
+    <script>
+      function leerCookie(n) {
+        return document.cookie.split("; ").find((c) => c.startsWith(n + "="))?.split("=")[1] || "";
+      }
+
+      let divisionFiltro = "todos";
+      let agentes = [];
+      let tareasCache = [];
+      let personaCache = {};
+
+      const PRIORIDAD_C = { baja: "bg-gray-100 text-gray-700", media: "bg-blue-50 text-blue-800", alta: "bg-red-100 text-red-800" };
+      const DIV_LABEL = { energia: "⚡", deportes: "🚴", interno: "🏢" };
+
+      async function api(url, opts = {}) {
+        const r = await fetch(url, {
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": decodeURIComponent(leerCookie("nexus_csrf")),
+            ...opts.headers,
+          },
+          ...opts,
+        });
+        if (r.status === 401) { location.href = "/"; return null; }
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.error || "Error " + r.status);
+        return data;
+      }
+
+      function paramsLista() {
+        const p = new URLSearchParams();
+        if (divisionFiltro !== "todos") p.set("division", divisionFiltro);
+        const q = document.getElementById("filtroBuscar").value.trim();
+        if (q) p.set("buscar", q);
+        if (document.getElementById("chkArchivados").checked) p.set("archivados", "1");
+        return p.toString();
+      }
+
+      function cardHtml(t) {
+        const tags = (t.etiquetas || []).map((e) =>
+          `<span class="text-[9px] px-1 py-0.5 rounded bg-gray-200 text-gray-700">${e}</span>`).join(" ");
+        const vinc = t.lead_referencia
+          ? `<span class="text-[10px] text-adesa-red">${t.lead_referencia}</span>`
+          : t.ticket_referencia
+            ? `<span class="text-[10px] text-gray-500">${t.ticket_referencia}</span>`
+            : "";
+        return `<article class="task-card p-3 rounded-xl bg-gray-50 ring-1 ring-gray-100 cursor-pointer hover:ring-adesa-red/30 transition" data-uuid="${t.uuid}">
+          <div class="flex justify-between gap-1 mb-1">
+            <span class="text-[10px] font-mono text-gray-400">${t.referencia}</span>
+            <span class="text-[10px] px-1 rounded ${PRIORIDAD_C[t.prioridad] || PRIORIDAD_C.media}">${t.prioridad}</span>
+          </div>
+          <div class="font-semibold text-sm leading-snug">${t.titulo}</div>
+          <div class="mt-2 flex flex-wrap gap-1 items-center text-[10px] text-gray-500">
+            <span>${DIV_LABEL[t.division] || ""}</span>
+            ${t.asignado_nombre ? `<span>→ ${t.asignado_nombre.split(" ")[0]}</span>` : ""}
+            ${vinc}
+          </div>
+          ${tags ? `<div class="mt-2 flex flex-wrap gap-1">${tags}</div>` : ""}
+        </article>`;
+      }
+
+      async function cargarTablero() {
+        const data = await api("/api/tasks?" + paramsLista());
+        if (!data) return;
+        tareasCache = data.tareas || [];
+
+        const verArch = document.getElementById("chkArchivados").checked;
+        document.getElementById("tablero").classList.toggle("hidden", verArch);
+        document.getElementById("panelArchivados").classList.toggle("hidden", !verArch);
+
+        if (verArch) {
+          const ul = document.getElementById("listaArchivados");
+          ul.innerHTML = "";
+          const arch = data.porEstado?.archivado || [];
+          document.getElementById("archCount").textContent = `(${arch.length})`;
+          document.getElementById("emptyArchivados").classList.toggle("hidden", arch.length > 0);
+          arch.forEach((t) => {
+            const li = document.createElement("li");
+            li.innerHTML = cardHtml(t);
+            li.querySelector(".task-card").onclick = () => abrirEditar(t.uuid);
+            ul.appendChild(li);
+          });
+          return;
+        }
+
+        ["pendiente", "en_progreso", "completado"].forEach((est) => {
+          const col = document.querySelector(`.kanban-col[data-estado="${est}"]`);
+          const list = col.querySelector(".col-list");
+          const items = data.porEstado?.[est] || [];
+          col.querySelector(".col-count").textContent = items.length;
+          list.innerHTML = items.map(cardHtml).join("") || `<p class="text-xs text-gray-400 text-center py-6">Vacío</p>`;
+          list.querySelectorAll(".task-card").forEach((el) => {
+            el.onclick = () => abrirEditar(el.dataset.uuid);
+          });
+        });
+
+        document.getElementById("conteos").innerHTML =
+          `<span>Total activas: ${(data.porEstado?.pendiente?.length || 0) + (data.porEstado?.en_progreso?.length || 0) + (data.porEstado?.completado?.length || 0)}</span>`;
+      }
+
+      async function cargarAgentes() {
+        const data = await api("/api/tasks/agentes");
+        if (!data) return;
+        agentes = data.agentes || [];
+        const sel = document.getElementById("tareaAsignado");
+        sel.innerHTML = '<option value="">Sin asignar</option>' +
+          agentes.map((a) => `<option value="${a.uuid}">${a.nombre_completo}</option>`).join("");
+      }
+
+      async function cargarParticipantesTask(uuid) {
+        const panel = document.getElementById("panelParticipantes");
+        if (!uuid) { panel.classList.add("hidden"); return; }
+        panel.classList.remove("hidden");
+        const { participantes } = await api("/api/personas/evento/task/" + uuid);
+        const ul = document.getElementById("listaParticipantes");
+        ul.innerHTML = "";
+        (participantes || []).forEach((p) => {
+          const li = document.createElement("li");
+          li.className = "flex justify-between gap-2 p-2 rounded-lg bg-purple-50/60 text-xs";
+          li.innerHTML = `<span><strong>${p.nombre_completo}</strong> · ${p.rol_participacion}${p.notificado_en ? " ✉" : ""}</span>
+            <button type="button" data-pu="${p.uuid}" class="text-red-600 hover:underline">Quitar</button>`;
+          li.querySelector("button").onclick = async () => {
+            await api("/api/personas/vinculos/" + p.uuid, { method: "DELETE" });
+            cargarParticipantesTask(uuid);
+          };
+          ul.appendChild(li);
+        });
+      }
+
+      document.getElementById("partBuscar").addEventListener("input", async (e) => {
+        clearTimeout(window._pb);
+        window._pb = setTimeout(async () => {
+          const q = e.target.value.trim();
+          if (q.length < 2) return;
+          const { personas } = await api("/api/personas?q=" + encodeURIComponent(q));
+          const dl = document.getElementById("partList");
+          dl.innerHTML = "";
+          personaCache = {};
+          (personas || []).forEach((p) => {
+            personaCache[p.nombre_completo + (p.email ? " <" + p.email + ">" : "")] = p.uuid;
+            personaCache[p.nombre_completo] = p.uuid;
+            const opt = document.createElement("option");
+            opt.value = p.nombre_completo + (p.email ? " <" + p.email + ">" : "");
+            dl.appendChild(opt);
+          });
+        }, 300);
+      });
+
+      document.getElementById("partBuscar").addEventListener("change", (e) => {
+        document.getElementById("partPersonaUuid").value = personaCache[e.target.value] || "";
+      });
+
+      document.getElementById("btnAddPart").onclick = async () => {
+        const uuid = document.getElementById("tareaUuid").value;
+        let personaUuid = document.getElementById("partPersonaUuid").value;
+        const buscar = document.getElementById("partBuscar").value.trim();
+        if (!personaUuid && buscar) personaUuid = personaCache[buscar];
+        if (!uuid || !personaUuid) { alert("Selecciona una persona de la lista"); return; }
+        await api("/api/personas/evento/task/" + uuid, {
+          method: "POST",
+          body: JSON.stringify({
+            persona_uuid: personaUuid,
+            rol_participacion: document.getElementById("partRol").value,
+            notificar: document.getElementById("partNotificar").checked,
+          }),
+        });
+        document.getElementById("partBuscar").value = "";
+        document.getElementById("partPersonaUuid").value = "";
+        cargarParticipantesTask(uuid);
+      };
+
+      document.getElementById("btnNuevaPersona").onclick = async () => {
+        const nombre = prompt("Nombre completo del contratista/cliente:");
+        if (!nombre?.trim()) return;
+        const email = prompt("Email (para notificaciones):") || "";
+        const p = await api("/api/personas", {
+          method: "POST",
+          body: JSON.stringify({ nombre_completo: nombre.trim(), email: email.trim() || null, tipo: "contratista" }),
+        });
+        document.getElementById("partBuscar").value = p.nombre_completo;
+        document.getElementById("partPersonaUuid").value = p.uuid;
+      };
+
+      function abrirNuevo(leadUuid) {
+        document.getElementById("dlgTitulo").textContent = "Nueva tarea";
+        document.getElementById("tareaUuid").value = "";
+        document.getElementById("formTarea").reset();
+        document.getElementById("tareaPrioridad").value = "media";
+        document.getElementById("tareaEstado").value = "pendiente";
+        document.getElementById("tareaDivision").value = "interno";
+        if (leadUuid) document.getElementById("tareaLeadUuid").value = leadUuid;
+        document.getElementById("btnArchivar").classList.add("hidden");
+        document.getElementById("btnRestaurar").classList.add("hidden");
+        document.getElementById("panelParticipantes").classList.add("hidden");
+        document.getElementById("dlgTarea").showModal();
+      }
+
+      async function abrirEditar(uuid) {
+        const t = await api("/api/tasks/" + uuid);
+        if (!t) return;
+        document.getElementById("dlgTitulo").textContent = t.referencia + " · Editar";
+        document.getElementById("tareaUuid").value = t.uuid;
+        document.getElementById("tareaTitulo").value = t.titulo;
+        document.getElementById("tareaDesc").value = t.descripcion || "";
+        document.getElementById("tareaDivision").value = t.division;
+        document.getElementById("tareaPrioridad").value = t.prioridad;
+        document.getElementById("tareaEstado").value = t.estado === "archivado" ? "pendiente" : t.estado;
+        document.getElementById("tareaAsignado").value = t.asignado_uuid || "";
+        document.getElementById("tareaEtiquetas").value = (t.etiquetas || []).join(", ");
+        document.getElementById("tareaLimite").value = t.fecha_limite ? t.fecha_limite.slice(0, 10) : "";
+        document.getElementById("tareaLeadUuid").value = t.lead_uuid || "";
+        const arch = t.estado === "archivado";
+        document.getElementById("btnArchivar").classList.toggle("hidden", arch);
+        document.getElementById("btnRestaurar").classList.toggle("hidden", !arch);
+        document.getElementById("tareaEstado").disabled = arch;
+        document.getElementById("dlgTarea").showModal();
+        await cargarParticipantesTask(t.uuid);
+      }
+
+      document.querySelectorAll(".filtro-div").forEach((btn) => {
+        btn.onclick = () => {
+          divisionFiltro = btn.dataset.div;
+          document.querySelectorAll(".filtro-div").forEach((b) => {
+            b.classList.remove("bg-adesa-red", "text-white", "font-semibold");
+            b.classList.add("hover:bg-gray-50");
+          });
+          btn.classList.add("bg-adesa-red", "text-white", "font-semibold");
+          btn.classList.remove("hover:bg-gray-50");
+          cargarTablero();
+        };
+      });
+
+      document.getElementById("filtroBuscar").oninput = () => { clearTimeout(window._tb); window._tb = setTimeout(cargarTablero, 300); };
+      document.getElementById("chkArchivados").onchange = cargarTablero;
+      document.getElementById("btnNuevo").onclick = () => abrirNuevo(new URLSearchParams(location.search).get("lead_uuid") || "");
+      document.getElementById("btnCancelTarea").onclick = () => document.getElementById("dlgTarea").close();
+
+      document.getElementById("btnArchivar").onclick = async () => {
+        const uuid = document.getElementById("tareaUuid").value;
+        if (!uuid) return;
+        await api("/api/tasks/" + uuid + "/archivar", { method: "POST" });
+        document.getElementById("dlgTarea").close();
+        cargarTablero();
+      };
+
+      document.getElementById("btnRestaurar").onclick = async () => {
+        const uuid = document.getElementById("tareaUuid").value;
+        if (!uuid) return;
+        await api("/api/tasks/" + uuid + "/restaurar", { method: "POST" });
+        document.getElementById("dlgTarea").close();
+        cargarTablero();
+      };
+
+      document.getElementById("formTarea").onsubmit = async (e) => {
+        e.preventDefault();
+        const uuid = document.getElementById("tareaUuid").value;
+        const body = {
+          titulo: document.getElementById("tareaTitulo").value,
+          descripcion: document.getElementById("tareaDesc").value,
+          division: document.getElementById("tareaDivision").value,
+          prioridad: document.getElementById("tareaPrioridad").value,
+          estado: document.getElementById("tareaEstado").value,
+          asignado_uuid: document.getElementById("tareaAsignado").value || null,
+          etiquetas: document.getElementById("tareaEtiquetas").value,
+          fecha_limite: document.getElementById("tareaLimite").value || null,
+          lead_uuid: document.getElementById("tareaLeadUuid").value.trim() || null,
+        };
+        if (uuid) {
+          await api("/api/tasks/" + uuid, { method: "PATCH", body: JSON.stringify(body) });
+        } else {
+          await api("/api/tasks", { method: "POST", body: JSON.stringify(body) });
+        }
+        document.getElementById("dlgTarea").close();
+        cargarTablero();
+      };
+
+      (async () => {
+        await cargarAgentes();
+        await cargarTablero();
+        const leadUuid = new URLSearchParams(location.search).get("lead_uuid");
+        if (leadUuid && new URLSearchParams(location.search).get("nuevo") === "1") {
+          abrirNuevo(leadUuid);
+        }
+      })();
+    </script>
+  </body>
+</html>

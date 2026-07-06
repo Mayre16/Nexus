@@ -1,0 +1,83 @@
+ARCHIVOS MODIFICADOS PARA ACTUALIZAR StockProductoADM EN AJUSTES ADM
+====================================================================
+
+Fecha: 2026-01-26
+Descripción: Corrección para que los ajustes ADM actualicen StockProductoADM y reflejen el cambio inmediatamente en la pantalla
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. routes/ajustes.py
+   - Líneas 388-408: Agregada actualización de StockProductoADM cuando se hace un ajuste ADM
+   - Si existe registro: Actualiza stock y updated_at
+   - Si no existe: Crea nuevo registro de StockProductoADM
+   - Agregados logs informativos de la actualización
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. Actualización de StockProductoADM en ajustes ADM:
+   - ANTES: Solo creaba movimiento de auditoría, NO actualizaba StockProductoADM
+   - DESPUÉS: Actualiza StockProductoADM con el nuevo valor (cantidad_nueva)
+   - BENEFICIO: Usuario ve el cambio reflejado inmediatamente en la pantalla
+
+2. Creación de registro si no existe:
+   - Si no hay registro de StockProductoADM para esa ubicación, lo crea
+   - Permite ajustar ubicaciones que no tenían stock registrado
+
+3. Logs mejorados:
+   - Agregados logs informativos cuando se actualiza o crea StockProductoADM
+
+COMPORTAMIENTO:
+---------------
+
+**Escenario: Ajustar Mirador Sur de 44 a 0**
+
+1. Usuario ajusta Mirador Sur: 44 → 0
+2. Sistema actualiza StockProductoADM: stock = 0 ✅
+3. Sistema crea movimiento de auditoría ✅
+4. Usuario busca producto → Ve "MIRADOR SUR: 0.00" ✅ (NUEVO)
+5. Sincronización → Si ADM Cloud tiene 44, sobrescribe a 44 (esperado)
+
+**Resultado:** Usuario ve el cambio inmediatamente, aunque sea temporal.
+
+SEGURIDAD:
+----------
+
+✅ NO rompe ninguna lógica existente:
+- Consulta de Productos: Solo lee, no valida
+- Despacho: Solo lee para mostrar, validaciones usan StockUbicacion
+- Detección de discrepancias: Incluso mejora la detección
+- Sincronización: Sobrescribe el cambio (esperado y correcto)
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+----------------------------------------
+
+1. Subir el archivo modificado:
+   - routes/ajustes.py
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario.
+
+4. Probar:
+   - Ajustar Mirador Sur a 0
+   - Buscar el producto nuevamente
+   - Verificar que muestra "MIRADOR SUR: 0.00" (antes mostraba 44.00)
+
+RESULTADO ESPERADO:
+-------------------
+
+Después de hacer un ajuste ADM:
+- ✅ El stock se actualiza inmediatamente en la cache
+- ✅ La pantalla muestra el valor ajustado
+- ✅ El movimiento queda registrado para auditoría
+- ✅ La próxima sincronización sobrescribirá el valor (esperado)
+
+
+
+
+
+
+
+

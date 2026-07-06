@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA Nexus · Hub</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { theme: { extend: { colors: { adesa: { red: "#be1622", gold: "#fcb900", ink: "#111111" } }, fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] } } } };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+    <header class="bg-adesa-ink text-white">
+      <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+        <a href="/dashboard.html" class="text-sm text-gray-400 hover:text-white">← Panel</a>
+        <span class="text-lg font-bold">Nexus Hub</span>
+        <span class="text-xs text-adesa-gold">Aplicaciones</span>
+      </div>
+    </header>
+    <main class="max-w-5xl mx-auto px-6 py-8 space-y-8">
+      <p class="text-sm text-gray-500">Tus aplicaciones suscritas viven aquí. Abre cada membresía desde las tarjetas de abajo.</p>
+      <p id="hubError" class="hidden text-sm text-red-600 font-semibold"></p>
+
+      <section>
+        <h2 class="text-sm font-bold uppercase tracking-widest text-gray-400 mb-4">Mis aplicaciones</h2>
+        <div id="appsGrid" class="grid sm:grid-cols-2 gap-4">
+          <p class="text-sm text-gray-400 col-span-2">Cargando…</p>
+        </div>
+      </section>
+
+      <section id="secAdmin" class="hidden bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
+        <h2 class="font-bold text-lg mb-4">Nueva suscripción (admin)</h2>
+        <form id="formSus" class="grid md:grid-cols-2 gap-3 text-sm">
+          <select id="planCodigo" class="border rounded-lg px-3 py-2" required>
+            <option value="">Plan…</option>
+          </select>
+          <select id="usuarioUuid" class="border rounded-lg px-3 py-2" required>
+            <option value="">Usuario…</option>
+          </select>
+          <input type="date" id="inicioEn" class="border rounded-lg px-3 py-2" />
+          <input type="date" id="renuevaEn" class="border rounded-lg px-3 py-2" placeholder="Renueva" />
+          <button type="submit" class="md:col-span-2 px-4 py-2 bg-adesa-red text-white rounded-lg font-bold">Activar suscripción</button>
+        </form>
+      </section>
+
+      <section class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6">
+        <h2 class="font-bold text-lg mb-4">Mis suscripciones</h2>
+        <div id="listaSus" class="text-sm text-gray-500">Cargando…</div>
+      </section>
+    </main>
+    <script>
+      function leerCookie(n) { return document.cookie.split("; ").find(c => c.startsWith(n + "="))?.split("=")[1] || ""; }
+      let esAdmin = false;
+
+      async function api(url, opts = {}) {
+        const r = await fetch(url, {
+          credentials: "include",
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": leerCookie("nexus_csrf"), ...opts.headers },
+          ...opts,
+        });
+        if (r.status === 401) { location.href = "/"; throw new Error("Sesión expirada"); }
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || `Error ${r.status}`);
+        return j;
+      }
+
+      function renderApps(apps) {
+        const grid = document.getElementById("appsGrid");
+        if (!apps.length) {
+          grid.innerHTML = '<p class="text-sm text-gray-500 col-span-2">No tienes aplicaciones activas. El administrador debe asignarte Calidad de Energía o Bids Alert (o activar una suscripción).</p>';
+          return;
+        }
+        grid.innerHTML = apps.map(a => `
+          <a href="${a.href}" class="block bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 p-6 hover:ring-adesa-red transition">
+            <div class="text-3xl">${a.icon || "📦"}</div>
+            <h3 class="font-bold mt-2">${a.displayName}</h3>
+            <p class="text-sm text-gray-500 mt-1">${a.summary || ""}</p>
+            <span class="inline-block mt-3 text-xs font-bold text-adesa-red">Abrir →</span>
+          </a>`).join("");
+      }
+
+      async function cargarApps() {
+        try {
+          const { apps } = await api("/api/hub/apps");
+          renderApps(apps || []);
+        } catch (err) {
+          document.getElementById("appsGrid").innerHTML = `<p class="text-sm text-red-600 col-span-2">No se pudieron cargar las apps: ${err.message}</p>`;
+        }
+      }
+
+      async function cargarSuscripciones() {
+        try {
+          const { suscripciones } = await api("/api/hub/suscripciones");
+          const html = suscripciones.length
+            ? `<table class="w-full text-left"><thead><tr class="text-xs uppercase text-gray-400"><th class="pb-2">Plan</th><th>Estado</th><th>Inicio</th><th></th></tr></thead><tbody>${suscripciones.map(s => `<tr class="border-t"><td class="py-2 font-semibold">${s.plan_nombre}${s.nombre_completo ? `<div class="text-xs text-gray-400">${s.nombre_completo}</div>` : ""}</td><td>${s.estado}</td><td>${s.inicio_en || ""}</td><td>${esAdmin && s.estado === "activa" ? `<button data-uuid="${s.uuid}" class="btnCancel text-xs text-red-600 underline">Suspender</button>` : ""}</td></tr>`).join("")}</tbody></table>`
+            : "<p>Sin suscripciones activas.</p>";
+          document.getElementById("listaSus").innerHTML = html;
+          document.querySelectorAll(".btnCancel").forEach(btn => btn.onclick = async () => {
+            await api("/api/hub/suscripciones/" + btn.dataset.uuid, { method: "PATCH", body: JSON.stringify({ estado: "suspendida" }) });
+            cargarSuscripciones();
+            cargarApps();
+          });
+        } catch (err) {
+          document.getElementById("listaSus").innerHTML = `<p class="text-red-600">${err.message}</p>`;
+        }
+      }
+
+      async function cargarAdmin() {
+        if (!esAdmin) return;
+        try {
+          const [{ planes }, { usuarios }] = await Promise.all([
+            api("/api/hub/planes"),
+            api("/api/usuario-modulos/usuarios"),
+          ]);
+          document.getElementById("secAdmin").classList.remove("hidden");
+          document.getElementById("planCodigo").innerHTML = '<option value="">Plan…</option>' + planes.map(p => `<option value="${p.codigo}">${p.nombre}</option>`).join("");
+          document.getElementById("usuarioUuid").innerHTML = '<option value="">Usuario…</option>' + usuarios.map(u => `<option value="${u.uuid}">${u.nombre_completo} (${u.email})</option>`).join("");
+        } catch (err) {
+          document.getElementById("hubError").textContent = "Admin: " + err.message;
+          document.getElementById("hubError").classList.remove("hidden");
+        }
+      }
+
+      async function cargar() {
+        await Promise.all([cargarApps(), cargarSuscripciones(), cargarAdmin()]);
+      }
+
+      document.getElementById("formSus").onsubmit = async e => {
+        e.preventDefault();
+        try {
+          await api("/api/hub/suscripciones", { method: "POST", body: JSON.stringify({
+            plan_codigo: document.getElementById("planCodigo").value,
+            usuario_uuid: document.getElementById("usuarioUuid").value,
+            inicio_en: document.getElementById("inicioEn").value || undefined,
+            renueva_en: document.getElementById("renuevaEn").value || undefined,
+          })});
+          cargar();
+        } catch (err) { alert(err.message); }
+      };
+
+      api("/api/auth/me")
+        .then(r => { esAdmin = (r.usuario?.rol || r.rol) === "admin"; return cargar(); })
+        .catch(() => location.href = "/");
+    </script>
+  </body>
+</html>

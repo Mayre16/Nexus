@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMS - Sistema de Gestión de Almacenes</title>
+    <link rel="stylesheet" href="/static/css/wms.css">
+    <link rel="stylesheet" href="/static/css/index.css">
+</head>
+<body>
+    <div class="home-wrapper">
+        <div class="home-brand">
+            <div class="home-brand-icon">🚚</div>
+            <h1>WMS Despacho</h1>
+            <p>Sistema de Gestión de Almacenes</p>
+        </div>
+
+        <div id="user-info" class="home-loading">Verificando sesión...</div>
+
+        <nav id="buttons" class="home-nav" style="display: none;">
+            <a href="/despachos" class="home-nav-link">
+                <div class="home-nav-icon despacho">🚚</div>
+                <div><div class="home-nav-label">Despacho</div><div class="home-nav-desc">Gestión de despachos y envíos</div></div>
+                <span class="home-nav-arrow">›</span>
+            </a>
+            <a href="/recepciones" class="home-nav-link">
+                <div class="home-nav-icon recepcion">📦</div>
+                <div><div class="home-nav-label">Recepción</div><div class="home-nav-desc">Registro de mercancía entrante</div></div>
+                <span class="home-nav-arrow">›</span>
+            </a>
+            <a href="/transferencias" class="home-nav-link">
+                <div class="home-nav-icon transferencia">🔄</div>
+                <div><div class="home-nav-label">Transferencias</div><div class="home-nav-desc">Movimientos entre ubicaciones</div></div>
+                <span class="home-nav-arrow">›</span>
+            </a>
+            <a href="/ajustes" class="home-nav-link">
+                <div class="home-nav-icon ajuste">📋</div>
+                <div><div class="home-nav-label">Ajustes de Inventario</div><div class="home-nav-desc">Correcciones y ajustes de stock</div></div>
+                <span class="home-nav-arrow">›</span>
+            </a>
+            <a href="/productos" class="home-nav-link">
+                <div class="home-nav-icon producto">🔍</div>
+                <div><div class="home-nav-label">Consulta de Productos</div><div class="home-nav-desc">Búsqueda y detalle de inventario</div></div>
+                <span class="home-nav-arrow">›</span>
+            </a>
+            <a href="/abastecimiento" class="home-nav-link" id="btn-abastecimiento" style="display: none;">
+                <div class="home-nav-icon admin">📊</div>
+                <div><div class="home-nav-label">Abastecimiento</div><div class="home-nav-desc">Mínimos/máximos y reposición (Mirador Sur)</div></div>
+                <span class="home-nav-arrow">›</span>
+            </a>
+            <a href="/admin" class="home-nav-link" id="btn-admin" style="display: none;">
+                <div class="home-nav-icon admin">⚙️</div>
+                <div><div class="home-nav-label">Administración</div><div class="home-nav-desc">Configuración del sistema</div></div>
+                <span class="home-nav-arrow">›</span>
+            </a>
+        </nav>
+
+        <div id="logout-section" class="home-logout" style="display: none;">
+            <button onclick="cerrarSesion()">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <script src="/static/js/security_utils.js"></script>
+    <script src="/static/js/index.js"></script>
+</body>
+</html>

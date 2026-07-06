@@ -1,0 +1,19 @@
+{
+  "technicalName": "settings",
+  "displayName": "Configuración",
+  "summary": "SMTP, notificaciones, integraciones y ajustes generales de Nexus",
+  "version": "0.1.0",
+  "category": "platform",
+  "state": "installed",
+  "installable": true,
+  "autoInstall": true,
+  "depends": ["nexus_core"],
+  "routes": {
+    "ui": "/settings.html",
+    "api": "/api/settings",
+    "dashboardPath": "/settings.html"
+  },
+  "roles": ["admin"],
+  "icon": "⚙️",
+  "sortOrder": 5
+}

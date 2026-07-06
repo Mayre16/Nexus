@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "ADESA BadBoy URL Tracker",
+  "version": "1.0.0",
+  "description": "Envía la URL activa al agente MonitorSuite local (solo localhost).",
+  "permissions": ["tabs", "activeTab"],
+  "host_permissions": ["http://127.0.0.1:19642/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "BadBoy activo"
+  }
+}

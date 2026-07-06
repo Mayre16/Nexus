@@ -1,0 +1,151 @@
+<Window x:Class="MonitorSuite.Admin.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:scottPlot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
+        mc:Ignorable="d"
+        Title="{Binding HeaderTitle}"
+        WindowStartupLocation="CenterScreen"
+        Width="1200"
+        Height="900"
+        Background="{StaticResource AdesaBackgroundBrush}">
+    <DockPanel>
+        <!-- Barra superior ADESA -->
+        <Border DockPanel.Dock="Top" Background="{StaticResource AdesaInkBrush}" Padding="16,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="{Binding HeaderTitle}" Foreground="White" FontSize="20" FontWeight="Bold" />
+                    <TextBlock Text="{Binding MachineInfo}" Foreground="{StaticResource AdesaGoldBrush}" FontSize="12" Margin="0,4,0,0" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding AgentBannerText}" Foreground="#86EFAC" VerticalAlignment="Center" Margin="0,0,12,0" FontSize="11" />
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="#CCC" VerticalAlignment="Center" Margin="0,0,16,0" />
+                    <Button Content="⚙ Perfil equipo" Command="{Binding OpenProfileCommand}"
+                            Style="{StaticResource AdesaPrimaryButton}" Padding="12,6" Margin="0,0,8,0" />
+                    <Button Content="↻ Actualizar" Command="{Binding RefreshCommand}"
+                            Style="{StaticResource AdesaSecondaryButton}" Padding="12,6" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Menu DockPanel.Dock="Top" Background="White">
+            <MenuItem Header="_Archivo">
+                <MenuItem Header="_Exportar reporte (PDF)" Command="{Binding ExportReportCommand}" />
+                <Separator />
+                <MenuItem Header="_Perfil de este equipo" Command="{Binding OpenProfileCommand}" />
+                <MenuItem Header="_Cerrar sesión" Command="{Binding LogoutCommand}" />
+                <MenuItem Header="Salir" Command="{Binding ExitCommand}" />
+            </MenuItem>
+            <MenuItem Header="_Ver">
+                <MenuItem Header="Refrescar datos y gráfico" Command="{Binding RefreshCommand}" />
+                <MenuItem Header="Estado en vivo" Command="{Binding RefreshLiveStateCommand}" />
+            </MenuItem>
+            <MenuItem Header="_Ayuda">
+                <MenuItem Header="Política de monitoreo" Command="{Binding ShowPolicyCommand}" />
+            </MenuItem>
+        </Menu>
+
+        <Grid Margin="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <GroupBox Header="🟢 Sesión en vivo (background — se actualiza solo)" Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,12">
+                <Grid Margin="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding LiveStateDisplay}" TextWrapping="Wrap" FontFamily="Consolas" FontSize="12" />
+                    <Button Grid.Column="1" Content="Actualizar ahora" VerticalAlignment="Top"
+                            Command="{Binding RefreshLiveStateCommand}"
+                            Style="{StaticResource AdesaSecondaryButton}" Padding="12,6" />
+                </Grid>
+            </GroupBox>
+
+            <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,0,12" VerticalAlignment="Center">
+                <TextBlock Text="Período:" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <Button Content="Hoy" Margin="8,0,4,0" Command="{Binding SetPeriodTodayCommand}"
+                        Style="{StaticResource AdesaSecondaryButton}" Padding="10,5" />
+                <Button Content="7 días" Margin="4,0" Command="{Binding SetPeriodWeekCommand}"
+                        Style="{StaticResource AdesaSecondaryButton}" Padding="10,5" />
+                <Button Content="30 días" Margin="4,0,12,0" Command="{Binding SetPeriodMonthCommand}"
+                        Style="{StaticResource AdesaSecondaryButton}" Padding="10,5" />
+                <TextBlock Text="{Binding SelectedPeriodLabel}" Foreground="#666" VerticalAlignment="Center" Margin="0,0,16,0" />
+                <TextBlock Text="Personalizado:" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <DatePicker Margin="8,0" SelectedDate="{Binding FromDate}" />
+                <TextBlock Text="a" VerticalAlignment="Center" />
+                <DatePicker Margin="8,0" SelectedDate="{Binding ToDate}" />
+                <Button Content="Aplicar" Margin="12,0" Command="{Binding RefreshCommand}"
+                        Style="{StaticResource AdesaPrimaryButton}" Padding="14,6" />
+            </StackPanel>
+
+            <GroupBox Header="📊 Tiempo por aplicación (horas)" Grid.Row="2" Grid.Column="0" Margin="0,0,12,12">
+                <Border Background="White" CornerRadius="4" Padding="8">
+                    <scottPlot:WpfPlot Name="UsageBarChart" Height="220" />
+                </Border>
+            </GroupBox>
+
+            <GroupBox Header="📈 Actividad por día" Grid.Row="2" Grid.Column="1" Margin="0,0,0,12">
+                <Border Background="White" CornerRadius="4" Padding="8">
+                    <scottPlot:WpfPlot Name="DailyLineChart" Height="220" />
+                </Border>
+            </GroupBox>
+
+            <GroupBox Header="🥧 Distribución (%)" Grid.Row="3" Grid.Column="0" Margin="0,0,12,12">
+                <Border Background="White" CornerRadius="4" Padding="8">
+                    <scottPlot:WpfPlot Name="UsagePieChart" Height="180" />
+                </Border>
+            </GroupBox>
+
+            <GroupBox Header="🌐 Historial de URLs (cada pestaña)" Grid.Row="3" Grid.Column="1" Margin="0,0,0,12">
+                <DataGrid ItemsSource="{Binding UrlVisits}" AutoGenerateColumns="False" IsReadOnly="True"
+                          GridLinesVisibility="Horizontal" HeadersVisibility="Column">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Hora" Binding="{Binding Timestamp, StringFormat={}{0:HH:mm:ss}}" Width="70" />
+                        <DataGridTextColumn Header="Navegador" Binding="{Binding Browser}" Width="70" />
+                        <DataGridTextColumn Header="URL" Binding="{Binding Url}" Width="*" />
+                        <DataGridTextColumn Header="Título" Binding="{Binding Title}" Width="120" />
+                        <DataGridTextColumn Header="Tiempo" Binding="{Binding Duration}" Width="70" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+
+            <GroupBox Header="💻 Resumen por aplicación" Grid.Row="4" Grid.Column="0" Margin="0,0,12,0">
+                <DataGrid ItemsSource="{Binding ApplicationDetails}" AutoGenerateColumns="False" IsReadOnly="True"
+                          GridLinesVisibility="Horizontal" MaxHeight="160">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Aplicación" Binding="{Binding Application}" Width="*" />
+                        <DataGridTextColumn Header="Tiempo activo" Binding="{Binding ActiveTime}" Width="130" />
+                        <DataGridTextColumn Header="%" Binding="{Binding Percentage, StringFormat={}{0:F1}%}" Width="70" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+
+            <GroupBox Header="🪟 Detalle por ventana (solo con foco)" Grid.Row="4" Grid.Column="1">
+                <DataGrid ItemsSource="{Binding ApplicationSessions}" AutoGenerateColumns="False" IsReadOnly="True"
+                          GridLinesVisibility="Horizontal">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Inicio" Binding="{Binding Start, StringFormat={}{0:HH:mm:ss}}" Width="70" />
+                        <DataGridTextColumn Header="Proceso" Binding="{Binding ProcessName}" Width="80" />
+                        <DataGridTextColumn Header="Ventana / título" Binding="{Binding WindowTitle}" Width="*" />
+                        <DataGridTextColumn Header="Duración" Binding="{Binding Duration}" Width="70" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </GroupBox>
+        </Grid>
+    </DockPanel>
+</Window>

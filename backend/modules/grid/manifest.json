@@ -1,0 +1,38 @@
+{
+
+  "technicalName": "grid",
+
+  "displayName": "Nexus Grid",
+
+  "summary": "Monitoreo EasyMetering, equipos en línea/offline y consumo energético",
+
+  "version": "0.2.0",
+
+  "category": "monitoring",
+
+  "state": "installed",
+
+  "installable": true,
+
+  "autoInstall": false,
+
+  "depends": ["nexus_core"],
+
+  "routes": {
+
+    "ui": "/grid.html",
+
+    "api": "/api/grid",
+
+    "dashboardPath": "/grid.html"
+
+  },
+
+  "roles": ["admin", "empleado"],
+
+  "icon": "⚡",
+
+  "sortOrder": 50
+
+}
+

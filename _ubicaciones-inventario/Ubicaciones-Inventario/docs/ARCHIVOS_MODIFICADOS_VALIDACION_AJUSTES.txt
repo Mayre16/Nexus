@@ -1,0 +1,57 @@
+ARCHIVOS MODIFICADOS - VALIDACIÓN DE AJUSTES ADESA
+===================================================
+
+Fecha: 2025-01-26
+Descripción: Corrección de validación para detectar ubicaciones físicas con stock que no están siendo ajustadas.
+El sistema ahora bloquea el registro si hay ubicaciones físicas con existencia que no se incluyen en el ajuste.
+
+ARCHIVOS MODIFICADOS:
+--------------------
+
+1. templates/ajustes.html
+   - ✅ Agregado: `window.stockUbicacionesActual = stockUbicaciones || []` en función `mostrarProducto()`
+     * Esto permite que la validación tenga acceso al stock actual de ubicaciones físicas
+   - ✅ Mejorados mensajes de error en función `validarAdesa()`:
+     * Mensajes más claros y específicos
+     * Indica exactamente qué ubicaciones tienen stock y no están siendo ajustadas
+     * Muestra ejemplos de cómo corregir el problema
+   - ✅ Agregada validación automática cuando se agrega ADESA
+   - ✅ Agregada validación automática cuando se elimina ADESA
+   - ✅ Eliminada sección "Ubicaciones Físicas dentro de ADESA" del cache ADM (conceptualmente incorrecta)
+
+FUNCIONALIDADES IMPLEMENTADAS:
+------------------------------
+✅ Detección de ubicaciones físicas con stock no ajustadas
+✅ Bloqueo del registro si hay ubicaciones con stock sin ajustar
+✅ Mensajes de error claros y específicos
+✅ Validación automática al agregar/eliminar ADESA
+✅ Validación en tiempo real al cambiar cantidades o ubicaciones
+
+COMPORTAMIENTO ESPERADO:
+------------------------
+1. Usuario busca producto (ej: VP1)
+2. Selecciona ADESA con cantidad 860
+3. Ingresa ubicación física 2P1D01N1: 860
+4. Sistema detecta que 2P1D01N2 tiene 410 y NO está siendo ajustada
+5. Sistema BLOQUEA el botón "Registrar Ajuste"
+6. Sistema muestra mensaje: "⚠️ No puedes completar el ajuste porque tienes ubicaciones físicas con existencia que NO estás ajustando: 2P1D01N2 tiene 410.00"
+7. Usuario debe agregar 2P1D01N2: 410 para que la suma sea 860 + 410 = 1270
+8. O ajustar ADESA a 1270 y distribuir correctamente
+
+NOTAS IMPORTANTES:
+------------------
+- La validación solo funciona si `window.stockUbicacionesActual` está correctamente cargado
+- La validación se ejecuta automáticamente al:
+  * Agregar/eliminar ADESA
+  * Cambiar cantidades de ADESA
+  * Cambiar cantidades de ubicaciones físicas
+  * Agregar/eliminar ubicaciones físicas
+- El sistema NO permite discrepancias: la suma de ubicaciones físicas DEBE coincidir exactamente con ADESA
+
+
+
+
+
+
+
+

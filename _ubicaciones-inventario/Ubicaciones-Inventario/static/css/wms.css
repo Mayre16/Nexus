@@ -1,0 +1,1302 @@
+/* ==========================================================================
+   WMS Design System — Global Stylesheet
+   Sistema visual unificado para todas las vistas del WMS
+   ========================================================================== */
+
+/* --- Reset & Base --- */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Palette — Primary & Module Accents */
+    --color-primary: #667eea;
+    --color-primary-dark: #5a6fd6;
+    --color-despacho: #667eea;
+    --color-despacho-dark: #764ba2;
+    --color-recepcion: #28a745;
+    --color-recepcion-dark: #20c997;
+    --color-transferencia: #17a2b8;
+    --color-transferencia-dark: #138496;
+    --color-ajuste: #e84393;
+    --color-ajuste-dark: #d63384;
+    --color-producto: #4facfe;
+    --color-producto-dark: #00b4d8;
+    --color-admin: #667eea;
+    --color-admin-dark: #764ba2;
+
+    /* Neutrals */
+    --color-bg: #f0f2f5;
+    --color-surface: #ffffff;
+    --color-border: #e2e8f0;
+    --color-border-light: #f1f3f5;
+    --color-text: #1a202c;
+    --color-text-secondary: #64748b;
+    --color-text-muted: #94a3b8;
+
+    /* Status */
+    --color-success: #10b981;
+    --color-success-bg: #ecfdf5;
+    --color-success-text: #065f46;
+    --color-warning: #f59e0b;
+    --color-warning-bg: #fffbeb;
+    --color-warning-text: #92400e;
+    --color-danger: #ef4444;
+    --color-danger-bg: #fef2f2;
+    --color-danger-text: #991b1b;
+    --color-info: #3b82f6;
+    --color-info-bg: #eff6ff;
+    --color-info-text: #1e40af;
+
+    /* Typography */
+    --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.8125rem;
+    --font-size-base: 0.875rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+
+    /* Spacing */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+
+    /* Radii */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
+    --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.04);
+
+    /* Layout */
+    --header-height: 64px;
+    --sidebar-width: 260px;
+    --container-max: 1400px;
+    --transition: 0.2s ease;
+}
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    background: var(--color-bg);
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* --- App Header --- */
+.wms-header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    padding: 0 var(--space-6);
+    min-height: var(--header-height);
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+}
+
+.wms-header-inner {
+    max-width: var(--container-max);
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: var(--space-3);
+    min-height: var(--header-height);
+}
+
+.wms-header-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex: 1 1 0%;
+    min-width: 0;
+}
+
+.wms-header-title .module-icon {
+    font-size: 1.75rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.wms-header-title h1 {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    /* Misma altura de bloque en todas las vistas: máx. 2 líneas; los botones no saltan de fila */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.wms-header-title .module-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.wms-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-shrink: 0;
+}
+
+.wms-header-user {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-right: var(--space-2);
+}
+
+/* Cabecera: mejor toque en móvil e iconos más visibles */
+.wms-header-actions > .wms-btn-sm {
+    font-size: var(--font-size-base);
+    padding: var(--space-2) var(--space-3);
+    min-height: 44px;
+}
+
+/* Cerrar sesión: icono tipo “salir” (flecha hacia fuera), no emoji de puerta */
+.wms-icon-logout {
+    display: inline-block;
+    width: 1.35em;
+    height: 1.35em;
+    flex-shrink: 0;
+    vertical-align: -0.12em;
+    background-color: currentColor;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 0 1 2 2v2h-2V4H5v16h9v-2h2v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9z'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 0 1 2 2v2h-2V4H5v16h9v-2h2v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9z'/%3E%3C/svg%3E");
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+/* --- Page Layout --- */
+.wms-page {
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+/* --- Cards --- */
+.wms-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.wms-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-5) var(--space-6);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.wms-card-header h2 {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.wms-card-body {
+    padding: var(--space-6);
+}
+
+.wms-card-footer {
+    padding: var(--space-4) var(--space-6);
+    border-top: 1px solid var(--color-border-light);
+    background: var(--color-bg);
+}
+
+/* --- Buttons --- */
+.wms-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.wms-btn:hover { text-decoration: none; }
+
+.wms-btn-sm {
+    padding: var(--space-1) var(--space-3);
+    font-size: var(--font-size-xs);
+    border-radius: var(--radius-sm);
+}
+
+.wms-btn-lg {
+    padding: var(--space-3) var(--space-6);
+    font-size: var(--font-size-base);
+}
+
+.wms-btn-primary {
+    background: var(--color-primary);
+    color: white;
+}
+.wms-btn-primary:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.wms-btn-success {
+    background: var(--color-success);
+    color: white;
+}
+.wms-btn-success:hover {
+    background: #0d9668;
+    transform: translateY(-1px);
+}
+
+.wms-btn-danger {
+    background: var(--color-danger);
+    color: white;
+}
+.wms-btn-danger:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+}
+
+.wms-btn-warning {
+    background: var(--color-warning);
+    color: white;
+}
+.wms-btn-warning:hover {
+    background: #d97706;
+}
+
+.wms-btn-secondary {
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    border-color: var(--color-border);
+}
+.wms-btn-secondary:hover {
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.wms-btn-ghost {
+    background: transparent;
+    color: var(--color-text-secondary);
+}
+.wms-btn-ghost:hover {
+    background: var(--color-bg);
+    color: var(--color-text);
+}
+
+.wms-btn:disabled, .wms-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* --- Forms / Inputs --- */
+.wms-input, .wms-select, .wms-textarea {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    background: var(--color-surface);
+    transition: border-color var(--transition), box-shadow var(--transition);
+    line-height: 1.5;
+}
+
+.wms-input:focus, .wms-select:focus, .wms-textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.wms-input::placeholder {
+    color: var(--color-text-muted);
+}
+
+.wms-label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-1);
+}
+
+.wms-form-group {
+    margin-bottom: var(--space-4);
+}
+
+/* --- Filters --- */
+.wms-filters-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    width: 100%;
+    padding: var(--space-3);
+    margin-bottom: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+.wms-filters-toggle:hover { background: var(--color-bg); }
+.wms-filters-toggle .chevron {
+    transition: transform 0.2s;
+    font-size: 0.75rem;
+}
+.wms-filters-toggle.active .chevron { transform: rotate(180deg); }
+
+.wms-filters {
+    background: var(--color-bg);
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-5);
+    border: 1px solid var(--color-border-light);
+}
+
+.wms-filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.wms-filters-actions {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: flex-end;
+}
+
+/* Toolbar listados: filtros + búsqueda rápida alineados */
+.wms-list-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.wms-list-toolbar-search {
+    flex: 1;
+    min-width: 0;
+}
+
+.wms-list-toolbar-search .wms-input {
+    width: 100%;
+}
+
+@media (min-width: 769px) {
+    .wms-list-toolbar {
+        flex-direction: row;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+    .wms-list-toolbar-search {
+        flex: 1 1 280px;
+        max-width: 420px;
+        margin-left: auto;
+    }
+}
+
+/* --- Tables --- */
+.wms-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.wms-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-size-sm);
+}
+
+.wms-table th {
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    font-weight: 600;
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-secondary);
+    background: var(--color-bg);
+    border-bottom: 2px solid var(--color-border);
+    white-space: nowrap;
+}
+
+.wms-table td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border-light);
+    vertical-align: middle;
+}
+
+.wms-table tbody tr {
+    transition: background var(--transition);
+}
+
+.wms-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+/* --- Badges / Status --- */
+.wms-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+.wms-badge-success { background: var(--color-success-bg); color: var(--color-success-text); }
+.wms-badge-warning { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.wms-badge-danger  { background: var(--color-danger-bg);  color: var(--color-danger-text);  }
+.wms-badge-info    { background: var(--color-info-bg);    color: var(--color-info-text);    }
+.wms-badge-neutral { background: #f1f5f9; color: #475569; }
+
+/* --- Pagination --- */
+.wms-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4) 0;
+    border-top: 1px solid var(--color-border-light);
+    margin-top: var(--space-4);
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.wms-pagination-info {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+.wms-pagination-controls {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+.wms-page-btn {
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.wms-page-btn:hover:not(:disabled) { background: var(--color-bg); }
+.wms-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.wms-page-btn.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+/* --- Toast / Messages --- */
+.wms-toast {
+    position: fixed;
+    top: calc(var(--header-height) + var(--space-4));
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    z-index: 9999;
+    max-width: 500px;
+    width: 90%;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+}
+.wms-toast.show {
+    display: block;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+.wms-toast-success { background: var(--color-success-bg); color: var(--color-success-text); border: 1px solid #a7f3d0; }
+.wms-toast-error   { background: var(--color-danger-bg);  color: var(--color-danger-text);  border: 1px solid #fecaca; }
+.wms-toast-warning { background: var(--color-warning-bg); color: var(--color-warning-text); border: 1px solid #fde68a; }
+.wms-toast-info    { background: var(--color-info-bg);    color: var(--color-info-text);    border: 1px solid #bfdbfe; }
+
+/* --- Empty State --- */
+.wms-empty {
+    text-align: center;
+    padding: var(--space-12) var(--space-6);
+    color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+    .wms-empty {
+        padding: var(--space-8) var(--space-4);
+    }
+}
+
+.wms-empty-icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-4);
+    opacity: 0.5;
+}
+
+.wms-empty-title {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-2);
+}
+
+/* --- Loading / Spinner --- */
+.wms-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: wms-spin 0.6s linear infinite;
+}
+
+@keyframes wms-spin {
+    to { transform: rotate(360deg); }
+}
+
+.wms-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    padding: var(--space-8);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+/* --- Modal --- */
+.wms-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-6);
+}
+.wms-modal-overlay.show { display: flex; }
+
+.wms-modal {
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    width: 100%;
+    max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.wms-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-5) var(--space-6);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.wms-modal-header h3 {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+}
+
+.wms-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: var(--space-1);
+    border-radius: var(--radius-sm);
+    transition: background var(--transition);
+}
+.wms-modal-close:hover { background: var(--color-bg); }
+
+.wms-modal-body {
+    padding: var(--space-6);
+}
+
+.wms-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-6);
+    border-top: 1px solid var(--color-border-light);
+}
+
+/* --- Mobile Cards (table alternative) --- */
+.wms-mobile-cards {
+    display: none;
+}
+
+.wms-mobile-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-3);
+}
+
+.wms-mobile-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.wms-mobile-card-header > div:first-child {
+    min-width: 0;
+    flex: 1;
+}
+
+.wms-mobile-card-title {
+    display: block;
+    font-weight: 700;
+    font-size: var(--font-size-lg);
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+    line-height: 1.25;
+}
+
+.wms-mobile-card-meta {
+    display: block;
+    margin-top: var(--space-1);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    font-weight: 400;
+    line-height: 1.35;
+}
+
+.wms-mobile-card-rows {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2) var(--space-4);
+    font-size: var(--font-size-sm);
+}
+
+.wms-mobile-card-label {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.wms-mobile-card-value {
+    color: var(--color-text);
+    font-weight: 500;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.wms-mobile-card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-border-light);
+}
+
+/* --- Escaneo cámara (códigos de barras / QR) --- */
+.wms-input-with-scan {
+    display: flex;
+    gap: var(--space-2);
+    align-items: stretch;
+    width: 100%;
+}
+
+.wms-input-with-scan .wms-input {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Botón escanear: solo móvil (evita confusión en escritorio; pistola/teclado siguen disponibles) */
+.wms-btn-scan {
+    display: none;
+    flex-shrink: 0;
+    min-width: 48px;
+    min-height: 48px;
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-xl);
+    line-height: 1;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .wms-btn-scan {
+        display: inline-flex;
+    }
+}
+
+.wms-barcode-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: var(--space-3);
+    box-sizing: border-box;
+}
+
+@media (min-width: 600px) {
+    .wms-barcode-backdrop {
+        align-items: center;
+    }
+}
+
+.wms-barcode-dialog {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    max-width: 420px;
+    width: 100%;
+    max-height: min(92vh, 720px);
+    overflow: auto;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--color-border);
+}
+
+.wms-barcode-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-4) 0;
+}
+
+.wms-barcode-title {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.wms-barcode-close {
+    border: none;
+    background: var(--color-bg);
+    color: var(--color-text);
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.wms-barcode-close:hover {
+    background: var(--color-border-light);
+}
+
+.wms-barcode-intro,
+.wms-barcode-footnote {
+    margin: var(--space-2) var(--space-4) 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    line-height: 1.4;
+}
+
+.wms-barcode-footnote {
+    margin-bottom: var(--space-4);
+}
+
+.wms-barcode-reader {
+    min-height: 200px;
+    margin: var(--space-3) var(--space-2);
+}
+
+.wms-barcode-reader video {
+    border-radius: var(--radius-md);
+}
+
+/* --- Utility --- */
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+.text-muted  { color: var(--color-text-muted); }
+.text-sm     { font-size: var(--font-size-sm); }
+.text-xs     { font-size: var(--font-size-xs); }
+.fw-600      { font-weight: 600; }
+.mt-2        { margin-top: var(--space-2); }
+.mt-4        { margin-top: var(--space-4); }
+.mb-2        { margin-bottom: var(--space-2); }
+.mb-4        { margin-bottom: var(--space-4); }
+.gap-2       { gap: var(--space-2); }
+.gap-3       { gap: var(--space-3); }
+.flex        { display: flex; }
+.flex-wrap   { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.hidden      { display: none !important; }
+
+/* ==========================================================================
+   RESPONSIVE — Tablet (≤1024px)
+   ========================================================================== */
+@media (max-width: 1024px) {
+    :root {
+        --header-height: 56px;
+    }
+
+    .wms-page {
+        padding: var(--space-4);
+    }
+
+    .wms-filters-grid {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+
+    .wms-card-body {
+        padding: var(--space-4);
+    }
+}
+
+/* ==========================================================================
+   RESPONSIVE — Mobile (≤768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+    :root {
+        --header-height: 52px;
+    }
+
+    .wms-header {
+        padding: var(--space-2) var(--space-4);
+        min-height: var(--header-height);
+        height: auto;
+    }
+
+    /* Cabecera móvil: siempre título arriba y acciones abajo (misma estructura en todas las pantallas) */
+    .wms-header-inner {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "wms-head-title"
+            "wms-head-actions";
+        gap: var(--space-2);
+        align-items: start;
+        min-height: 0;
+        width: 100%;
+    }
+
+    .wms-header-title {
+        grid-area: wms-head-title;
+        flex: none;
+        width: 100%;
+    }
+
+    .wms-header-actions {
+        grid-area: wms-head-actions;
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    .wms-header-title h1 {
+        font-size: var(--font-size-base);
+        display: block;
+        -webkit-line-clamp: unset;
+        overflow: visible;
+    }
+
+    .wms-header-user {
+        display: none;
+    }
+
+    .wms-page {
+        padding: var(--space-3);
+    }
+
+    .wms-card-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-3);
+        padding: var(--space-4);
+    }
+
+    .wms-card-header > h2 {
+        width: 100%;
+    }
+
+    .wms-card-header .wms-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 44px;
+    }
+
+    .wms-card-body {
+        padding: var(--space-4);
+    }
+
+    .wms-filters {
+        padding: var(--space-4);
+    }
+
+    .wms-filters-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .wms-filters-actions {
+        flex-direction: column;
+    }
+
+    .wms-filters-actions .wms-btn {
+        width: 100%;
+    }
+
+    /*
+     * Ocultar tabla solo cuando existe la alternativa de tarjetas (historiales).
+     * En Admin, productos, etc. NO hay .wms-mobile-cards: la tabla debe seguir visible
+     * con scroll horizontal.
+     */
+    .wms-table-wrap:has(+ .wms-mobile-cards) {
+        display: none;
+    }
+
+    .wms-mobile-cards {
+        display: block;
+    }
+
+    /* Collapsible filters */
+    .wms-filters-toggle {
+        display: flex;
+        min-height: 44px;
+        padding: var(--space-2) var(--space-4);
+    }
+
+    .wms-filters.collapsible {
+        display: none;
+    }
+
+    .wms-filters.collapsible.show {
+        display: block;
+    }
+
+    .wms-mobile-card-actions .wms-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Modal full screen on mobile */
+    .wms-modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .wms-modal {
+        max-width: 100%;
+        max-height: 95vh;
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    .wms-pagination {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .wms-btn-lg {
+        width: 100%;
+    }
+
+    /* Larger touch targets */
+    .wms-btn {
+        min-height: 44px;
+    }
+
+    .wms-input, .wms-select {
+        min-height: 44px;
+        font-size: 16px; /* prevents iOS zoom */
+    }
+
+    /* Tarjetas de historial (móvil): una fila por dato — etiqueta a la izquierda, valor a la derecha */
+    .wms-mobile-card {
+        padding: var(--space-3);
+    }
+
+    .wms-mobile-card-header {
+        margin-bottom: var(--space-2);
+    }
+
+    .wms-mobile-card-rows {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-1);
+        font-size: var(--font-size-sm);
+    }
+
+    .wms-mobile-card-rows > div {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--space-3);
+        width: 100%;
+    }
+
+    .wms-mobile-card-label {
+        color: var(--color-text);
+        font-weight: 600;
+        font-size: var(--font-size-xs);
+        flex: 0 1 auto;
+        max-width: 44%;
+        padding-top: 1px;
+    }
+
+    .wms-mobile-card-label::after {
+        content: ':';
+    }
+
+    .wms-mobile-card-value {
+        text-align: right;
+        flex: 1;
+        min-width: 0;
+        font-size: var(--font-size-sm);
+    }
+
+    /*
+     * Tarjetas de línea de producto (Despacho, Recepción, Transferencias, Ajustes detalle…)
+     * Misma densidad en móvil en todos los módulos que usan .producto-card dentro de .wms-page
+     */
+    .wms-page .productos-section {
+        margin-top: var(--space-4);
+    }
+
+    .wms-page .productos-section h2 {
+        margin-bottom: var(--space-3);
+        font-size: var(--font-size-md);
+    }
+
+    .wms-page .productos-grid {
+        gap: var(--space-2);
+    }
+
+    .wms-page .producto-card {
+        padding: var(--space-3);
+    }
+
+    /* Recepción/Transferencias: cantidad en cabecera en fila completa bajo el título (sin pelear con el título) */
+    .wms-page .producto-header {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--space-2);
+        margin-bottom: var(--space-2);
+    }
+
+    .wms-page .producto-header .producto-info .producto-nombre {
+        font-size: var(--font-size-sm);
+        line-height: 1.3;
+    }
+
+    .wms-page .producto-info .sku {
+        font-size: var(--font-size-xs);
+    }
+
+    .wms-page .producto-header > .cantidad-item {
+        width: 100%;
+        max-width: none;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+        padding: var(--space-2) var(--space-3);
+        box-sizing: border-box;
+    }
+
+    .wms-page .producto-header > .cantidad-item .label {
+        margin-bottom: 0;
+        font-size: var(--font-size-xs);
+    }
+
+    .wms-page .producto-header > .cantidad-item .value {
+        font-size: var(--font-size-xl);
+    }
+
+    .wms-page .cantidades {
+        margin-top: var(--space-2);
+        gap: var(--space-2);
+        justify-content: space-between;
+    }
+
+    .wms-page .cantidades .cantidad-item {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    .wms-page .cantidades .cantidad-item .label {
+        font-size: 10px;
+        margin-bottom: 2px;
+    }
+
+    .wms-page .cantidades .cantidad-item .value {
+        font-size: var(--font-size-base);
+    }
+
+    .wms-page .producto-card .asignacion-fila input[type="text"],
+    .wms-page .producto-card .asignacion-fila input[type="number"] {
+        padding: 6px 8px;
+        font-size: 16px;
+    }
+
+    .wms-page .producto-card .asignacion-fila input[type="number"] {
+        width: 100px;
+    }
+
+    .wms-page .producto-card .btn-registrar,
+    .wms-page .producto-card .btn-agregar-ubicacion,
+    .wms-page .producto-card .btn-registrar-linea {
+        padding: 8px 12px;
+        font-size: var(--font-size-xs);
+    }
+}
+
+/* Título de producto + badge (Recepción, Despacho): el nombre puede crecer sin desalinear el badge */
+.producto-titulo-fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--space-2);
+}
+
+.producto-titulo-fila .producto-nombre {
+    flex: 1 1 12rem;
+    min-width: 0;
+    margin: 0;
+}
+
+/* Aviso WMS reutilizable (ubicación / stock); usado al menos en Despacho */
+.wms-wms-warning {
+    background: var(--color-warning-bg);
+    border: 1px solid var(--color-warning);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3);
+    margin-top: var(--space-2);
+}
+
+.wms-wms-warning__titulo {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-warning-text);
+    line-height: 1.35;
+}
+
+.wms-wms-warning__detalle {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-1);
+    line-height: 1.35;
+}
+
+/* ==========================================================================
+   RESPONSIVE — Small Mobile (≤480px)
+   ========================================================================== */
+@media (max-width: 480px) {
+    .wms-page {
+        padding: var(--space-2);
+    }
+
+    .wms-card-header, .wms-card-body, .wms-card-footer {
+        padding: var(--space-3);
+    }
+
+    /* Solo oculta la etiqueta de texto; el icono/emoji permanece */
+    .wms-header-actions .wms-btn .wms-header-btn-label {
+        display: none;
+    }
+}
+
+/* ==========================================================================
+   PRINT
+   ========================================================================== */
+@media print {
+    .wms-header, .wms-filters, .wms-pagination, .wms-btn, .wms-mobile-cards {
+        display: none !important;
+    }
+
+    .wms-table-wrap {
+        display: block !important;
+        overflow: visible;
+    }
+
+    body { background: white; }
+    .wms-card { box-shadow: none; border: 1px solid #ccc; }
+}

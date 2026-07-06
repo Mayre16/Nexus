@@ -1,0 +1,96 @@
+ARCHIVOS MODIFICADOS PARA CORREGIR synced_at EN SINCRONIZACIÓN DE CATÁLOGO
+==========================================================================
+
+Fecha: 2026-01-26
+Descripción: Corrección para actualizar el campo synced_at cuando se sincroniza el catálogo
+
+PROBLEMA:
+---------
+La función `sincronizar_catalogo()` actualizaba productos pero NO actualizaba el campo `synced_at`.
+Solo actualizaba `updated_at`, por lo que la fecha de "Última sincronización" no se actualizaba
+después de sincronizar el catálogo.
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. routes/sincronizar.py
+   - Línea 748: Agregado `producto.synced_at = datetime.utcnow()` al actualizar producto existente
+   - Línea 757: Agregado `synced_at=datetime.utcnow()` al crear producto nuevo
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. Actualización de producto existente (línea 748):
+   - ANTES: Solo actualizaba `updated_at`
+   - DESPUÉS: Actualiza `updated_at` y `synced_at`
+
+2. Creación de producto nuevo (línea 757):
+   - ANTES: Solo establecía `updated_at`
+   - DESPUÉS: Establece `updated_at` y `synced_at`
+
+COMPORTAMIENTO:
+---------------
+
+**ANTES:**
+1. Usuario sincroniza catálogo
+2. Se actualizan productos (solo `updated_at`)
+3. Se consulta `/api/sincronizar/estado`
+4. Devuelve fecha antigua (último `synced_at` de sincronización por ubicación)
+5. Pantalla muestra: "Última sincronización: 18/01/2026, 12:27:32 p. m." (fecha antigua) ❌
+
+**DESPUÉS:**
+1. Usuario sincroniza catálogo
+2. Se actualizan productos (`updated_at` y `synced_at`)
+3. Se consulta `/api/sincronizar/estado`
+4. Devuelve fecha nueva (último `synced_at` de sincronización de catálogo)
+5. Pantalla muestra: "Última sincronización: 26/01/2026, 09:30:34 p. m." (fecha actual) ✅
+
+**Resultado:**
+- ✅ Cada producto tiene `synced_at` actualizado cuando se sincroniza el catálogo
+- ✅ La consulta `/api/sincronizar/estado` devuelve la fecha correcta
+- ✅ La pantalla muestra la fecha de última sincronización actualizada
+- ✅ La fecha se actualiza automáticamente después de cada sincronización
+
+DIFERENCIA ENTRE CAMPOS:
+-------------------------
+
+**`updated_at`:**
+- Se actualiza cada vez que se modifica el producto (cualquier cambio)
+- Puede cambiar por ajustes manuales u otros procesos
+
+**`synced_at`:**
+- Se actualiza solo cuando se sincroniza desde ADM Cloud
+- Indica específicamente cuándo fue la última sincronización
+- Usado para mostrar "Última sincronización" en el panel de administración
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+----------------------------------------
+
+1. Subir el archivo modificado:
+   - routes/sincronizar.py
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario.
+
+4. Probar:
+   - Sincronizar el catálogo
+   - Verificar que la fecha de "Última sincronización" se actualiza correctamente
+   - Verificar que la hora es correcta (no 4 horas adelantada)
+
+RESULTADO ESPERADO:
+-------------------
+
+Después de la corrección:
+- ✅ El campo `synced_at` se actualiza correctamente en cada sincronización de catálogo
+- ✅ La fecha de "Última sincronización" se muestra correctamente
+- ✅ La fecha se actualiza automáticamente después de cada sincronización
+- ✅ Consistencia con la sincronización por ubicación (que ya actualizaba `synced_at`)
+
+
+
+
+
+
+
+

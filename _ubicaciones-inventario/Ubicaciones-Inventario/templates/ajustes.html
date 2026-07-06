@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajustes de Inventario - WMS</title>
+    <link rel="stylesheet" href="/static/css/wms.css">
+    <link rel="stylesheet" href="/static/css/ajustes.css">
+</head>
+<body>
+    <header class="wms-header">
+        <div class="wms-header-inner">
+            <div class="wms-header-title">
+                <span class="module-icon">📋</span>
+                <h1>Ajustes de Inventario</h1>
+            </div>
+            <div class="wms-header-actions">
+                <span class="wms-header-user" id="user-info">Cargando...</span>
+                <a href="/ajustes" class="wms-btn wms-btn-secondary wms-btn-sm" title="Historial">📋 <span class="wms-header-btn-label">Historial</span></a>
+                <a href="/" class="wms-btn wms-btn-secondary wms-btn-sm" title="Inicio">🏠 <span class="wms-header-btn-label">Inicio</span></a>
+                <button type="button" class="wms-btn wms-btn-secondary wms-btn-sm" onclick="cerrarSesion()" title="Cerrar sesión"><span class="wms-icon-logout" aria-hidden="true"></span> <span class="wms-header-btn-label">Salir</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="wms-page">
+        <!-- Mensajes -->
+        <div id="message-error" class="wms-toast wms-toast-error"></div>
+        <div id="message-success" class="wms-toast wms-toast-success"></div>
+
+        <!-- Información -->
+        <div class="info-box">
+            <h3>📝 Ajustes de Inventario</h3>
+            <p>
+                Registra productos con su ubicación física y cantidad en el almacén.
+                Ejemplo: Artículo 123, Ubicación 2-P1-AD-N1, Cantidad 5.
+                <br><br>
+                <strong>Nomenclatura de ubicaciones:</strong> Piso-Pasillo-Anaquel-Nivel
+                <br>
+                Ejemplo: <code>2-P1-AD-N1</code> = Piso 2, Pasillo 1, Anaquel Derecho, Nivel 1
+                <br><br>
+                <strong>💡 Tip:</strong> Usa esta herramienta para corregir discrepancias no explicadas o realizar inventario inicial.
+            </p>
+        </div>
+
+        <!-- Buscar Producto -->
+        <div class="wms-card">
+            <div class="wms-card-body">
+                <h2>Buscar Producto</h2>
+                <div class="search-buttons">
+                    <button class="btn-search-type active" data-type="sku" onclick="seleccionarTipoBusqueda('sku')">
+                        Por SKU
+                    </button>
+                    <button class="btn-search-type" data-type="nombre" onclick="seleccionarTipoBusqueda('nombre')">
+                        Por Nombre
+                    </button>
+                    <button class="btn-search-type" data-type="codigo_barras" onclick="seleccionarTipoBusqueda('codigo_barras')">
+                        Por Código de Barras
+                    </button>
+                </div>
+                <div class="wms-form-group">
+                    <label class="wms-label" for="busqueda-input">Buscar Producto</label>
+                    <div class="wms-input-with-scan">
+                        <input type="text" id="busqueda-input" class="wms-input"
+                               placeholder="Ingresa SKU, nombre o código de barras"
+                               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                               autofocus>
+                        <button type="button" class="wms-btn wms-btn-secondary wms-btn-scan" onclick="abrirEscanerBusquedaAjuste()"
+                                title="Escanear con la cámara">📷</button>
+                    </div>
+                </div>
+                <button class="wms-btn wms-btn-primary wms-btn-lg" onclick="buscarProducto()">Buscar</button>
+            </div>
+        </div>
+
+        <!-- Información del Producto -->
+        <div id="producto-info-container" class="wms-card" style="display: none;">
+            <div class="wms-card-body">
+                <h2>Información del Producto</h2>
+                <div id="producto-info" class="producto-info"></div>
+
+                <div class="stock-ubicaciones">
+                    <h4>Stock Actual en Ubicaciones Físicas</h4>
+                    <div id="stock-ubicaciones-list"></div>
+                </div>
+
+                <h2 style="margin-top: var(--space-8);">Registrar Ajuste</h2>
+                <form id="ajuste-form" onsubmit="registrarAjuste(event)">
+                    <div style="background: var(--color-info-bg); padding: var(--space-4); border-radius: var(--radius-md); margin-bottom: var(--space-5); border-left: 4px solid var(--color-info);">
+                        <p style="margin: 0; font-size: var(--font-size-sm); color: var(--color-info-text);">
+                            <strong>💡 Instrucciones:</strong> Selecciona las ubicaciones ADM (macros) que deseas ajustar.
+                            Si seleccionas ADESA, deberás especificar las ubicaciones físicas (micro) dentro del almacén.
+                        </p>
+                    </div>
+
+                    <div id="ubicaciones-adm-container" style="margin-bottom: var(--space-5);">
+                        <h3 style="margin-bottom: var(--space-4); color: var(--color-text-secondary);">Ubicaciones ADM (Macros)</h3>
+
+                        <div class="wms-form-group">
+                            <label class="wms-label" for="selector-ubicacion-adm">Seleccionar Ubicación ADM (Macro)</label>
+                            <select id="selector-ubicacion-adm" class="wms-select"
+                                    onchange="agregarUbicacionADM()">
+                                <option value="">-- Selecciona una ubicación ADM --</option>
+                            </select>
+                        </div>
+
+                        <div id="ubicaciones-adm-seleccionadas"></div>
+
+                        <div id="error-validacion-adesa" style="display: none; background: var(--color-danger-bg); color: var(--color-danger-text); padding: var(--space-4); border-radius: var(--radius-md); margin-top: var(--space-4); border-left: 4px solid var(--color-danger);">
+                            <strong>⚠️ Error de Validación:</strong>
+                            <p id="mensaje-error-validacion" style="margin: var(--space-1) 0 0 0;"></p>
+                        </div>
+                    </div>
+
+                    <div id="ubicaciones-fisicas-container" style="display: none; margin-bottom: var(--space-5); background: var(--color-bg); padding: var(--space-4); border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4);">
+                            <h3 style="margin: 0; color: var(--color-text-secondary);">Ubicaciones Físicas WMS (dentro de ADESA)</h3>
+                            <button type="button" class="wms-btn wms-btn-success wms-btn-sm" onclick="agregarUbicacionFisica()">
+                                ➕ Agregar Ubicación Física
+                            </button>
+                        </div>
+                        <div id="ubicaciones-fisicas-list"></div>
+                    </div>
+
+                    <div class="wms-form-group" style="margin-top: var(--space-5);">
+                        <label class="wms-label" for="notas-input">Notas/Justificación (opcional)</label>
+                        <textarea id="notas-input" class="wms-textarea"
+                                  placeholder="Ej: Inventario inicial, Corrección de discrepancia, etc."
+                                  rows="3"></textarea>
+                    </div>
+
+                    <button type="submit" class="wms-btn wms-btn-primary wms-btn-lg" style="margin-top: var(--space-5);">Registrar Ajuste</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="empty-state" class="wms-card">
+            <div class="wms-card-body wms-empty">
+                <p>Busca un producto para comenzar el ajuste de inventario</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/security_utils.js"></script>
+    <script src="/static/js/wms-common.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" crossorigin="anonymous"></script>
+    <script src="/static/js/wms-barcode.js"></script>
+    <script src="/static/js/ajustes.js"></script>
+</body>
+</html>

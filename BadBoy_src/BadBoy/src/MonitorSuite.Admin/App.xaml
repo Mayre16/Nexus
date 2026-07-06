@@ -1,0 +1,62 @@
+<Application x:Class="MonitorSuite.Admin.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Application.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <!-- Tema ADESA (rojo corporativo + dorado) -->
+        <Color x:Key="AdesaRedColor">#BE1622</Color>
+        <Color x:Key="AdesaRed2Color">#EF1D2B</Color>
+        <Color x:Key="AdesaGoldColor">#FCB900</Color>
+        <Color x:Key="AdesaInkColor">#111111</Color>
+        <SolidColorBrush x:Key="AdesaRedBrush" Color="{StaticResource AdesaRedColor}" />
+        <SolidColorBrush x:Key="AdesaRed2Brush" Color="{StaticResource AdesaRed2Color}" />
+        <SolidColorBrush x:Key="AdesaGoldBrush" Color="{StaticResource AdesaGoldColor}" />
+        <SolidColorBrush x:Key="AdesaInkBrush" Color="{StaticResource AdesaInkColor}" />
+        <SolidColorBrush x:Key="AdesaBackgroundBrush" Color="#F3F4F6" />
+
+        <Style x:Key="AdesaPrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource AdesaRedBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AdesaRed2Brush}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="AdesaSecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#E5E7EB" />
+            <Setter Property="Foreground" Value="{StaticResource AdesaInkBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="GroupBox">
+            <Setter Property="BorderBrush" Value="#E5E7EB" />
+            <Setter Property="Foreground" Value="{StaticResource AdesaInkBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+    </Application.Resources>
+</Application>

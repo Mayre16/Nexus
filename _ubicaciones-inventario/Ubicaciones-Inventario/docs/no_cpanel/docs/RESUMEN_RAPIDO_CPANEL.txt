@@ -1,0 +1,50 @@
+═══════════════════════════════════════════════════════════════
+  RESUMEN RÁPIDO: Desplegar WMS en CPanel
+═══════════════════════════════════════════════════════════════
+
+1️⃣  SUBIR ARCHIVOS
+   → File Manager → public_html/wms.adesa.com.do
+   → Subir TODOS los archivos y carpetas
+   → Verificar que passenger_wsgi.py esté en la raíz
+
+2️⃣  CREAR PYTHON APP
+   → CPanel → Software → Setup Python App
+   → Create Application
+   → Python Version: 3.9 o 3.10
+   → Application Root: /public_html/wms.adesa.com.do
+   → Startup File: passenger_wsgi.py ⭐
+   → Entry Point: application ⭐
+
+3️⃣  INSTALAR DEPENDENCIAS
+   → Terminal CPanel
+   → cd /home/usuario/public_html/wms.adesa.com.do
+   → pip install Flask Flask-SQLAlchemy requests bcrypt Werkzeug
+
+4️⃣  VARIABLES DE ENTORNO
+   → En Python App → Environment Variables
+   → Agregar:
+     FLASK_ENV = production
+     SECRET_KEY = cualquier-clave-secreta
+     ADM_EMAIL = luis.useche@adesa.com.do
+     ADM_PASSWORD = Merida.123.
+     ADM_APPID = cccdf964-1e69-46e7-5ed0-08de4e33921f
+     ADM_COMPANY = 7b5f5222-123e-4dc7-a783-2979ea9e6cff
+     ADM_ROLE = Administradores
+
+5️⃣  INICIALIZAR BD
+   → Terminal
+   → cd /home/usuario/public_html/wms.adesa.com.do
+   → python init_db.py
+
+6️⃣  REINICIAR APP
+   → Python App → Restart
+
+7️⃣  ACTIVAR DOMINIO
+   → En la sección de dominios, activar el toggle de wms.adesa.com.do
+
+8️⃣  PROBAR
+   → Abrir: https://wms.adesa.com.do/
+   → Debe cargar la aplicación
+
+═══════════════════════════════════════════════════════════════
+

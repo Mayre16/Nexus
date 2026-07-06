@@ -1,0 +1,128 @@
+ARCHIVOS A ACTUALIZAR EN CPANEL - VALIDACIÓN Y DETALLE DE AJUSTES
+==================================================================
+
+Fecha: 2025-01-26
+Descripción: Actualización completa del módulo de Ajustes con:
+- Página de detalle completa (similar a recepciones)
+- Validación mejorada para detectar ubicaciones físicas con stock
+- Carga automática de ubicaciones físicas al seleccionar ADESA
+- Funcionalidad de revertir ajustes (solo admin)
+- Corrección de error de formato de ID
+
+ARCHIVOS A ACTUALIZAR:
+---------------------
+
+1. app_wms.py
+   📍 Ubicación: Raíz del proyecto
+   ✅ Cambios: Agregada ruta /ajustes/detalle
+   📝 Líneas modificadas: ~232 (nueva ruta agregada)
+
+2. routes/detalles.py
+   📍 Ubicación: routes/detalles.py
+   ✅ Cambios: Corregido parseo de ID de ajuste para manejar caracteres especiales
+   📝 Líneas modificadas: ~473-493 (mejorado parseo de timestamp y ubicación)
+
+3. routes/ajustes.py
+   📍 Ubicación: routes/ajustes.py
+   ✅ Cambios: 
+      - Agregado import de require_admin
+      - Agregado endpoint /api/ajustes/<ajuste_id>/revertir
+      - Modificada validación de cantidades para permitir cantidad 0 (permitir eliminar stock)
+   📝 Líneas modificadas: 
+      - Línea 7: import require_admin
+      - Líneas ~193-220: validación de cantidades (permite 0)
+      - Líneas ~841-950: nuevo endpoint revertir_ajuste()
+
+4. templates/ajustes_detalle.html
+   📍 Ubicación: templates/ajustes_detalle.html
+   ✅ Cambios: ARCHIVO NUEVO (crear en cPanel)
+   📝 Descripción: Página completa de detalle de ajuste con auditoría y botón revertir
+
+5. templates/ajustes_historial.html
+   📍 Ubicación: templates/ajustes_historial.html
+   ✅ Cambios:
+      - Actualizados botones "Ver Detalle" y "Editar" para redirigir a /ajustes/detalle
+      - Eliminado modal de detalles (ya no se usa)
+      - Eliminadas funciones mostrarModalDetalle() y cerrarModalDetalle()
+      - Mejorada visualización de tabla (SKUs, tipo, cantidades)
+   📝 Líneas modificadas: 
+      - ~364-372: Encabezados de tabla actualizados
+      - ~474-487: Renderizado de tabla mejorado
+      - ~556-564: Funciones verDetalle() y editarAjuste() actualizadas
+      - Eliminadas líneas ~566-681: Modal y funciones obsoletas
+
+6. templates/ajustes.html
+   📍 Ubicación: templates/ajustes.html
+   ✅ Cambios:
+      - Agregado window.stockUbicacionesActual en mostrarProducto()
+      - Mejorada validación de ADESA (detecta ubicaciones con stock no ajustadas)
+      - Agregada carga automática de ubicaciones físicas con stock al seleccionar ADESA
+      - Modificada función agregarUbicacionFisica() para aceptar parámetros
+      - Agregada función agregarUbicacionFisicaConValores()
+      - Eliminada sección "Ubicaciones Físicas dentro de ADESA" del cache ADM
+      - Mejorados mensajes de error
+      - Cambiado min="0.01" a min="0" para permitir ajustes a 0
+   📝 Líneas modificadas:
+      - ~565-566: window.stockUbicacionesActual
+      - ~598-607: Eliminada sección de ubicaciones físicas del cache ADM
+      - ~716-735: Carga automática de ubicaciones físicas
+      - ~779-786: Validación al eliminar ADESA
+      - ~815-834: Validación mejorada (considera ubicaciones con cantidad 0)
+      - ~837-864: Mensajes de error mejorados
+      - ~901-944: Función agregarUbicacionFisica() modificada
+      - ~945-947: Nueva función agregarUbicacionFisicaConValores()
+
+RESUMEN DE CAMBIOS POR ARCHIVO:
+-------------------------------
+
+📄 app_wms.py
+   - 1 ruta nueva agregada
+
+📄 routes/detalles.py
+   - Mejora en parseo de ID (20 líneas)
+
+📄 routes/ajustes.py
+   - 1 import agregado
+   - 1 endpoint nuevo (110 líneas)
+
+📄 templates/ajustes_detalle.html
+   - ARCHIVO NUEVO (603 líneas) ⚠️ CREAR EN CPANEL
+
+📄 templates/ajustes_historial.html
+   - Botones actualizados
+   - Modal eliminado
+   - Visualización mejorada
+
+📄 templates/ajustes.html
+   - Validación mejorada
+   - Carga automática de ubicaciones
+   - Múltiples mejoras en UX
+
+INSTRUCCIONES PARA CPANEL:
+--------------------------
+
+1. Subir archivos modificados:
+   ✅ app_wms.py
+   ✅ routes/detalles.py
+   ✅ routes/ajustes.py
+   ✅ templates/ajustes_historial.html
+   ✅ templates/ajustes.html
+
+2. Crear nuevo archivo:
+   ⚠️ templates/ajustes_detalle.html (ARCHIVO NUEVO - crear desde cero)
+
+3. Verificar permisos:
+   - Todos los archivos deben tener permisos de lectura
+   - Los archivos .py deben ser ejecutables
+
+4. Reiniciar aplicación (si es necesario):
+   - Si usas Passenger/Phusion, toca el archivo tmp/restart.txt
+   - O reinicia el servidor web
+
+NOTAS IMPORTANTES:
+------------------
+- El archivo ajustes_detalle.html es NUEVO y debe crearse completamente
+- Todos los demás archivos son MODIFICACIONES de archivos existentes
+- No elimines ningún archivo, solo actualiza los mencionados
+- La funcionalidad de revertir requiere rol de administrador
+

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transferencias - WMS</title>
+    <link rel="stylesheet" href="/static/css/wms.css">
+    <link rel="stylesheet" href="/static/css/transferencias.css">
+</head>
+<body>
+    <header class="wms-header">
+        <div class="wms-header-inner">
+            <div class="wms-header-title">
+                <span class="module-icon">🔄</span>
+                <h1>Transferencia</h1>
+            </div>
+            <div class="wms-header-actions">
+                <span class="wms-header-user" id="user-info">Cargando...</span>
+                <a href="/transferencias" class="wms-btn wms-btn-secondary wms-btn-sm" title="Historial">📋 <span class="wms-header-btn-label">Historial</span></a>
+                <a href="/" class="wms-btn wms-btn-secondary wms-btn-sm" title="Inicio">🏠 <span class="wms-header-btn-label">Inicio</span></a>
+                <button type="button" class="wms-btn wms-btn-secondary wms-btn-sm" onclick="cerrarSesion()" title="Cerrar sesión"><span class="wms-icon-logout" aria-hidden="true"></span> <span class="wms-header-btn-label">Salir</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="wms-page">
+        <!-- Mensajes -->
+        <div id="message-error" class="wms-toast wms-toast-error"></div>
+        <div id="message-solucion" class="solucion-sugerida"></div>
+        <div id="message-success" class="wms-toast wms-toast-success"></div>
+
+        <!-- Búsqueda de Transferencia -->
+        <div class="wms-card search-section">
+            <div class="wms-card-body">
+                <h2>Buscar Transferencia</h2>
+                <form id="search-transferencia-form" class="search-form">
+                    <div class="wms-form-group">
+                        <label class="wms-label" for="docid-input">Número de Transferencia (DocID)</label>
+                        <input class="wms-input" type="text" id="docid-input" name="docid"
+                               placeholder="Ej: 00000231" required autofocus>
+                    </div>
+                    <button type="submit" class="wms-btn wms-btn-transferencia wms-btn-lg" id="btn-search">
+                        Buscar
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Información de la Transferencia -->
+        <div id="transferencia-info" class="wms-card" style="display: none;">
+            <div class="wms-card-body">
+                <!-- Botones de acción (homologado con Despacho/Recepciones) -->
+                <div id="botones-accion-transferencia" style="margin-bottom: var(--space-5); display: flex; gap: var(--space-3); flex-wrap: wrap; justify-content: flex-end;">
+                    <button id="btn-refrescar-transferencia" onclick="refrescarTransferencia()"
+                            class="wms-btn wms-btn-transferencia">
+                        🔄 Refrescar desde ADM
+                    </button>
+                    <button id="btn-revertir-transferencia" onclick="revertirTransferencia()"
+                            class="wms-btn wms-btn-danger" style="display: none;">
+                        ▲ Revertir Transferencia
+                    </button>
+                </div>
+                <div class="transferencia-info">
+                    <div>
+                        <h3 id="transferencia-numero"></h3>
+                        <div class="transferencia-details">
+                            <div>
+                                <strong>Fecha:</strong>
+                                <span id="transferencia-fecha"></span>
+                            </div>
+                            <div>
+                                <strong>Estado:</strong>
+                                <span id="transferencia-estado" class="estado-badge"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="transferencia-sentido">
+                        <span class="origen" id="transferencia-origen"></span>
+                        <span> → </span>
+                        <span class="destino" id="transferencia-destino"></span>
+                    </div>
+                </div>
+
+                <!-- Lista de Productos -->
+                <div class="productos-section">
+                    <h2 id="productos-titulo">Productos Transferidos</h2>
+                    <div id="productos-grid" class="productos-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="empty-state" class="wms-card">
+            <div class="wms-empty">
+                <div class="wms-empty-icon">
+                    <svg width="80" height="80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                    </svg>
+                </div>
+                <p class="wms-empty-title">Busca una transferencia para ver los detalles</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/security_utils.js"></script>
+    <script src="/static/js/fecha_utils.js"></script>
+    <script src="/static/js/wms-common.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" crossorigin="anonymous"></script>
+    <script src="/static/js/wms-barcode.js"></script>
+    <script src="/static/js/transferencias.js"></script>
+</body>
+</html>

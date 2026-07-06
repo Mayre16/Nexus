@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADESA Nexus · Tracker</title>
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .tracker-panel > summary { list-style: none; }
+      .tracker-panel > summary::-webkit-details-marker { display: none; }
+      .tracker-panel > summary .panel-arrow { transition: transform 0.15s ease; display: inline-block; }
+      .tracker-panel[open] > summary .panel-arrow { transform: rotate(90deg); }
+    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { adesa: { red: "#be1622", red2: "#ef1d2b", gold: "#fcb900", ink: "#111111" } },
+            fontFamily: { sans: ["Montserrat", "system-ui", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="font-sans bg-gray-50 text-adesa-ink min-h-screen">
+    <header class="bg-adesa-ink text-white">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap items-center gap-4 justify-between">
+        <div class="flex items-center gap-3">
+          <a href="/dashboard.html" class="text-sm text-gray-400 hover:text-white">← Panel</a>
+          <span class="text-lg font-bold">Nexus Tracker</span>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button data-periodo="dia" class="periodo-btn px-3 py-1.5 rounded-lg text-sm bg-adesa-red text-white">Hoy</button>
+          <button data-periodo="semana" class="periodo-btn px-3 py-1.5 rounded-lg text-sm bg-white/10 hover:bg-white/20">Semana</button>
+          <button data-periodo="mes" class="periodo-btn px-3 py-1.5 rounded-lg text-sm bg-white/10 hover:bg-white/20">Mes</button>
+          <input id="fecha" type="date" class="rounded-lg px-3 py-2 text-adesa-ink text-sm" />
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+      <p class="text-gray-500 text-sm mb-6">
+        Telemetría del agente Windows (BadBoy / MonitorSuite): apps activas, inactividad y URLs.
+        Cursor se agrupa por proyecto según el título de la ventana (ej. Nexus, Biblioteca Civis Acropolis).
+      </p>
+
+      <div id="resumen" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+      <section id="seccionRed" class="mt-8 hidden">
+        <details id="panelRed" class="tracker-panel bg-white rounded-2xl shadow-sm ring-1 ring-blue-100" open>
+          <summary class="flex items-center gap-3 p-5 cursor-pointer select-none">
+            <span class="panel-arrow text-blue-600 text-sm">▶</span>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-bold text-blue-800">Red UniFi · dispositivos por MAC</h3>
+              <p class="text-xs text-gray-400">Clientes conectados en ADESA · filtra por usuario y tipo</p>
+            </div>
+            <span id="badgeRed" class="badge-count text-xs px-2 py-0.5 rounded-full shrink-0 bg-gray-100 text-gray-500">0</span>
+          </summary>
+          <div class="px-6 pb-6 border-t border-gray-50 pt-4">
+            <div class="flex flex-wrap gap-3 mb-4 items-end">
+              <label class="min-w-[180px]">
+                <span class="text-xs text-gray-500 block mb-1">Usuario</span>
+                <select id="filtroRedUsuario" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                  <option value="">Todos los usuarios</option>
+                  <option value="sin_asignar">Sin asignar</option>
+                </select>
+              </label>
+              <label class="min-w-[160px]">
+                <span class="text-xs text-gray-500 block mb-1">Tipo de dispositivo</span>
+                <select id="filtroRedTipo" class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm">
+                  <option value="todos">Todos los tipos</option>
+                </select>
+              </label>
+              <label class="flex items-center gap-2 pb-2">
+                <input id="filtroRedPendientes" type="checkbox" class="rounded border-gray-300" />
+                <span class="text-xs text-gray-600">Solo sin nombre</span>
+              </label>
+              <button id="btnRecargarRed" type="button" class="px-3 py-2 rounded-lg bg-blue-700 text-white text-sm hover:bg-blue-800">
+                Actualizar
+              </button>
+            </div>
+            <p id="redResumen" class="text-xs text-gray-500 mb-3"></p>
+            <div class="overflow-x-auto rounded-xl ring-1 ring-gray-100">
+              <table class="w-full text-sm">
+                <thead class="bg-gray-50 text-left text-xs text-gray-500 uppercase">
+                  <tr>
+                    <th class="px-4 py-3">Nombre</th>
+                    <th class="px-4 py-3">MAC</th>
+                    <th class="px-4 py-3">IP</th>
+                    <th class="px-4 py-3">Tipo</th>
+                    <th class="px-4 py-3">Conexión</th>
+                    <th class="px-4 py-3">Usuario</th>
+                    <th class="px-4 py-3">Asignar</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaRed" class="divide-y divide-gray-50"></tbody>
+              </table>
+            </div>
+            <p id="emptyRed" class="hidden text-center text-gray-400 text-sm py-8">Sin dispositivos para estos filtros</p>
+            <p id="redError" class="hidden text-center text-red-600 text-sm py-4"></p>
+          </div>
+        </details>
+      </section>
+
+      <section id="detalle" class="mt-10 hidden">
+        <h2 class="text-xl font-bold mb-1" id="detalleTitulo"></h2>
+        <p class="text-sm text-gray-500 mb-2" id="detalleSubtitulo"></p>
+        <p id="detalleEstado" class="text-xs text-gray-400 mb-6 hidden"></p>
+
+        <div class="grid lg:grid-cols-2 gap-4 mb-4">
+          <details id="panelPieApps" class="tracker-panel bg-white rounded-2xl shadow-sm ring-1 ring-gray-100">
+            <summary class="flex items-center gap-3 p-5 cursor-pointer select-none">
+              <span class="panel-arrow text-adesa-red text-sm">▶</span>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-bold text-adesa-red">Uso por aplicación</h3>
+                <p class="text-xs text-gray-400">Porcentaje del tiempo total</p>
+              </div>
+              <span id="badgePieApps" class="badge-count text-xs px-2 py-0.5 rounded-full shrink-0 bg-gray-100 text-gray-500">0</span>
+            </summary>
+            <div class="px-6 pb-6">
+              <div class="relative h-64"><canvas id="chartApps"></canvas></div>
+              <p id="emptyApps" class="hidden text-center text-gray-400 text-sm py-8">Sin aplicaciones</p>
+            </div>
+          </details>
+
+          <details id="panelPieCat" class="tracker-panel bg-white rounded-2xl shadow-sm ring-1 ring-gray-100">
+            <summary class="flex items-center gap-3 p-5 cursor-pointer select-none">
+              <span class="panel-arrow text-adesa-red text-sm">▶</span>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-bold text-adesa-red">Por categoría</h3>
+                <p class="text-xs text-gray-400">Trabajo · OINA · Investigación · Ocio · Otro</p>
+              </div>
+              <span id="badgePieCat" class="badge-count text-xs px-2 py-0.5 rounded-full shrink-0 bg-gray-100 text-gray-500">0</span>
+            </summary>
+            <div class="px-6 pb-6">
+              <div class="relative h-64"><canvas id="chartCategorias"></canvas></div>
+              <p id="emptyCategorias" class="hidden text-center text-gray-400 text-sm py-8">Sin categorías</p>
+            </div>
+          </details>
+        </div>
+
+        <details id="panelProyectosCursor" class="tracker-panel bg-white rounded-2xl shadow-sm ring-1 ring-purple-100 mb-4">
+          <summary class="flex items-center gap-3 p-5 cursor-pointer select-none">
+            <span class="panel-arrow text-purple-600 text-sm">▶</span>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-bold text-purple-700">Proyectos Cursor</h3>
+              <p class="text-xs text-gray-400">Tiempo por proyecto según título de ventana</p>
+            </div>
+            <span id="badgeProyectos" class="badge-count text-xs px-2 py-0.5 rounded-full shrink-0 bg-gray-100 text-gray-500">0</span>
+          </summary>
+          <div class="px-6 pb-6">
+            <div class="relative h-72"><canvas id="chartProyectos"></canvas></div>
+            <p id="emptyProyectos" class="hidden text-center text-gray-400 text-sm py-8">Sin tiempo en Cursor</p>
+          </div>
+        </details>
+
+        <details id="panelBarras" class="tracker-panel bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 mb-4">
+          <summary class="flex items-center gap-3 p-5 cursor-pointer select-none">
+            <span class="panel-arrow text-adesa-red text-sm">▶</span>
+            <div class="flex-1 min-w-0">
+              <h3 class="font-bold text-adesa-red">Tiempo de uso</h3>
+              <p class="text-xs text-gray-400">Barras por aplicación · estilo tiempo en pantalla</p>
+            </div>
+            <span id="badgeBarras" class="badge-count text-xs px-2 py-0.5 rounded-full shrink-0 bg-gray-100 text-gray-500">0</span>
+          </summary>
+          <div class="px-6 pb-6">
+            <div class="relative h-80"><canvas id="chartBarras"></canvas></div>
+            <p id="emptyBarras" class="hidden text-center text-gray-400 text-sm py-8">Sin datos de uso</p>
+          </div>
+        </details>
+
+        <details id="panelApps" class="tracker-panel bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 mb-4">
+          <summary class="flex items-center gap-3 p-5 cursor-pointer select-none">
+            <span class="panel-arrow text-adesa-red text-sm">▶</span>
+            <span class="font-bold text-adesa-red flex-1">Aplicaciones abiertas</span>
+            <span id="badgeApps" class="badge-count text-xs px-2 py-0.5 rounded-full shrink-0 bg-gray-100 text-gray-500">0</span>
+          </summary>
+          <ul id="listaApps" class="px-6 pb-6 space-y-2 text-sm max-h-96 overflow-y-auto"></ul>
+        </details>
+
+        <details id="panelUrls" class="tracker-panel bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 mb-6">
+          <summary class="flex items-center gap-3 p-5 cursor-pointer select-none">
+            <span class="panel-arrow text-adesa-red text-sm">▶</span>
+            <span class="font-bold text-adesa-red flex-1">Detalle URLs</span>
+            <span id="badgeUrls" class="badge-count text-xs px-2 py-0.5 rounded-full shrink-0 bg-gray-100 text-gray-500">0</span>
+          </summary>
+          <ul id="listaUrls" class="px-6 pb-6 space-y-2 text-sm max-h-96 overflow-y-auto"></ul>
+        </details>
+      </section>
+
+      <div id="empty" class="hidden mt-12 text-center text-gray-400">
+        Sin reportes para esta fecha. ¿Está corriendo el agente BadBoy en tu PC?
+      </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+      function fmtSeg(s) {
+        s = Number(s) || 0;
+        const m = Math.floor(s / 60);
+        const h = Math.floor(m / 60);
+        if (h > 0) return `${h}h ${m % 60}m`;
+        if (m > 0) return `${m}m`;
+        return `${s}s`;
+      }
+
+      function fechaLocalISO() {
+        const d = new Date();
+        const p = (n) => String(n).padStart(2, "0");
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+      }
+
+      const fechaInput = document.getElementById("fecha");
+      fechaInput.value = fechaLocalISO();
+      let periodo = "dia";
+      const charts = {};
+      let datosActuales = null;
+      let redTipos = [];
+      let redUsuarios = [];
+      let redEmpleados = [];
+      const CHART_COLORS = ["#be1622", "#ef1d2b", "#fcb900", "#111111", "#2563eb", "#16a34a", "#9333ea", "#ea580c", "#0891b2", "#64748b"];
+
+      function fmtFecha(d) {
+        if (!d) return "—";
+        const s = String(d).slice(0, 10);
+        const [y, m, day] = s.split("-");
+        return `${day}/${m}/${y}`;
+      }
+
+      function etiquetaPeriodo(p) {
+        return p === "semana" ? "Últimos 7 días" : p === "mes" ? "Últimos 30 días" : "Hoy";
+      }
+
+      function badgeCategoria(cat) {
+        const map = {
+          trabajo: "bg-red-100 text-red-800",
+          investigacion: "bg-blue-100 text-blue-800",
+          ocio: "bg-green-100 text-green-800",
+          oina: "bg-purple-100 text-purple-800",
+          otro: "bg-gray-100 text-gray-600",
+        };
+        const labels = {
+          trabajo: "Trabajo",
+          investigacion: "Invest.",
+          ocio: "Ocio",
+          oina: "OINA",
+          otro: "Otro",
+        };
+        return `<span class="text-[10px] px-1.5 py-0.5 rounded ${map[cat] || map.otro}">${labels[cat] || cat || "Otro"}</span>`;
+      }
+
+      function badgeTipoDispositivo(tipo, label) {
+        const map = {
+          pc: "bg-slate-100 text-slate-800",
+          laptop: "bg-blue-100 text-blue-800",
+          mac: "bg-gray-800 text-white",
+          tablet: "bg-indigo-100 text-indigo-800",
+          telefono: "bg-green-100 text-green-800",
+          voip: "bg-amber-100 text-amber-900",
+          impresora: "bg-orange-100 text-orange-800",
+          streaming: "bg-pink-100 text-pink-800",
+          otro: "bg-gray-100 text-gray-600",
+          pendiente_nombre: "bg-yellow-100 text-yellow-900",
+        };
+        return `<span class="text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap ${map[tipo] || map.otro}">${label || tipo}</span>`;
+      }
+
+      function poblarFiltrosRed(data) {
+        redTipos = data.tipos || [];
+        redUsuarios = data.usuarios || [];
+        redEmpleados = data.empleados || redUsuarios;
+
+        const selTipo = document.getElementById("filtroRedTipo");
+        const prevTipo = selTipo.value || "todos";
+        selTipo.innerHTML = '<option value="todos">Todos los tipos</option>';
+        redTipos.forEach((t) => {
+          if (t.id === "pendiente_nombre") return;
+          const opt = document.createElement("option");
+          opt.value = t.id;
+          opt.textContent = `${t.icon || ""} ${t.label}`.trim();
+          selTipo.appendChild(opt);
+        });
+        const optPend = document.createElement("option");
+        optPend.value = "pendiente_nombre";
+        optPend.textContent = "❓ Sin nombre";
+        selTipo.appendChild(optPend);
+        if ([...selTipo.options].some((o) => o.value === prevTipo)) selTipo.value = prevTipo;
+
+        const selUser = document.getElementById("filtroRedUsuario");
+        const prevUser = selUser.value || "";
+        selUser.innerHTML =
+          '<option value="">Todos los usuarios</option><option value="sin_asignar">Sin asignar</option>';
+        redUsuarios.forEach((u) => {
+          const opt = document.createElement("option");
+          opt.value = u.usuario_uuid;
+          opt.textContent = u.nombre_completo;
+          selUser.appendChild(opt);
+        });
+        if ([...selUser.options].some((o) => o.value === prevUser)) selUser.value = prevUser;
+      }
+
+      function renderTablaRed(data) {
+        const tbody = document.getElementById("tablaRed");
+        const empty = document.getElementById("emptyRed");
+        const err = document.getElementById("redError");
+        const resumen = document.getElementById("redResumen");
+        err.classList.add("hidden");
+
+        if (!data.habilitado) {
+          document.getElementById("seccionRed").classList.remove("hidden");
+          tbody.innerHTML = "";
+          empty.classList.add("hidden");
+          err.textContent = data.mensaje || "UniFi no disponible.";
+          err.classList.remove("hidden");
+          setBadge("badgeRed", 0);
+          resumen.textContent = "";
+          return;
+        }
+
+        document.getElementById("seccionRed").classList.remove("hidden");
+        setBadge("badgeRed", data.total || 0);
+
+        const partes = [`${data.total} dispositivo(s) mostrados`];
+        if (data.total_red && data.total !== data.total_red) {
+          partes.push(`de ${data.total_red} en la red`);
+        }
+        if (data.resumen) {
+          const chips = Object.entries(data.resumen)
+            .slice(0, 5)
+            .map(([k, v]) => `${v} ${k}`)
+            .join(" · ");
+          if (chips) partes.push(chips);
+        }
+        resumen.textContent = partes.join(" · ");
+
+        const clientes = data.clientes || [];
+        if (!clientes.length) {
+          tbody.innerHTML = "";
+          empty.classList.remove("hidden");
+          return;
+        }
+        empty.classList.add("hidden");
+
+        tbody.innerHTML = clientes
+          .map((c) => {
+            const nombre = c.pendiente_identificar
+              ? `<span class="text-yellow-700 italic">Pendiente identificar</span>`
+              : `<span class="font-medium">${c.nombre || "—"}</span>`;
+            const usuario = c.usuario_nombre
+              ? `<span>${c.usuario_nombre}</span>${c.asignacion === "auto" ? '<span class="text-[10px] text-gray-400 block">auto</span>' : c.asignacion === "manual" ? '<span class="text-[10px] text-blue-600 block">manual</span>' : ""}`
+              : `<span class="text-gray-400">Sin asignar</span>`;
+            const aliasVal = c.nombre && !c.pendiente_identificar ? "" : (c.nombre_red || "");
+            return `<tr class="hover:bg-gray-50/80" data-mac="${c.mac}">
+              <td class="px-4 py-3 min-w-[140px]">${nombre}</td>
+              <td class="px-4 py-3 font-mono text-xs text-gray-600">${c.mac || "—"}</td>
+              <td class="px-4 py-3 text-gray-600">${c.ip || "—"}</td>
+              <td class="px-4 py-3">${badgeTipoDispositivo(c.tipo_dispositivo, c.tipo_label)}</td>
+              <td class="px-4 py-3 text-gray-600">${c.conexion || "—"}</td>
+              <td class="px-4 py-3 text-sm">${usuario}</td>
+              <td class="px-4 py-3 min-w-[200px]">
+                <div class="flex flex-col gap-1">
+                  <select class="asig-user rounded border border-gray-200 text-xs px-1 py-1">${optsEmpleados(c.usuario_uuid || "")}</select>
+                  <input class="asig-alias rounded border border-gray-200 text-xs px-2 py-1" placeholder="Alias (ej. iPhone Martha)" value="${aliasVal && c.pendiente_identificar ? aliasVal.replace(/"/g, "&quot;") : ""}" maxlength="120" />
+                  <button type="button" class="asig-save text-xs text-blue-700 hover:underline text-left">Guardar</button>
+                </div>
+              </td>
+            </tr>`;
+          })
+          .join("");
+      }
+
+      async function guardarAsignacionMac(mac, row) {
+        const usuario_uuid = row.querySelector(".asig-user").value || null;
+        const alias = row.querySelector(".asig-alias").value.trim() || null;
+        const r = await fetch(`/api/performance/red/clientes/${encodeURIComponent(mac)}`, {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": leerCookie("nexus_csrf") || "",
+          },
+          body: JSON.stringify({ usuario_uuid, alias }),
+        });
+        if (!r.ok) {
+          const d = await r.json().catch(() => ({}));
+          alert(d.error || "No se pudo guardar.");
+          return;
+        }
+        const prevUser = document.getElementById("filtroRedUsuario").value;
+        const data = await r.json();
+        poblarFiltrosRed(data);
+        renderTablaRed(data);
+        if (prevUser) document.getElementById("filtroRedUsuario").value = prevUser;
+      }
+
+      document.getElementById("tablaRed").addEventListener("click", (ev) => {
+        const btn = ev.target.closest(".asig-save");
+        if (!btn) return;
+        const row = btn.closest("tr[data-mac]");
+        if (row) guardarAsignacionMac(row.dataset.mac, row);
+      });
+
+      async function cargarRedClientes() {
+        const params = new URLSearchParams();
+        const u = document.getElementById("filtroRedUsuario").value;
+        const t = document.getElementById("filtroRedTipo").value;
+        if (u) params.set("usuario_uuid", u);
+        if (t && t !== "todos") params.set("tipo", t);
+        if (document.getElementById("filtroRedPendientes").checked) params.set("solo_pendientes", "1");
+
+        const r = await fetch(`/api/performance/red/clientes?${params}`, { credentials: "include" });
+        if (r.status === 401) {
+          window.location.href = "/";
+          return;
+        }
+        const data = await r.json();
+        poblarFiltrosRed(data);
+        renderTablaRed(data);
+      }
+
+      document.getElementById("filtroRedUsuario").addEventListener("change", cargarRedClientes);
+      document.getElementById("filtroRedTipo").addEventListener("change", cargarRedClientes);
+      document.getElementById("filtroRedPendientes").addEventListener("change", cargarRedClientes);
+      document.getElementById("btnRecargarRed").addEventListener("click", cargarRedClientes);
+
+      function leerCookie(nombre) {
+        const m = document.cookie.match(new RegExp("(?:^|; )" + nombre.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "=([^;]*)"));
+        return m ? decodeURIComponent(m[1]) : "";
+      }
+
+      function optsEmpleados(selected) {
+        let html = '<option value="">— Sin asignar —</option>';
+        redEmpleados.forEach((u) => {
+          const sel = u.usuario_uuid === selected ? " selected" : "";
+          html += `<option value="${u.usuario_uuid}"${sel}>${u.nombre_completo}</option>`;
+        });
+        return html;
+      }
+
+      function setBadge(id, count) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = String(count);
+        el.className =
+          "badge-count text-xs px-2 py-0.5 rounded-full shrink-0 " +
+          (count > 0 ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-500");
+      }
+
+      function destroyChart(id) {
+        if (charts[id]) {
+          charts[id].destroy();
+          charts[id] = null;
+        }
+      }
+
+      function chartDisponible() {
+        return typeof Chart !== "undefined";
+      }
+
+      function normalizarDatos(data) {
+        const pieApps =
+          data.graficoApps?.length ? data.graficoApps
+          : data.graficoRanking?.length ? data.graficoRanking.slice(0, 12)
+          : data.graficoAppsWindows?.length ? data.graficoAppsWindows
+          : [];
+
+        const catPie = data.graficoCategorias || [];
+        const barras = data.graficoRanking?.length ? data.graficoRanking : pieApps.slice(0, 12);
+        const proyectosCursor = data.graficoProyectosCursor || [];
+
+        let lista = [];
+        if (data.appsWindows?.length || data.appsWeb?.length) {
+          lista = [...(data.appsWindows || []), ...(data.appsWeb || [])]
+            .sort((a, b) => Number(b.segundos) - Number(a.segundos));
+        } else if (data.apps?.length) {
+          lista = data.apps.map((a) => ({
+            nombre_corto: a.nombre_app || a.proceso,
+            nombre_app: a.nombre_app,
+            categoria: "otro",
+            segundos: Number(a.segundos) || 0,
+          }));
+        } else if (pieApps.length) {
+          lista = pieApps.map((a) => ({
+            nombre_corto: a.nombre,
+            categoria: "otro",
+            segundos: Number(a.segundos) || 0,
+          }));
+        }
+
+        return { pieApps, catPie, barras, lista, urls: data.urls || [], proyectosCursor };
+      }
+
+      function pieChart(canvasId, emptyId, items, labelKey) {
+        destroyChart(canvasId);
+        const canvas = document.getElementById(canvasId);
+        const empty = document.getElementById(emptyId);
+        if (!items?.length || !chartDisponible()) {
+          if (canvas) canvas.classList.add("hidden");
+          if (empty) empty.classList.remove("hidden");
+          return;
+        }
+        canvas.classList.remove("hidden");
+        empty.classList.add("hidden");
+
+        const segundos = items.map((x) => Number(x.segundos) || 0);
+        const total = segundos.reduce((a, b) => a + b, 0) || 1;
+
+        charts[canvasId] = new Chart(canvas, {
+          type: "doughnut",
+          data: {
+            labels: items.map((x) => x[labelKey] || x.nombre),
+            datasets: [{
+              data: segundos,
+              backgroundColor: items.map((x, i) => x.color || CHART_COLORS[i % CHART_COLORS.length]),
+              borderWidth: 1,
+            }],
+          },
+          options: {
+            plugins: {
+              legend: { position: "right", labels: { boxWidth: 12, font: { size: 11 } } },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    const seg = segundos[ctx.dataIndex] || 0;
+                    const pct = ((seg / total) * 100).toFixed(1);
+                    return ` ${ctx.label}: ${fmtSeg(seg)} (${pct}%)`;
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      function barChartUso(canvasId, items) {
+        destroyChart(canvasId);
+        const canvas = document.getElementById(canvasId);
+        const empty = document.getElementById("emptyBarras");
+        if (!items?.length || !chartDisponible()) {
+          if (canvas) canvas.classList.add("hidden");
+          if (empty) empty.classList.remove("hidden");
+          return;
+        }
+        canvas.classList.remove("hidden");
+        empty.classList.add("hidden");
+
+        const segundos = items.map((x) => Number(x.segundos) || 0);
+        const total = segundos.reduce((a, b) => a + b, 0) || 1;
+        const labels = items.map((x) => x.nombre || x.nombre_corto || x.nombre_app || "?");
+        const maxSeg = Math.max(...segundos, 1);
+
+        charts[canvasId] = new Chart(canvas, {
+          type: "bar",
+          data: {
+            labels,
+            datasets: [{
+              data: segundos,
+              backgroundColor: labels.map((_, i) => CHART_COLORS[i % CHART_COLORS.length]),
+              borderRadius: 6,
+              barThickness: 22,
+            }],
+          },
+          options: {
+            indexAxis: "y",
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    const seg = segundos[ctx.dataIndex] || 0;
+                    const pct = ((seg / total) * 100).toFixed(1);
+                    return ` ${fmtSeg(seg)} · ${pct}%`;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                beginAtZero: true,
+                max: maxSeg * 1.05,
+                ticks: { callback: (v) => fmtSeg(v), maxTicksLimit: 6 },
+                grid: { color: "#f3f4f6" },
+              },
+              y: { grid: { display: false }, ticks: { font: { size: 11 }, autoSkip: false } },
+            },
+          },
+        });
+      }
+
+      /** Renderiza gráfico solo cuando el panel está abierto (Chart.js necesita tamaño visible). */
+      const panelesGrafico = [
+        { panelId: "panelPieApps", canvasId: "chartApps", emptyId: "emptyApps", key: "pieApps", labelKey: "nombre", tipo: "pie" },
+        { panelId: "panelPieCat", canvasId: "chartCategorias", emptyId: "emptyCategorias", key: "catPie", labelKey: "label", tipo: "pie" },
+        { panelId: "panelProyectosCursor", canvasId: "chartProyectos", emptyId: "emptyProyectos", key: "proyectosCursor", labelKey: "nombre", tipo: "pie" },
+        { panelId: "panelBarras", canvasId: "chartBarras", emptyId: "emptyBarras", key: "barras", labelKey: null, tipo: "bar" },
+      ];
+
+      function renderPanelGrafico(cfg) {
+        if (!datosActuales) return;
+        const items = datosActuales[cfg.key] || [];
+        if (cfg.tipo === "pie") {
+          pieChart(cfg.canvasId, cfg.emptyId, items, cfg.labelKey);
+        } else {
+          barChartUso(cfg.canvasId, items);
+        }
+      }
+
+      function renderGraficosAbiertos() {
+        panelesGrafico.forEach((cfg) => {
+          const panel = document.getElementById(cfg.panelId);
+          if (panel?.open) renderPanelGrafico(cfg);
+        });
+      }
+
+      panelesGrafico.forEach((cfg) => {
+        const panel = document.getElementById(cfg.panelId);
+        if (!panel) return;
+        panel.addEventListener("toggle", () => {
+          if (panel.open) requestAnimationFrame(() => renderPanelGrafico(cfg));
+        });
+      });
+
+      document.querySelectorAll(".periodo-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          periodo = btn.dataset.periodo;
+          document.querySelectorAll(".periodo-btn").forEach((b) => {
+            b.className =
+              "periodo-btn px-3 py-1.5 rounded-lg text-sm " +
+              (b === btn ? "bg-adesa-red text-white" : "bg-white/10 hover:bg-white/20");
+          });
+          cargarResumen();
+          const det = document.getElementById("detalle");
+          if (!det.classList.contains("hidden") && det.dataset.uuid) {
+            cargarDetalle(det.dataset.uuid, det.dataset.nombre);
+          }
+        });
+      });
+
+      async function cargarResumen() {
+        const r = await fetch(`/api/performance/resumen?periodo=${periodo}&fecha=${fechaInput.value}`, {
+          credentials: "include",
+        });
+        if (r.status === 401) {
+          window.location.href = "/";
+          return;
+        }
+        const data = await r.json();
+        const cont = document.getElementById("resumen");
+        const empty = document.getElementById("empty");
+        cont.innerHTML = "";
+
+        if (!data.empleados || data.empleados.length === 0) {
+          empty.classList.remove("hidden");
+          return;
+        }
+        empty.classList.add("hidden");
+
+        data.empleados.forEach((e) => {
+          const card = document.createElement("button");
+          card.className =
+            "text-left bg-white rounded-2xl p-5 shadow-sm ring-1 ring-gray-100 hover:ring-adesa-red/40 transition";
+          card.innerHTML = `
+            <div class="font-bold">${e.nombre_completo}</div>
+            <div class="text-xs text-gray-400 mt-1">${e.nombre_equipo}</div>
+            <div class="mt-3 flex gap-4 text-sm">
+              <span class="text-green-700">▶ ${fmtSeg(e.seg_activo || 0)} activo</span>
+              <span class="text-gray-500">⏸ ${fmtSeg(e.seg_inactivo || 0)} idle</span>
+            </div>
+            <div class="text-xs text-gray-400 mt-2">${e.lotes || 0} lotes · último: ${e.ultimo_reporte || "—"}</div>
+          `;
+          if (e.dispositivo_uuid && e.lotes > 0) {
+            card.onclick = () => {
+              cargarDetalle(e.dispositivo_uuid, e.nombre_completo);
+              document.getElementById("filtroRedUsuario").value = e.usuario_uuid || "";
+              cargarRedClientes();
+            };
+          } else if (e.dispositivo_uuid) {
+            card.classList.add("opacity-60");
+            card.onclick = () => {
+              document.getElementById("filtroRedUsuario").value = e.usuario_uuid || "";
+              cargarRedClientes();
+              document.getElementById("seccionRed").scrollIntoView({ behavior: "smooth" });
+            };
+          }
+          cont.appendChild(card);
+        });
+      }
+
+      function fmtHora(iso) {
+        if (!iso) return "—";
+        return new Date(iso).toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      }
+
+      async function cargarDetalle(uuid, nombre) {
+        const r = await fetch(
+          `/api/performance/dispositivo/${uuid}?periodo=${periodo}&fecha=${fechaInput.value}`,
+          { credentials: "include" }
+        );
+        if (!r.ok) {
+          alert("No se pudo cargar el detalle (" + r.status + "). Recarga la sesión.");
+          return;
+        }
+
+        const data = await r.json();
+        datosActuales = normalizarDatos(data);
+        const { pieApps, catPie, barras, lista, urls, proyectosCursor } = datosActuales;
+
+        document.getElementById("detalle").classList.remove("hidden");
+        document.getElementById("detalle").dataset.uuid = uuid;
+        document.getElementById("detalle").dataset.nombre = nombre;
+        document.getElementById("detalleTitulo").textContent = `Detalle: ${nombre}`;
+        document.getElementById("detalleSubtitulo").textContent =
+          `${etiquetaPeriodo(periodo)} · ${fmtFecha(data.desde || fechaInput.value)} → ${fmtFecha(data.hasta || fechaInput.value)}`;
+
+        const estado = document.getElementById("detalleEstado");
+        if (!chartDisponible()) {
+          estado.textContent = "⚠ Chart.js no cargó (revisa conexión). Las listas sí tienen datos — expande con ▶.";
+          estado.classList.remove("hidden");
+        } else {
+          estado.classList.add("hidden");
+        }
+
+        setBadge("badgePieApps", pieApps.length);
+        setBadge("badgePieCat", catPie.length);
+        setBadge("badgeProyectos", proyectosCursor.length);
+        setBadge("badgeBarras", barras.length);
+        setBadge("badgeApps", lista.length);
+        setBadge("badgeUrls", urls.length);
+
+        document.getElementById("listaApps").innerHTML =
+          lista.length > 0
+            ? lista
+                .map(
+                  (a) =>
+                    `<li class="flex justify-between gap-2 items-start border-b border-gray-50 pb-2">
+                      <span class="flex flex-col gap-1 min-w-0">
+                        <span class="truncate font-medium">${a.nombre_corto || a.nombre_app || a.nombre}</span>
+                        ${badgeCategoria(a.categoria || "otro")}
+                      </span>
+                      <span class="text-gray-500 shrink-0">${fmtSeg(Number(a.segundos))}</span>
+                    </li>`
+                )
+                .join("")
+            : "<li class='text-gray-400 py-2'>Sin aplicaciones registradas</li>";
+
+        document.getElementById("listaUrls").innerHTML =
+          urls.length > 0
+            ? urls
+                .map(
+                  (u) =>
+                    `<li class="border-b border-gray-50 pb-2">
+                      <div class="text-xs text-gray-400">${fmtHora(u.periodo_inicio)} · ${u.navegador || "web"}</div>
+                      <div class="truncate font-medium text-sm">${u.titulo || u.url || "—"}</div>
+                      <div class="text-gray-500 text-xs">${fmtSeg(Number(u.segundos))}</div>
+                    </li>`
+                )
+                .join("")
+            : "<li class='text-gray-400 py-2'>Sin URLs</li>";
+
+        ["panelPieApps", "panelPieCat", "panelProyectosCursor", "panelBarras", "panelApps", "panelUrls"].forEach((id) => {
+          const p = document.getElementById(id);
+          if (p) p.open = false;
+        });
+        if (proyectosCursor.length > 0) document.getElementById("panelProyectosCursor").open = true;
+        else if (lista.length > 0) document.getElementById("panelApps").open = true;
+
+        Object.keys(charts).forEach((k) => destroyChart(k));
+        renderGraficosAbiertos();
+      }
+
+      fechaInput.addEventListener("change", () => {
+        cargarResumen();
+        const det = document.getElementById("detalle");
+        if (!det.classList.contains("hidden") && det.dataset.uuid) {
+          cargarDetalle(det.dataset.uuid, det.dataset.nombre);
+        }
+      });
+
+      cargarResumen();
+      cargarRedClientes();
+    </script>
+  </body>
+</html>

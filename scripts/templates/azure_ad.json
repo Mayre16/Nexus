@@ -1,0 +1,8 @@
+{
+  "Enabled": false,
+  "TenantId": "TU-TENANT-ID",
+  "ClientId": "TU-CLIENT-ID-APP-REGISTRATION",
+  "AllowedEmails": [
+    "martha@adesa.com.do"
+  ]
+}

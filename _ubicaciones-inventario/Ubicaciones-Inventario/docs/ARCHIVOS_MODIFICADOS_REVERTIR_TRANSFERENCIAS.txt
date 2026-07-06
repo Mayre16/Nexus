@@ -1,0 +1,119 @@
+ARCHIVOS MODIFICADOS PARA REVERTIR TRANSFERENCIAS
+==================================================
+
+Fecha: 2026-01-26
+Descripción: Implementación del endpoint para revertir transferencias procesadas (solo administradores)
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. routes/transferencias.py
+   - Líneas 737-842: Agregado endpoint `/api/transferencias/<transferencia_guid>/revertir`
+   - Requiere autenticación y rol de administrador
+   - Revierte stock físico en ubicaciones ADESA (origen y destino)
+   - Elimina todos los movimientos de la transferencia
+   - Marca la transferencia como PENDIENTE
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. Endpoint de revertir transferencia:
+   - Ruta: `POST /api/transferencias/<transferencia_guid>/revertir`
+   - Decoradores: `@require_auth`, `@require_admin`
+   - Funcionalidad:
+     * Valida que la transferencia exista y esté PROCESADA
+     * Obtiene todos los movimientos de tipo TRANSFER con el guid
+     * Revierte stock físico en ubicaciones ADESA (origen y destino)
+     * Elimina todos los movimientos
+     * Marca transferencia como PENDIENTE
+     * Retorna mensaje de éxito con cantidad de ubicaciones revertidas
+
+2. Lógica de reversión de stock:
+   - **Destino ADESA:** Resta la cantidad transferida del stock actual
+   - **Origen ADESA:** Suma la cantidad transferida al stock actual (o crea registro si no existe)
+   - **No-ADESA:** No se modifica stock (solo auditoría)
+
+3. Logs informativos:
+   - Agregados logs para cada ubicación revertida
+   - Log final con resumen de la reversión
+
+COMPORTAMIENTO:
+---------------
+
+**Escenario: Revertir transferencia de 2P1D01N1 → 2P1D01N2 (10 unidades)**
+
+1. Usuario (admin) hace clic en "Revertir Transferencia"
+2. Sistema valida que la transferencia esté PROCESADA
+3. Sistema obtiene movimientos de la transferencia
+4. Sistema revierte stock:
+   - `2P1D01N1`: +10 (origen)
+   - `2P1D01N2`: -10 (destino)
+5. Sistema elimina movimientos
+6. Sistema marca transferencia como PENDIENTE
+7. Usuario ve mensaje de éxito
+
+**Resultado:** La transferencia queda como PENDIENTE y el stock físico se revierte.
+
+SEGURIDAD:
+----------
+
+✅ Solo administradores pueden revertir
+✅ Solo se pueden revertir transferencias PROCESADAS
+✅ Se revierte stock SOLO en ubicaciones ADESA (Regla de Oro #4)
+✅ Transacciones con rollback en caso de error
+
+COMPARACIÓN CON AJUSTES:
+-------------------------
+
+**Similaridades:**
+- Ambos requieren rol de administrador
+- Ambos revierten stock físico en ubicaciones ADESA
+- Ambos eliminan movimientos
+- Ambos respetan Regla de Oro #4
+
+**Diferencias:**
+- Ajustes: Marca como "revertido" (no cambia estado)
+- Transferencias: Marca como PENDIENTE (permite reprocesar)
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+----------------------------------------
+
+1. Subir el archivo modificado:
+   - routes/transferencias.py
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario.
+
+4. Probar:
+   - Procesar una transferencia
+   - Hacer clic en "Revertir Transferencia" (como admin)
+   - Verificar que el stock se revierte correctamente
+   - Verificar que la transferencia queda como PENDIENTE
+
+RESULTADO ESPERADO:
+-------------------
+
+Después de revertir una transferencia:
+- ✅ El stock físico se revierte en ubicaciones ADESA
+- ✅ Los movimientos se eliminan
+- ✅ La transferencia queda como PENDIENTE
+- ✅ Se puede volver a procesar la transferencia si es necesario
+
+NOTA SOBRE UBICACIONES EN 0:
+-----------------------------
+
+**Transferencias NO tiene el mismo problema que Ajustes con ubicaciones en 0:**
+
+- Ajustes: Agrupa movimientos por timestamp y ubicación (necesita COALESCE)
+- Transferencias: Usa tabla TransferenciaProcesada (no agrupa movimientos)
+- Transferencias siempre tiene origen y destino definidos
+- No requiere correcciones adicionales para ubicaciones en 0
+
+
+
+
+
+
+
+

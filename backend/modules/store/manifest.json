@@ -1,0 +1,23 @@
+{
+  "technicalName": "store",
+  "displayName": "Nexus Store",
+  "summary": "Tienda en línea B2B/B2C, catálogo, pedidos e integración ERP",
+  "version": "0.1.0",
+  "category": "sales",
+  "state": "installed",
+  "installable": true,
+  "autoInstall": true,
+  "depends": ["nexus_core"],
+  "routes": {
+    "ui": "/store.html",
+    "api": "/api/store",
+    "dashboardPath": "/store.html",
+    "links": [
+      { "label": "Tienda online", "href": "/store.html" },
+      { "label": "Estado ADM", "href": "/store.html#adm" }
+    ]
+  },
+  "roles": ["admin", "empleado"],
+  "icon": "🛒",
+  "sortOrder": 30
+}

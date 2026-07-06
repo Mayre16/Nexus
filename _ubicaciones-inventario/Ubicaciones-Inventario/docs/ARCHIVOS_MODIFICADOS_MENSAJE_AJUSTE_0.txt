@@ -1,0 +1,56 @@
+ARCHIVOS MODIFICADOS PARA MEJORAR MENSAJE CUANDO NO SE CREAN MOVIMIENTOS
+=======================================================================
+
+Fecha: 2026-01-26
+Descripción: Mejora en mensajes cuando se intenta ajustar pero no se crean movimientos (diferencia = 0)
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. routes/ajustes.py
+   - Líneas 414-420: Mejorado mensaje de respuesta cuando no se crean movimientos
+   - Agregado campo "advertencia" en la respuesta JSON cuando total_movimientos = 0
+
+2. templates/ajustes.html
+   - Líneas 1092-1096: Mejorado manejo de mensajes cuando total_movimientos = 0
+   - Ahora muestra mensaje de advertencia (warning) cuando no se crean movimientos
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. Backend (routes/ajustes.py):
+   - ANTES: Siempre devolvía "Ajuste registrado exitosamente" aunque no se crearan movimientos
+   - DESPUÉS: 
+     - Si hay movimientos: "Ajuste registrado exitosamente"
+     - Si no hay movimientos: "No se crearon movimientos. Verifica que haya diferencia entre el stock actual y el ajuste deseado."
+   - Agregado campo "advertencia" en la respuesta cuando total_movimientos = 0
+
+2. Frontend (templates/ajustes.html):
+   - ANTES: Siempre mostraba "Ajuste registrado exitosamente. 0 movimiento(s) creado(s)" (confuso)
+   - DESPUÉS:
+     - Si hay movimientos: Muestra mensaje de éxito con cantidad de movimientos
+     - Si no hay movimientos: Muestra mensaje de advertencia explicando por qué
+
+BENEFICIO:
+----------
+
+Ahora el usuario verá un mensaje claro cuando intente ajustar pero no se cree ningún movimiento, en lugar de un mensaje confuso de "éxito" con 0 movimientos.
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+----------------------------------------
+
+1. Subir los 2 archivos modificados:
+   - routes/ajustes.py
+   - templates/ajustes.html
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario.
+
+
+
+
+
+
+
+

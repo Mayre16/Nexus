@@ -1,0 +1,92 @@
+ARCHIVOS MODIFICADOS PARA CORREGIR HORA DE SINCRONIZACIÓN
+==========================================================
+
+Fecha: 2026-01-26
+Descripción: Corrección de zona horaria para mostrar la hora correcta de RD en la sincronización de productos
+
+PROBLEMA:
+---------
+La hora de sincronización mostraba 4 horas adelantadas porque:
+1. Python guarda fechas en UTC (usando `datetime.utcnow()`)
+2. `isoformat()` no incluye el indicador "Z" para UTC
+3. JavaScript interpreta fechas sin "Z" como hora local
+4. Si el navegador está en RD (UTC-4), muestra 4 horas menos de lo correcto
+
+SOLUCIÓN:
+---------
+1. Agregar "Z" al final del ISO string en el backend para indicar UTC
+2. En el frontend, agregar lógica para asegurar que tenga "Z" si no lo tiene
+3. Especificar `timeZone: 'America/Santo_Domingo'` para convertir a hora local de RD
+
+ARCHIVOS MODIFICADOS:
+---------------------
+
+1. routes/sincronizar.py
+   - Línea 604: Agregado "Z" al final del ISO string para `last_sync_at`
+   - Línea 1132: Agregado "Z" al final del ISO string para `last_sync_at` (con verificación de None)
+
+2. templates/admin.html
+   - Línea 836: Agregada lógica para agregar "Z" si la fecha no lo tiene (compatibilidad)
+
+CAMBIOS REALIZADOS:
+-------------------
+
+1. Backend (routes/sincronizar.py):
+   - Agregado "Z" al final del ISO string para indicar que es UTC
+   - Formato: "2026-01-27T01:30:34Z" en lugar de "2026-01-27T01:30:34"
+   - Agregada verificación de None antes de agregar "Z"
+
+2. Frontend (templates/admin.html):
+   - Agregada lógica para agregar "Z" si la fecha no lo tiene (compatibilidad con datos antiguos)
+   - Ya tenía `timeZone: 'America/Santo_Domingo'` para convertir a hora local de RD
+
+COMPORTAMIENTO:
+---------------
+
+**ANTES:**
+- Fecha guardada: "2026-01-27T01:30:34" (UTC, sin indicador)
+- JavaScript interpreta: Hora local (asume que es hora local)
+- Muestra: "27/01/2026, 01:30:34 a. m." (incorrecto, 4 horas adelantada)
+
+**DESPUÉS:**
+- Fecha guardada: "2026-01-27T01:30:34Z" (UTC, con indicador)
+- JavaScript interpreta: UTC correctamente
+- Convierte a: Hora local de RD (UTC-4)
+- Muestra: "26/01/2026, 09:30:34 p. m." (correcto)
+
+**Ejemplo:**
+- UTC: 27/01/2026, 01:30:34
+- RD (UTC-4): 26/01/2026, 21:30:34 (9:30 PM del día anterior)
+
+INSTRUCCIONES PARA ACTUALIZAR EN CPANEL:
+----------------------------------------
+
+1. Subir los archivos modificados:
+   - routes/sincronizar.py
+   - templates/admin.html
+
+2. No se requieren cambios en la base de datos.
+
+3. Reiniciar la aplicación si es necesario.
+
+4. Probar:
+   - Verificar que la hora de sincronización muestra la hora correcta de RD
+   - Verificar que no está 4 horas adelantada
+   - Comparar con la hora actual del sistema
+
+RESULTADO ESPERADO:
+-------------------
+
+Después de la corrección:
+- ✅ Las fechas de sincronización se interpretan correctamente como UTC
+- ✅ Se convierten automáticamente a hora local de RD (UTC-4)
+- ✅ La hora mostrada es la correcta (no 4 horas adelantada)
+- ✅ Formato consistente con otras fechas del sistema
+
+
+
+
+
+
+
+

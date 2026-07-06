@@ -1,0 +1,4 @@
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\obj\Release\net8.0\PipePoll.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\obj\Release\net8.0\PipePoll.AssemblyInfoInputs.cache
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\obj\Release\net8.0\PipePoll.AssemblyInfo.cs
+c:\Users\marth\Cursor Projects\Nexus\scripts\TestBadBoyLogin\obj\Release\net8.0\PipePoll.csproj.CoreCompileInputs.cache

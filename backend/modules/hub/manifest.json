@@ -1,0 +1,20 @@
+{
+  "technicalName": "hub",
+  "displayName": "Nexus Hub",
+  "summary": "Membresías y aplicaciones: Calidad de Energía, Bids Alert y más",
+  "version": "0.1.0",
+  "category": "memberships",
+  "state": "installed",
+  "installable": true,
+  "autoInstall": false,
+  "depends": ["nexus_core"],
+  "routes": {
+    "ui": "/hub.html",
+    "api": "/api/hub",
+    "dashboardPath": "/hub.html"
+  },
+  "roles": ["admin", "empleado", "cliente_suscriptor"],
+  "requiresAssignment": true,
+  "icon": "🔑",
+  "sortOrder": 60
+}

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Ajuste - WMS</title>
+    <link rel="stylesheet" href="/static/css/wms.css">
+    <link rel="stylesheet" href="/static/css/ajustes-detalle.css">
+</head>
+<body>
+    <header class="wms-header">
+        <div class="wms-header-inner">
+            <div class="wms-header-title">
+                <span class="module-icon">📋</span>
+                <h1>Detalle de Ajuste</h1>
+            </div>
+            <div class="wms-header-actions">
+                <span class="wms-header-user" id="user-info">Cargando...</span>
+                <a href="/ajustes" class="wms-btn wms-btn-secondary wms-btn-sm" title="Historial">📋 <span class="wms-header-btn-label">Historial</span></a>
+                <a href="/" class="wms-btn wms-btn-secondary wms-btn-sm" title="Inicio">🏠 <span class="wms-header-btn-label">Inicio</span></a>
+                <button type="button" class="wms-btn wms-btn-secondary wms-btn-sm" onclick="cerrarSesion()" title="Cerrar sesión"><span class="wms-icon-logout" aria-hidden="true"></span> <span class="wms-header-btn-label">Salir</span></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="wms-page">
+        <!-- Mensajes -->
+        <div id="message-error" class="wms-toast wms-toast-error"></div>
+        <div id="message-success" class="wms-toast wms-toast-success"></div>
+
+        <!-- Información del Ajuste -->
+        <div id="ajuste-info" class="wms-card" style="display: none;">
+            <div class="wms-card-body">
+                <div class="ajuste-info">
+                    <h3 id="ajuste-numero">Ajuste - Cargando...</h3>
+                    <div class="ajuste-details">
+                        <div>
+                            <strong>Fecha:</strong>
+                            <span id="ajuste-fecha">N/A</span>
+                        </div>
+                        <div>
+                            <strong>Ubicación:</strong>
+                            <span id="ajuste-ubicacion">N/A</span>
+                            <span id="ajuste-tipo-badge"></span>
+                        </div>
+                        <div>
+                            <strong>Procesado por:</strong>
+                            <span id="ajuste-usuario">N/A</span>
+                        </div>
+                        <div>
+                            <strong>Total Productos:</strong>
+                            <span id="ajuste-total-productos">0</span>
+                        </div>
+                        <div>
+                            <strong>Total Movimientos:</strong>
+                            <span id="ajuste-total-movimientos">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón Revertir (solo admin) -->
+                <div id="btn-revertir-container" style="display: none; text-align: right;">
+                    <button class="wms-btn wms-btn-danger wms-btn-lg" onclick="revertirAjuste()">
+                        ⚠️ Revertir Ajuste
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos Ajustados -->
+        <div class="wms-card mt-4">
+            <div class="wms-card-header">
+                <h2>Productos Ajustados (Auditoría)</h2>
+            </div>
+            <div class="wms-card-body">
+                <div id="productos-grid" class="productos-grid">
+                    <div class="wms-loading"><div class="wms-spinner"></div> Cargando productos...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/security_utils.js"></script>
+    <script src="/static/js/wms-common.js"></script>
+    <script src="/static/js/ajustes-detalle.js"></script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+/* === View-specific: Ajustes de Inventario === */
+
+/* Module accent overrides */
+.wms-page .wms-btn-primary {
+    background: var(--color-ajuste);
+}
+.wms-page .wms-btn-primary:hover {
+    background: var(--color-ajuste-dark);
+}
+.wms-page .wms-input:focus,
+.wms-page .wms-select:focus,
+.wms-page .wms-textarea:focus {
+    border-color: var(--color-ajuste);
+    box-shadow: 0 0 0 3px rgba(232, 67, 147, 0.15);
+}
+
+/* Info box */
+.info-box {
+    background: var(--color-info-bg);
+    border-left: 4px solid var(--color-info);
+    padding: var(--space-4);
+    margin-bottom: var(--space-5);
+    border-radius: var(--radius-md);
+}
+.info-box h3 {
+    color: var(--color-info-text);
+    margin-bottom: var(--space-3);
+    font-size: var(--font-size-md);
+}
+.info-box p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+}
+
+/* Product info */
+.producto-info {
+    background: var(--color-bg);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-5);
+}
+.producto-info h4 {
+    color: var(--color-text);
+    margin-bottom: var(--space-3);
+}
+.producto-info p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    margin: var(--space-1) 0;
+}
+
+/* Stock locations */
+.stock-ubicaciones {
+    margin-top: var(--space-4);
+}
+.stock-ubicaciones h4 {
+    color: var(--color-text);
+    margin-bottom: var(--space-3);
+    font-size: var(--font-size-md);
+}
+.ubicacion-item {
+    background: var(--color-surface);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--color-border);
+}
+.ubicacion-item span {
+    font-weight: 600;
+    color: var(--color-text);
+}
+.ubicacion-item .cantidad {
+    color: var(--color-info);
+    font-size: var(--font-size-lg);
+}
+
+/* Search type toggle */
+.search-buttons {
+    display: flex;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+.btn-search-type {
+    flex: 1;
+    padding: var(--space-3);
+    border: 2px solid var(--color-border);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    transition: all var(--transition);
+}
+.btn-search-type:hover {
+    border-color: var(--color-ajuste);
+    color: var(--color-ajuste);
+}
+.btn-search-type.active {
+    border-color: var(--color-ajuste);
+    background: var(--color-ajuste);
+    color: white;
+}
+
+/* Card spacing */
+.wms-card + .wms-card {
+    margin-top: var(--space-5);
+}
+.wms-card h2 {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: var(--space-4);
+}
+
+/* Compat: JS-generated elements use .form-group */
+.form-group {
+    margin-bottom: var(--space-4);
+}
+.form-group label {
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    background: var(--color-surface);
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-ajuste);
+    box-shadow: 0 0 0 3px rgba(232, 67, 147, 0.15);
+}
+
+@media (max-width: 768px) {
+    .search-buttons {
+        flex-direction: column;
+    }
+}
