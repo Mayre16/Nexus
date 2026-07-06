@@ -25,15 +25,14 @@ Nexus/
 │  │  ├─ crypto.js           # AES-256-GCM (cifrado de datos sensibles)
 │  │  ├─ tokens.js           # Firma/verificación JWT + cookies seguras
 │  │  └─ securityLogger.js   # Auditoría de eventos de seguridad
-│  ├─ routes/                # (pendiente) routers por módulo
+│  ├─ routes/                # Routers por módulo
 │  ├─ server.js              # Punto de entrada blindado
 │  └─ package.json
 ├─ frontend/                 # Web responsiva (TailwindCSS / Capacitor)
-│  └─ index.html
 ├─ config/
 │  └─ .env.example           # Plantilla de variables (copiar a config/.env)
 ├─ database/
-│  └─ nexus_master.sql       # Esquema MySQL unificado (Nexus Desk + base)
+│  └─ nexus_master.sql       # Esquema MySQL unificado
 ├─ SECURITY-NEXUS.md         # Reglas de seguridad y gaps críticos
 ├─ .gitignore
 └─ README.md
@@ -65,30 +64,24 @@ Accesos locales:
 | Adminer (visor BD) | http://localhost:8080 | Sistema MySQL · Servidor `mariadb` · user `nexus_app` |
 
 > En el primer arranque, `cd backend && npm install`. Las credenciales locales
-> ya están en `config/.env` (solo desarrollo, ignorado por git). Para producción
-> genera secretos nuevos (`npm run gen:secret`, `npm run gen:enckey`).
+> van en `config/.env` (ignorado por git — usar `config/.env.example` como plantilla).
+> Para producción genera secretos nuevos (`npm run gen:secret`, `npm run gen:enckey`).
 
 ## Branding
 
 Identidad tomada de [adesa.com.do](https://adesa.com.do/): rojo `#be1622`, rayo
-dorado `#fcb900`, negro y blanco. El logo usa el lockup **ADESA · NEXUS · desde 1999**
-y la portada lleva un hero que fusiona los dos mundos (energía + deportes).
-Assets en `frontend/assets/`.
+dorado `#fcb900`, negro y blanco. Assets en `frontend/assets/`.
 
 ## Roles (RBAC)
 
 `admin` · `empleado` (técnico) · `cliente_externo` · `cliente_suscriptor`.
 La autorización se valida **siempre en el servidor** (`authMiddleware.js`).
 
-## Módulos (hoja de ruta)
+## Módulos
 
-1. **Nexus Desk & Mail AI** — Helpdesk (IMAP), cierre técnico, KB How-To, OT en PDF, propuestas IA.
-2. **Nexus Office** — CRM, proyectos/Gantt, catálogos Schneider/Accuenergy.
-3. **Nexus Tracker** — Telemetría del agente C# "badboy" (`/api/performance/log`).
-4. **Nexus Grid** — Monitoreo EasyMetering + licencias Schneider + cobro ideal.
-5. **Nexus Store** — E-commerce B2B/B2C + ERP ADM + logística.
+1. **Nexus Desk** — Helpdesk (IMAP), portal cliente, base de conocimientos.
+2. **Nexus Office** — CRM, proyectos/Gantt.
+3. **Nexus Tracker** — Telemetría del agente BadBoy.
+4. **Nexus Grid** — Monitoreo EasyMetering.
+5. **Nexus Store / iERP** — ERP integrado.
 6. **Nexus Hub** — Suscripciones (Power Quality, Scrapibids).
-
-> Este arranque entrega la **arquitectura de datos** y el **núcleo de seguridad**
-> (Tarea Actual). Los routers de cada módulo se construyen sobre esta base.
-```
