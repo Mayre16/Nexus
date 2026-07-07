@@ -61,6 +61,7 @@ scripts/**/bin/
 scripts/**/obj/
 dist/
 storage/
+gh-pages-out/
 __pycache__/
 *.pyc
 .playwright/

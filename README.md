@@ -85,3 +85,12 @@ La autorización se valida **siempre en el servidor** (`authMiddleware.js`).
 4. **Nexus Grid** — Monitoreo EasyMetering.
 5. **Nexus Store / iERP** — ERP integrado.
 6. **Nexus Hub** — Suscripciones (Power Quality, Scrapibids).
+
+## Vista previa en GitHub Pages
+
+Cada push a `main` publica una **demo estática** (sin base de datos):
+
+**https://mayre16.github.io/Nexus/preview.html**
+
+- Navega todas las pantallas HTML con datos de demostración.
+- Login, tickets reales, Grid sync, etc. requieren el servidor local (`npm run dev`).
